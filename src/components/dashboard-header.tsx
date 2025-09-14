@@ -59,14 +59,12 @@ export function DashboardHeader() {
               <span>Settings</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <Link href="/" legacyBehavior passHref>
-              <DropdownMenuItem asChild>
-                <a>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </a>
-              </DropdownMenuItem>
-            </Link>
+            <DropdownMenuItem asChild>
+              <Link href="/">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </Link>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         <div className="md:hidden">
