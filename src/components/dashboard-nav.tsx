@@ -14,6 +14,7 @@ import {
   type LucideIcon,
   ShieldCheck,
   Sunset,
+  Home,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
@@ -77,8 +78,8 @@ export function DashboardNav() {
           pathname === '/dashboard' && 'bg-muted text-primary'
         )}
       >
-        <LayoutGrid className="h-4 w-4" />
-        Dashboard
+        <Home className="h-4 w-4" />
+        Home
       </Link>
       {visibleNavItems.map((item) => (
          <Link
@@ -86,7 +87,7 @@ export function DashboardNav() {
           href={item.href}
           className={cn(
             'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-            (pathname === item.href || (item.href === '/dashboard/preschool' && pathname.startsWith('/dashboard'))) && 'bg-muted text-primary'
+            (pathname.startsWith(item.href)) && 'bg-muted text-primary'
           )}
         >
           <item.icon className="h-4 w-4" />
