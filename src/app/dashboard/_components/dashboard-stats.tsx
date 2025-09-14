@@ -30,8 +30,9 @@ export default function DashboardStats() {
                 getFees()
             ]);
 
-            // Calculate total students
-            setTotalStudents(students.length);
+            // Calculate total students (enrolled only)
+            const enrolledStudents = students.filter(s => s.status === 'enrolled');
+            setTotalStudents(enrolledStudents.length);
 
             // Calculate attendance rate
             if (attendance.length > 0) {
