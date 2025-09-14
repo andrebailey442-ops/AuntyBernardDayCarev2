@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
-import { getTeacherPermissions } from '@/services/permissions';
+import { getTeacherPermissions, initializePermissionData } from '@/services/permissions';
 
 type NavItem = {
   href: string;
@@ -42,10 +42,13 @@ export function DashboardNav() {
   React.useEffect(() => {
     const determineVisibleItems = async () => {
       if (user?.role === 'Admin') {
-        setVisibleNavItems(navItems.filter(item => item.href !== '/dashboard/manage-users'));
+        setVisibleNavItems(navItems.filter(item => !item.adminOnly));
       } else if (user?.role === 'Teacher') {
+        initializePermissionData();
         const permissions = await getTeacherPermissions();
-        const teacherNav = navItems.filter(item => !item.adminOnly && (item.href === '/dashboard' || permissions.includes(item.href)));
+        const teacherNav = navItems.filter(item => 
+            !item.adminOnly && (item.href === '/dashboard' || permissions.includes(item.href))
+        );
         setVisibleNavItems(teacherNav);
       } else {
         setVisibleNavItems([]);
