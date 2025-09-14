@@ -46,7 +46,7 @@ export default function ReportManager() {
       <CardHeader>
         <CardTitle>Student Reports</CardTitle>
         <CardDescription>
-          Search for students and generate their report cards.
+          Search for students by name and generate their report cards.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -55,7 +55,7 @@ export default function ReportManager() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search for a student..."
+              placeholder="Search for a student by name..."
               className="pl-8 sm:w-[300px]"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
