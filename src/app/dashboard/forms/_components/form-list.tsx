@@ -8,7 +8,7 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, HeartPulse, Camera, Bus } from 'lucide-react';
+import { Download, FileText, HeartPulse } from 'lucide-react';
 import { FORMS } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import type { LucideProps } from 'lucide-react';
@@ -22,8 +22,6 @@ type IconComponents = {
 const icons: IconComponents = {
   FileText,
   HeartPulse,
-  Camera,
-  Bus,
 };
 
 
