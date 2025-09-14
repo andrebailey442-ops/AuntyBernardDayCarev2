@@ -19,65 +19,75 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { PlusCircle } from 'lucide-react';
-import { STUDENTS, SUBJECTS } from '@/lib/data';
-import type { Student } from '@/lib/types';
+import { STUDENTS, SUBJECTS, GRADES } from '@/lib/data';
+import type { Student, Grade, Subject } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { Check } from 'lucide-react';
+
+type GradeState = { [studentId: string]: { [subjectId: string]: string } };
 
 export default function GradeManager() {
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
   const { toast } = useToast();
+  const [grades, setGrades] = React.useState<GradeState>({});
 
-  const handleOpenDialog = (student: Student) => {
-    setSelectedStudent(student);
-    setIsDialogOpen(true);
+  React.useEffect(() => {
+    // Initialize grade state from existing data
+    const initialState: GradeState = {};
+    STUDENTS.forEach(student => {
+      initialState[student.id] = {};
+      SUBJECTS.forEach(subject => {
+        const gradeRecord = GRADES.find(g => g.studentId === student.id && g.subject === subject.id);
+        initialState[student.id][subject.id] = gradeRecord ? gradeRecord.grade : '';
+      });
+    });
+    setGrades(initialState);
+  }, []);
+
+  const handleGradeChange = (studentId: string, subjectId: string, grade: string) => {
+    setGrades(prev => ({
+      ...prev,
+      [studentId]: {
+        ...prev[studentId],
+        [subjectId]: grade,
+      },
+    }));
   };
 
-  const handleAddGrade = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const subject = SUBJECTS.find(s => s.id === formData.get('subject'));
-    
-    if (selectedStudent && subject) {
-        toast({
-            title: 'Grade Added',
-            description: `Grade for ${subject.name} for ${selectedStudent.name} has been recorded.`
-        });
-    }
-
-    setIsDialogOpen(false);
-    setSelectedStudent(null);
+  const handleSaveAll = () => {
+    console.log('Saving grades:', grades);
+    toast({
+      title: 'Grades Saved',
+      description: 'All student grades have been successfully updated.',
+    });
   };
 
   return (
     <>
       <Card>
-        <CardHeader>
-          <CardTitle>Grade Management</CardTitle>
-          <CardDescription>Enter grades for each student.</CardDescription>
+        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <CardTitle>Grade Management</CardTitle>
+            <CardDescription>Enter grades for each student across all subjects.</CardDescription>
+          </div>
+          <Button onClick={handleSaveAll}>
+            <Check className="mr-2 h-4 w-4" />
+            Save All Grades
+          </Button>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Student</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="w-[250px]">Student</TableHead>
+                {SUBJECTS.map((subject) => (
+                  <TableHead key={subject.id} className="min-w-[150px]">{subject.name}</TableHead>
+                ))}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -93,64 +103,34 @@ export default function GradeManager() {
                         width="40"
                         data-ai-hint={student.imageHint}
                       />
-                      <div className="font-medium">{student.name}</div>
+      <div className="font-medium">{student.name}</div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Button onClick={() => handleOpenDialog(student)}>
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Enter Grade
-                    </Button>
-                  </TableCell>
+                  {SUBJECTS.map((subject) => (
+                    <TableCell key={subject.id}>
+                      <Select
+                        value={grades[student.id]?.[subject.id] || ''}
+                        onValueChange={(value) => handleGradeChange(student.id, subject.id, value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="-" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {['A', 'B', 'C', 'D', 'F', 'Incomplete'].map((g) => (
+                            <SelectItem key={g} value={g}>
+                              {g}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                  ))}
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
-
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Grade for {selectedStudent?.name}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleAddGrade} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="subject">Subject</Label>
-              <Select name="subject" required>
-                <SelectTrigger id="subject">
-                  <SelectValue placeholder="Select subject" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SUBJECTS.map((subject) => (
-                    <SelectItem key={subject.id} value={subject.id}>
-                      {subject.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="grade">Grade</Label>
-              <Select name="grade" required>
-                <SelectTrigger id="grade">
-                  <SelectValue placeholder="Select grade" />
-                </SelectTrigger>
-                <SelectContent>
-                  {['A', 'B', 'C', 'D', 'F', 'Incomplete'].map((g) => (
-                    <SelectItem key={g} value={g}>
-                      {g}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button type="submit" className="w-full">
-              Save Grade
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
