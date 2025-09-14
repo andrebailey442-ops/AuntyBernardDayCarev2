@@ -62,67 +62,69 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="flex flex-col items-center gap-4 mb-8">
-        <ScholarStartLogo className="h-16 w-16 text-primary" />
-        <h1 className="text-4xl font-bold font-headline text-center text-foreground">
-          Welcome to ScholarStart
-        </h1>
-        <p className="text-muted-foreground text-center">
-          The smart way to manage your preschool.
+      <div className="w-full max-w-md space-y-8">
+        <div className="flex flex-col items-center gap-4">
+            <ScholarStartLogo className="h-16 w-16 text-primary" />
+            <h1 className="text-4xl font-bold font-headline text-center text-foreground">
+            Welcome to ScholarStart
+            </h1>
+            <p className="text-muted-foreground text-center">
+            The smart way to manage your preschool.
+            </p>
+        </div>
+        <Card>
+            <CardHeader>
+            <CardTitle className="text-2xl text-center">Admin Login</CardTitle>
+            </CardHeader>
+            <CardContent>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                    control={form.control}
+                    name="username"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Username</FormLabel>
+                        <FormControl>
+                        <Input
+                            placeholder="Admin"
+                            {...field}
+                            disabled={isLoading}
+                        />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                        <Input
+                            type="password"
+                            placeholder="admin"
+                            {...field}
+                            disabled={isLoading}
+                        />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? 'Signing in...' : 'Sign In'}
+                </Button>
+                </form>
+            </Form>
+            </CardContent>
+        </Card>
+        <p className="text-xs text-muted-foreground text-center">
+            Demo credentials: Admin / admin
         </p>
       </div>
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Admin Login</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Admin"
-                        {...field}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="admin"
-                        {...field}
-                        disabled={isLoading}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Signing in...' : 'Sign In'}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-      <p className="text-xs text-muted-foreground mt-4">
-        Demo credentials: Admin / admin
-      </p>
     </main>
   );
 }

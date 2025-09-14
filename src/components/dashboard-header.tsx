@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from './ui/button';
 import { Bell, LogOut, Settings } from 'lucide-react';
 import Link from 'next/link';
+import { ScholarStartLogo } from './icons';
 
 export function DashboardHeader() {
   const pathname = usePathname();
@@ -28,11 +29,16 @@ export function DashboardHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-card px-4 sm:px-6">
+    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6">
       <SidebarTrigger className="md:hidden" />
       
-      <h1 className="text-xl font-semibold font-headline">{getTitle()}</h1>
-      
+      <div className="flex items-center gap-2">
+        <Link href="/dashboard" className="flex items-center gap-2">
+            <ScholarStartLogo className="w-8 h-8 text-primary" />
+            <span className="text-xl font-bold font-headline hidden md:inline-block">ScholarStart</span>
+        </Link>
+      </div>
+
       <div className="ml-auto flex items-center gap-4">
         <Button variant="ghost" size="icon" className="rounded-full">
           <Bell className="h-5 w-5" />
