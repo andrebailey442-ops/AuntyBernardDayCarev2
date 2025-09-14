@@ -95,6 +95,7 @@ export function NewStudentForm() {
         studentId: '',
         firstName: '',
         lastName: '',
+        dob: undefined,
         parentFirstName: '',
         parentLastName: '',
         parentEmail: '',
@@ -103,6 +104,7 @@ export function NewStudentForm() {
         city: '',
         state: '',
         zip: '',
+        paymentPlan: undefined,
         emergencyContactName: '',
         emergencyContactPhone: '',
         medicalConditions: '',
@@ -452,15 +454,15 @@ export function NewStudentForm() {
             </div>
             <AlertDialog>
                 <div className="flex gap-4">
-                    <Button type="button" onClick={form.handleSubmit(onSubmit)} className="w-full" disabled={isLoading}>
-                        {isLoading ? 'Submitting...' : 'Submit Registration'}
-                    </Button>
                     <AlertDialogTrigger asChild>
-                         <Button type="button" variant="outline" className="w-full" onClick={downloadNewStudentApplication} disabled={true}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Download PDF
+                        <Button type="button" className="w-full" disabled={isLoading}>
+                            {isLoading ? 'Submitting...' : 'Submit Registration'}
                         </Button>
                     </AlertDialogTrigger>
+                     <Button type="button" variant="outline" className="w-full" onClick={downloadNewStudentApplication}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Download PDF
+                    </Button>
                 </div>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -471,7 +473,7 @@ export function NewStudentForm() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => { /* This is now handled by the main button */ }}>
+                        <AlertDialogAction onClick={form.handleSubmit(onSubmit)} disabled={isLoading}>
                             {isLoading ? 'Submitting...' : 'Confirm'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -483,3 +485,5 @@ export function NewStudentForm() {
     </Card>
   );
 }
+
+    
