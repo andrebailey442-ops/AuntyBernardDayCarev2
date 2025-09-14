@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Search, Printer, User, DollarSign, Edit, FileText } from 'lucide-react';
+import { Search, Printer, User, DollarSign, Edit, FileText, CheckCircle, MoreHorizontal } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -34,6 +34,14 @@ import {
     DialogTitle,
     DialogTrigger,
   } from "@/components/ui/dialog"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
+    DropdownMenuSeparator,
+  } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InvoiceDialog from './invoice-dialog';
@@ -154,6 +162,32 @@ export default function FinancialManager() {
         });
     }
   }
+
+  const handleConfirmPayment = async (student: Student) => {
+    const feeToUpdate = getStudentFee(student.id);
+    if (!feeToUpdate) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Fee record not found for student.' });
+      return;
+    }
+    
+    try {
+      await updateFee(feeToUpdate.id, { status: 'Paid' });
+      setFees(prevFees =>
+        prevFees.map(fee =>
+            fee.studentId === student.id
+            ? { ...fee, status: 'Paid' }
+            : fee
+        )
+      );
+      toast({
+        title: 'Payment Confirmed',
+        description: `Payment for ${student.name} has been marked as Paid.`,
+      });
+    } catch(error) {
+      console.error("Failed to confirm payment: ", error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to confirm payment.' });
+    }
+  };
   
   const handleViewInvoice = (student: Student) => {
     setSelectedStudent(student);
@@ -320,9 +354,8 @@ export default function FinancialManager() {
                         <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
                         <TableCell><Skeleton className="h-6 w-[70px] rounded-full" /></TableCell>
                         <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
-                        <TableCell className="text-right space-x-2">
-                           <Skeleton className="h-8 w-24 inline-block" />
-                           <Skeleton className="h-8 w-24 inline-block" />
+                        <TableCell className="text-right">
+                           <Skeleton className="h-8 w-8" />
                         </TableCell>
                     </TableRow>
                 ))
@@ -352,15 +385,34 @@ export default function FinancialManager() {
                     <Badge variant={fee?.status ? getStatusVariant(fee.status) : 'outline'}>{fee?.status ?? 'N/A'}</Badge>
                   </TableCell>
                   <TableCell>{fee?.plan ?? 'N/A'}</TableCell>
-                  <TableCell className="text-right space-x-2">
-                    <Button variant="outline" size="sm" onClick={() => router.push(`/dashboard/students/${student.id}`)}>
-                        <User className="mr-2 h-4 w-4" />
-                        View Profile
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleViewInvoice(student)}>
-                        <FileText className="mr-2 h-4 w-4" />
-                        View Invoice
-                    </Button>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => router.push(`/dashboard/students/${student.id}`)}>
+                            <User className="mr-2 h-4 w-4" />
+                            View Profile
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewInvoice(student)}>
+                            <FileText className="mr-2 h-4 w-4" />
+                            View Invoice
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                            onClick={() => handleConfirmPayment(student)}
+                            disabled={fee?.status === 'Paid'}
+                        >
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Confirm Payment
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               )})
