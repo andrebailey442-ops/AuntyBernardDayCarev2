@@ -1,51 +1,50 @@
-
+import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc, query, writeBatch } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import type { Student } from '@/lib/types';
-import { getFromLocalStorage, saveToLocalStorage, initializeLocalStorage } from '@/lib/local-storage';
 import { STUDENTS } from '@/lib/data';
 import { deleteFeeByStudentId } from './fees';
 
-const STORAGE_KEY = 'students';
+const COLLECTION_NAME = 'students';
 
-export const initializeStudentData = () => {
-    initializeLocalStorage(STORAGE_KEY, STUDENTS);
+export const initializeStudentData = async () => {
+    const q = query(collection(db, COLLECTION_NAME));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+        const batch = writeBatch(db);
+        STUDENTS.forEach(item => {
+            const docRef = doc(db, COLLECTION_NAME, item.id);
+            batch.set(docRef, item);
+        });
+        await batch.commit();
+    }
 }
 
 export const getStudents = async (): Promise<Student[]> => {
-    return getFromLocalStorage<Student>(STORAGE_KEY);
+    const q = query(collection(db, COLLECTION_NAME));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Student));
 };
 
 export const getStudent = async (id: string): Promise<Student | null> => {
-    const allStudents = await getStudents();
-    return allStudents.find(s => s.id === id) || null;
+    const docRef = doc(db, COLLECTION_NAME, id);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() } as Student;
+    }
+    return null;
 }
 
 export const addStudent = async (id: string, student: Omit<Student, 'id'>) => {
-    const allStudents = await getStudents();
     const newStudent: Student = { id, status: 'enrolled', ...student };
-    allStudents.push(newStudent);
-    saveToLocalStorage(STORAGE_KEY, allStudents);
+    await setDoc(doc(db, COLLECTION_NAME, id), newStudent);
 };
 
 export const updateStudent = async (id: string, studentUpdate: Partial<Student>) => {
-    let allStudents = await getStudents();
-    const studentIndex = allStudents.findIndex(s => s.id === id);
-    if (studentIndex > -1) {
-        allStudents[studentIndex] = { ...allStudents[studentIndex], ...studentUpdate };
-        saveToLocalStorage(STORAGE_KEY, allStudents);
-    } else {
-        throw new Error(`Student with id ${id} not found.`);
-    }
+    const docRef = doc(db, COLLECTION_NAME, id);
+    await updateDoc(docRef, studentUpdate);
 };
 
 export const deleteStudent = async (id: string) => {
-    let allStudents = await getStudents();
-    const updatedStudents = allStudents.filter(s => s.id !== id);
-    saveToLocalStorage(STORAGE_KEY, updatedStudents);
-
-    // Also remove related data
-    // This part needs other services to expose deletion functions
-    // For now, we'll imagine they exist and call them
-    // e.g. await deleteGradesByStudentId(id);
-    // e.g. await deleteAttendanceByStudentId(id);
+    await deleteDoc(doc(db, COLLECTION_NAME, id));
     await deleteFeeByStudentId(id);
 };

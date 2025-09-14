@@ -66,8 +66,7 @@ export default function FinancialManager() {
 
   const fetchData = React.useCallback(async () => {
     setLoading(true);
-    initializeStudentData();
-    initializeFeeData();
+    await Promise.all([initializeStudentData(), initializeFeeData()]);
     const [studentList, feeList] = await Promise.all([getStudents(), getFees()]);
     setStudents(studentList);
     setFees(feeList);

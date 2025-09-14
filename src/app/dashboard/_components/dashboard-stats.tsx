@@ -18,9 +18,11 @@ export default function DashboardStats() {
     React.useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
-            initializeStudentData();
-            initializeAttendanceData();
-            initializeFeeData();
+            await Promise.all([
+                initializeStudentData(),
+                initializeAttendanceData(),
+                initializeFeeData()
+            ]);
             
             const [students, attendance, fees] = await Promise.all([
                 getStudents(),

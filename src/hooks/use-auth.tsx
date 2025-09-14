@@ -19,17 +19,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const AUTH_STORAGE_KEY = 'currentUser';
 
   React.useEffect(() => {
-    initializeUserData();
-    try {
-      const storedUser = localStorage.getItem(AUTH_STORAGE_KEY);
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+    const initialize = async () => {
+      await initializeUserData();
+      try {
+        const storedUser = localStorage.getItem(AUTH_STORAGE_KEY);
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (error) {
+        console.error("Failed to retrieve user from localStorage", error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Failed to retrieve user from localStorage", error);
-    } finally {
-      setLoading(false);
     }
+    initialize();
   }, []);
 
   const login = async (username: string, password?: string) => {

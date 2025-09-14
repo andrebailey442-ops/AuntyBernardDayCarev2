@@ -50,7 +50,7 @@ export function DashboardNav() {
       if (user?.role === 'Admin') {
         setVisibleNavItems(navItems);
       } else if (user?.role === 'Teacher') {
-        initializePermissionData();
+        await initializePermissionData();
         const permissions = await getTeacherPermissions();
         // The main dashboard link is always visible
         const teacherNav = navItems.filter(item => 

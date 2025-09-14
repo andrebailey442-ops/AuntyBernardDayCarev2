@@ -37,8 +37,8 @@ export default function GraduationManager() {
   React.useEffect(() => {
     const fetchStudents = async () => {
       setLoading(true);
-      initializeStudentData();
-      initializeGradeData();
+      await initializeStudentData();
+      await initializeGradeData();
       const studentList = await getStudents();
       setStudents(studentList);
       setLoading(false);

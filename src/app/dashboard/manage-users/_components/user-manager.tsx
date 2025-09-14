@@ -81,7 +81,7 @@ export default function UserManager() {
   React.useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
-      initializeUserData();
+      await initializeUserData();
       const userList = await getUsers();
       setUsers(userList);
       setLoading(false);

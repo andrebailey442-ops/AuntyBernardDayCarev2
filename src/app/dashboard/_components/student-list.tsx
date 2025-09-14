@@ -42,7 +42,7 @@ export default function StudentList() {
   React.useEffect(() => {
     const fetchStudents = async () => {
       setLoading(true);
-      initializeStudentData();
+      await initializeStudentData();
       const studentList = await getStudents();
       setStudents(studentList);
       setLoading(false);

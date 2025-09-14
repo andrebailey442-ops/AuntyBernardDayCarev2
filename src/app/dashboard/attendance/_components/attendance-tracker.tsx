@@ -56,9 +56,11 @@ export default function AttendanceTracker() {
   React.useEffect(() => {
     const fetchData = async () => {
         setLoading(true);
-        initializeStudentData();
-        initializeSubjectData();
-        initializeAttendanceData();
+        await Promise.all([
+            initializeStudentData(),
+            initializeSubjectData(),
+            initializeAttendanceData()
+        ]);
 
         const [studentList, subjectList] = await Promise.all([
             getStudents(),

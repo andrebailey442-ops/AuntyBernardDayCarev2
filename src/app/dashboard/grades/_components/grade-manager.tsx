@@ -47,9 +47,11 @@ export default function GradeManager() {
   React.useEffect(() => {
     const fetchData = async () => {
         setLoading(true);
-        initializeStudentData();
-        initializeSubjectData();
-        initializeGradeData();
+        await Promise.all([
+            initializeStudentData(),
+            initializeSubjectData(),
+            initializeGradeData()
+        ]);
         const [studentList, subjectList, gradeList] = await Promise.all([
             getStudents(),
             getSubjects(),

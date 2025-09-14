@@ -34,8 +34,7 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
   React.useEffect(() => {
     const fetchData = async () => {
         setLoading(true);
-        initializeStudentData();
-        initializeFeeData();
+        await Promise.all([initializeStudentData(), initializeFeeData()]);
         const studentData = await getStudent(studentId);
         if (studentData) {
             setStudent(studentData);

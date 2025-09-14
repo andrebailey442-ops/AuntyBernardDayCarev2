@@ -25,7 +25,7 @@ export default function PermissionManager() {
   React.useEffect(() => {
     const fetchPermissions = async () => {
       setLoading(true);
-      initializePermissionData();
+      await initializePermissionData();
       const currentPermissions = await getTeacherPermissions();
       setPermissions(currentPermissions);
       setLoading(false);

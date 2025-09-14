@@ -40,7 +40,7 @@ export default function AfterCareManager() {
   React.useEffect(() => {
     const fetchStudents = async () => {
       setLoading(true);
-      initializeStudentData();
+      await initializeStudentData();
       const allStudents = await getStudents();
       const afterCareStudents = allStudents.filter(student => student.afterCare);
       setStudents(afterCareStudents);

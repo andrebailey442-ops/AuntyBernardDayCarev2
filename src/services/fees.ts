@@ -1,57 +1,55 @@
+import { collection, getDocs, doc, setDoc, addDoc, updateDoc, query, where, getDoc, writeBatch, deleteDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import type { Fee } from '@/lib/types';
-import { getFromLocalStorage, saveToLocalStorage, initializeLocalStorage } from '@/lib/local-storage';
 import { FEES } from '@/lib/data';
 
-const STORAGE_KEY = 'fees';
+const COLLECTION_NAME = 'fees';
 
-export const initializeFeeData = () => {
-    initializeLocalStorage(STORAGE_KEY, FEES);
+export const initializeFeeData = async () => {
+    const q = query(collection(db, COLLECTION_NAME));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+        const batch = writeBatch(db);
+        FEES.forEach(item => {
+            const docRef = doc(db, COLLECTION_NAME, item.id);
+            batch.set(docRef, item);
+        });
+        await batch.commit();
+    }
 }
 
 export const getFees = async (): Promise<Fee[]> => {
-    return getFromLocalStorage<Fee>(STORAGE_KEY);
+    const q = query(collection(db, COLLECTION_NAME));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Fee));
 };
 
 export const getFeeByStudentId = async (studentId: string): Promise<Fee | null> => {
-    const allFees = await getFees();
-    return allFees.find(fee => fee.studentId === studentId) || null;
+    const q = query(collection(db, COLLECTION_NAME), where('studentId', '==', studentId));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+        return null;
+    }
+    const doc = snapshot.docs[0];
+    return { id: doc.id, ...doc.data() } as Fee;
 }
 
 export const addFee = async (fee: Omit<Fee, 'id'>) => {
-    const allFees = await getFees();
-    const newFee: Fee = {
-        id: `fee-${Date.now()}`,
-        ...fee,
-    };
-    allFees.push(newFee);
-    saveToLocalStorage(STORAGE_KEY, allFees);
-    return newFee.id;
+    const docRef = await addDoc(collection(db, COLLECTION_NAME), fee);
+    return docRef.id;
 }
 
 export const updateFee = async (id: string, feeUpdate: Partial<Fee>) => {
-    let allFees = await getFees();
-    const feeIndex = allFees.findIndex(f => f.id === id);
-    if (feeIndex > -1) {
-        allFees[feeIndex] = { ...allFees[feeIndex], ...feeUpdate };
-        saveToLocalStorage(STORAGE_KEY, allFees);
-    } else {
-        // Handle case where fee record for a student might not exist yet, especially on first payment
-        if (feeUpdate.studentId) {
-            const studentFeeIndex = allFees.findIndex(f => f.studentId === feeUpdate.studentId);
-            if (studentFeeIndex > -1) {
-                allFees[studentFeeIndex] = { ...allFees[studentFeeIndex], ...feeUpdate };
-                saveToLocalStorage(STORAGE_KEY, allFees);
-            } else {
-                console.error(`Could not find fee to update for student ID: ${feeUpdate.studentId}`);
-            }
-        } else {
-             console.error(`Could not find fee to update with ID: ${id}`);
-        }
-    }
+    const docRef = doc(db, COLLECTION_NAME, id);
+    await updateDoc(docRef, feeUpdate);
 };
 
 export const deleteFeeByStudentId = async (studentId: string) => {
-    let allFees = await getFees();
-    const updatedFees = allFees.filter(f => f.studentId !== studentId);
-    saveToLocalStorage(STORAGE_KEY, updatedFees);
+    const q = query(collection(db, COLLECTION_NAME), where('studentId', '==', studentId));
+    const snapshot = await getDocs(q);
+    const batch = writeBatch(db);
+    snapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+    });
+    await batch.commit();
 };

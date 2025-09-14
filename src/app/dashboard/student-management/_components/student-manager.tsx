@@ -71,7 +71,7 @@ export default function StudentManager() {
 
   const fetchStudents = React.useCallback(async () => {
     setLoading(true);
-    initializeStudentData();
+    await initializeStudentData();
     const studentList = await getStudents();
     setAllStudents(studentList.filter(s => s.status !== 'graduated'));
     setLoading(false);
@@ -407,5 +407,3 @@ export default function StudentManager() {
     </Card>
   );
 }
-
-    

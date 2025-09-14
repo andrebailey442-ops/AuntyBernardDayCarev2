@@ -93,7 +93,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
   React.useEffect(() => {
     const fetchStudent = async () => {
         setIsFetching(true);
-        initializeStudentData();
+        await initializeStudentData();
         const studentData = await getStudent(studentId);
         if (studentData) {
             setStudent(studentData);

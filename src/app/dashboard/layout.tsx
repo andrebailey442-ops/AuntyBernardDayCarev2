@@ -54,13 +54,13 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   React.useEffect(() => {
-    if (!loading) {
-      if (!user) {
-        router.replace('/');
-      } else if (user.role === 'Teacher') {
-        initializePermissionData();
-        // Redirect teacher if they try to access a forbidden page
-        const checkPermissions = async () => {
+    const checkAuthAndPermissions = async () => {
+      if (!loading) {
+        if (!user) {
+          router.replace('/');
+        } else if (user.role === 'Teacher') {
+          await initializePermissionData();
+          // Redirect teacher if they try to access a forbidden page
           const permissions = await getTeacherPermissions();
           // The base dashboard and preschool pages are always allowed for teachers
           const isAllowed =
@@ -72,10 +72,10 @@ export default function DashboardLayout({
           if (!isAllowed || isAdminPage) {
             router.replace('/dashboard');
           }
-        };
-        checkPermissions();
+        }
       }
     }
+    checkAuthAndPermissions();
   }, [user, loading, router, pathname]);
 
   if (loading || !user) {

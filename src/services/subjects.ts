@@ -1,13 +1,25 @@
+import { collection, getDocs, doc, setDoc, query, writeBatch } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import type { Subject } from '@/lib/types';
-import { getFromLocalStorage, initializeLocalStorage } from '@/lib/local-storage';
 import { SUBJECTS } from '@/lib/data';
 
-const STORAGE_KEY = 'subjects';
+const COLLECTION_NAME = 'subjects';
 
-export const initializeSubjectData = () => {
-    initializeLocalStorage(STORAGE_KEY, SUBJECTS);
+export const initializeSubjectData = async () => {
+    const q = query(collection(db, COLLECTION_NAME));
+    const snapshot = await getDocs(q);
+    if (snapshot.empty) {
+        const batch = writeBatch(db);
+        SUBJECTS.forEach(item => {
+            const docRef = doc(db, COLLECTION_NAME, item.id);
+            batch.set(docRef, item);
+        });
+        await batch.commit();
+    }
 }
 
 export const getSubjects = async (): Promise<Subject[]> => {
-    return getFromLocalStorage<Subject>(STORAGE_KEY);
+    const q = query(collection(db, COLLECTION_NAME));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data() as Subject);
 };
