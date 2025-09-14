@@ -1,7 +1,7 @@
 
 'use client';
 import Link from 'next/link';
-import { PlusCircle, FileText, UserPlus, GraduationCap, Users, DollarSign, ClipboardCheck, Home } from 'lucide-react';
+import { PlusCircle, FileText, UserPlus, GraduationCap, Users, DollarSign, ClipboardCheck, Home, Award } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -47,6 +47,11 @@ const links = [
     label: 'Take Attendance',
     icon: ClipboardCheck,
   },
+   {
+    href: '/dashboard/graduation',
+    label: 'Graduation',
+    icon: Award,
+  },
 ];
 
 export default function QuickLinks() {
@@ -56,7 +61,7 @@ export default function QuickLinks() {
         <CardTitle>Actions</CardTitle>
         <CardDescription>Fast access to common tasks.</CardDescription>
       </CardHeader>
-      <CardContent className="grid grid-cols-2 md:grid-cols-7 gap-4">
+      <CardContent className="grid grid-cols-2 md:grid-cols-8 gap-4">
           {links.map((link) => (
             <Link key={link.href} href={link.href} className="flex">
               <Button variant="outline" className="flex flex-col h-28 w-full justify-center gap-2">

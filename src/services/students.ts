@@ -21,7 +21,7 @@ export const getStudent = async (id: string): Promise<Student | null> => {
 
 export const addStudent = async (id: string, student: Omit<Student, 'id'>) => {
     const allStudents = await getStudents();
-    const newStudent: Student = { id, ...student };
+    const newStudent: Student = { id, status: 'enrolled', ...student };
     allStudents.push(newStudent);
     saveToLocalStorage(STORAGE_KEY, allStudents);
 };
