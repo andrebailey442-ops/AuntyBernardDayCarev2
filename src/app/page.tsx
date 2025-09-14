@@ -20,7 +20,7 @@ import { ScholarStartLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 
 const loginSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email.' }),
+  username: z.string().min(1, { message: 'Username is required.' }),
   password: z.string().min(1, { message: 'Password is required.' }),
 });
 
@@ -34,7 +34,7 @@ export default function LoginPage() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
+      username: '',
       password: '',
     },
   });
@@ -43,7 +43,7 @@ export default function LoginPage() {
     setIsLoading(true);
     // Mock authentication
     setTimeout(() => {
-      if (data.email === 'admin@scholarstart.com' && data.password === 'password') {
+      if (data.username === 'Admin' && data.password === 'admin') {
         toast({
           title: 'Login Successful',
           description: 'Welcome back!',
@@ -53,7 +53,7 @@ export default function LoginPage() {
         toast({
           variant: 'destructive',
           title: 'Login Failed',
-          description: 'Invalid email or password.',
+          description: 'Invalid username or password.',
         });
         setIsLoading(false);
       }
@@ -80,13 +80,13 @@ export default function LoginPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
-                name="email"
+                name="username"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Username</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="admin@scholarstart.com"
+                        placeholder="Admin"
                         {...field}
                         disabled={isLoading}
                       />
@@ -104,7 +104,7 @@ export default function LoginPage() {
                     <FormControl>
                       <Input
                         type="password"
-                        placeholder="password"
+                        placeholder="admin"
                         {...field}
                         disabled={isLoading}
                       />
@@ -121,7 +121,7 @@ export default function LoginPage() {
         </CardContent>
       </Card>
       <p className="text-xs text-muted-foreground mt-4">
-        Demo credentials: admin@scholarstart.com / password
+        Demo credentials: Admin / admin
       </p>
     </main>
   );
