@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Search, Printer, User, DollarSign, Edit } from 'lucide-react';
+import { Search, Printer, User, DollarSign, Edit, FileText } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -36,6 +36,7 @@ import {
   } from "@/components/ui/dialog"
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import InvoiceDialog from './invoice-dialog';
 
 export default function FinancialManager() {
   const router = useRouter();
@@ -45,6 +46,9 @@ export default function FinancialManager() {
   const [makePaymentStudentId, setMakePaymentStudentId] = React.useState('');
   const [updatePaymentStudentId, setUpdatePaymentStudentId] = React.useState('');
   const [newPaymentStatus, setNewPaymentStatus] = React.useState<'Paid' | 'Pending' | 'Overdue' | ''>('');
+  const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
+  const [isInvoiceDialogOpen, setIsInvoiceDialogOpen] = React.useState(false);
+
 
   React.useEffect(() => {
     const results = STUDENTS.filter(student =>
@@ -81,6 +85,11 @@ export default function FinancialManager() {
     });
     setUpdatePaymentStudentId('');
     setNewPaymentStatus('');
+  }
+  
+  const handleViewInvoice = (student: Student) => {
+    setSelectedStudent(student);
+    setIsInvoiceDialogOpen(true);
   }
 
   return (
@@ -259,9 +268,9 @@ export default function FinancialManager() {
                         <User className="mr-2 h-4 w-4" />
                         View Profile
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => toast({ title: 'Printing Invoice...', description: `Preparing invoice for ${student.name}`})}>
-                        <Printer className="mr-2 h-4 w-4" />
-                        Print Invoice
+                    <Button variant="outline" size="sm" onClick={() => handleViewInvoice(student)}>
+                        <FileText className="mr-2 h-4 w-4" />
+                        View Invoice
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -275,8 +284,19 @@ export default function FinancialManager() {
             )}
           </TableBody>
         </Table>
+        
+        {selectedStudent && (
+            <Dialog open={isInvoiceDialogOpen} onOpenChange={setIsInvoiceDialogOpen}>
+                <DialogContent className="sm:max-w-xl">
+                    <InvoiceDialog student={selectedStudent} fee={getStudentFee(selectedStudent.id)} />
+                </DialogContent>
+            </Dialog>
+        )}
+
       </CardContent>
     </Card>
     </>
   );
 }
+
+    
