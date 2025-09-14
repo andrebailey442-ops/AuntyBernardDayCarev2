@@ -22,13 +22,6 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import {
   Popover,
@@ -44,6 +37,17 @@ import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { jsPDF } from 'jspdf';
 import { Separator } from '@/components/ui/separator';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+  } from "@/components/ui/alert-dialog"
 
 
 const newStudentSchema = z.object({
@@ -366,16 +370,33 @@ export function NewStudentForm() {
                     </FormItem>
                  )} />
             </div>
-
-            <div className="flex gap-4">
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Submitting...' : 'Submit Registration'}
-                </Button>
-                <Button type="button" variant="outline" className="w-full" onClick={downloadNewStudentApplication} disabled={isLoading}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Download PDF
-                </Button>
-            </div>
+            <AlertDialog>
+                <div className="flex gap-4">
+                    <AlertDialogTrigger asChild>
+                        <Button type="button" className="w-full" disabled={isLoading}>
+                            {isLoading ? 'Submitting...' : 'Submit Registration'}
+                        </Button>
+                    </AlertDialogTrigger>
+                    <Button type="button" variant="outline" className="w-full" onClick={downloadNewStudentApplication} disabled={isLoading}>
+                        <Download className="mr-2 h-4 w-4" />
+                        Download PDF
+                    </Button>
+                </div>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirm Registration</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to submit this new student registration? Please review the details before confirming.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={form.handleSubmit(onSubmit)}>
+                            Confirm
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
           </form>
         </Form>
       </CardContent>

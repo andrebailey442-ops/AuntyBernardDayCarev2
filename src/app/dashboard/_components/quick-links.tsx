@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { PlusCircle, FileText, UserPlus, GraduationCap, Users, DollarSign } from 'lucide-react';
+import { PlusCircle, FileText, UserPlus, GraduationCap, Users, DollarSign, ClipboardCheck } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -39,7 +39,7 @@ const links = [
   {
     href: '/dashboard/attendance',
     label: 'Take Attendance',
-    icon: PlusCircle,
+    icon: ClipboardCheck,
   },
 ];
 
