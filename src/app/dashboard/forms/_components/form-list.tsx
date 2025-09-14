@@ -9,12 +9,12 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, FileText, HeartPulse, DollarSign } from 'lucide-react';
-import { FORMS } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import type { LucideProps } from 'lucide-react';
 import type { ForwardRefExoticComponent, RefAttributes } from 'react';
 import { jsPDF } from 'jspdf';
 import { ScholarStartLogo } from '@/components/icons';
+import type { FormDocument } from '@/lib/types';
 
 
 type IconComponents = {
@@ -26,6 +26,27 @@ const icons: IconComponents = {
   HeartPulse,
   DollarSign,
 };
+
+const FORMS: FormDocument[] = [
+    {
+      id: 'f1',
+      title: 'New Student Application',
+      description: 'Standard application form for all new student registrations.',
+      icon: 'FileText',
+    },
+    {
+      id: 'f2',
+      title: 'Medical & Consent Form',
+      description: 'Emergency contacts and medical consent for treatment.',
+      icon: 'HeartPulse',
+    },
+    {
+      id: 'f3',
+      title: 'Fee Payment Form',
+      description: 'Form for submitting tuition and other fee payments.',
+      icon: 'DollarSign',
+    },
+];
 
 
 export default function FormList() {
