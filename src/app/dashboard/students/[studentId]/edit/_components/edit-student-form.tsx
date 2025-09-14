@@ -76,6 +76,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     defaultValues: {
         firstName: '',
         lastName: '',
+        dob: new Date(),
         parentFirstName: '',
         parentLastName: '',
         parentEmail: '',

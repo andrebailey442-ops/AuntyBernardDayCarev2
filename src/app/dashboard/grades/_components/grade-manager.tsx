@@ -72,7 +72,7 @@ export default function GradeManager() {
     setGrades(prev => ({
       ...prev,
       [studentId]: {
-        ...prev[studentId],
+        ...(prev[studentId] || {}),
         [subjectId]: grade,
       },
     }));
