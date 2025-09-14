@@ -88,6 +88,7 @@ export function NewStudentForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(false);
   const [studentId, setStudentId] = React.useState('');
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   const form = useForm<NewStudentFormValues & { studentId: string }>({
     resolver: zodResolver(newStudentSchema.extend({ studentId: z.string() })),
@@ -118,6 +119,7 @@ export function NewStudentForm() {
   }, [form]);
 
   const dob = form.watch('dob');
+  const formValues = form.watch();
 
   React.useEffect(() => {
     if (dob) {
@@ -162,6 +164,7 @@ export function NewStudentForm() {
         title: 'Registration Submitted',
         description: `The registration form for ${data.firstName} ${data.lastName} has been submitted.`,
         });
+        setIsDialogOpen(false);
         router.push('/dashboard');
     } catch (error) {
         console.error('Failed to add student:', error);
@@ -174,6 +177,13 @@ export function NewStudentForm() {
         setIsLoading(false);
     }
   };
+  
+  const handleOpenDialog = async () => {
+    const isValid = await form.trigger();
+    if (isValid) {
+      setIsDialogOpen(true);
+    }
+  }
 
   const addLogoAndHeader = (doc: jsPDF, title: string) => {
     doc.setFont('helvetica', 'bold');
@@ -452,13 +462,11 @@ export function NewStudentForm() {
                     </FormItem>
                  )} />
             </div>
-            <AlertDialog>
+            <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <div className="flex gap-4">
-                    <AlertDialogTrigger asChild>
-                        <Button type="button" className="w-full" disabled={isLoading}>
-                            {isLoading ? 'Submitting...' : 'Submit Registration'}
-                        </Button>
-                    </AlertDialogTrigger>
+                    <Button type="button" className="w-full" onClick={handleOpenDialog} disabled={isLoading}>
+                        {isLoading ? 'Submitting...' : 'Submit Registration'}
+                    </Button>
                      <Button type="button" variant="outline" className="w-full" onClick={downloadNewStudentApplication}>
                         <Download className="mr-2 h-4 w-4" />
                         Download PDF
@@ -468,9 +476,35 @@ export function NewStudentForm() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Confirm Registration</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Are you sure you want to submit this new student registration? Please review the details before confirming.
+                            Please review the details before confirming.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
+                    <div className="text-sm space-y-4 max-h-[60vh] overflow-y-auto px-2">
+                        <div>
+                            <h4 className="font-semibold mb-2">Student Information</h4>
+                            <p><strong>Name:</strong> {formValues.firstName} {formValues.lastName}</p>
+                            <p><strong>Date of Birth:</strong> {formValues.dob ? format(formValues.dob, 'PPP') : 'N/A'}</p>
+                        </div>
+                        <Separator />
+                        <div>
+                            <h4 className="font-semibold mb-2">Parent/Guardian Information</h4>
+                            <p><strong>Name:</strong> {formValues.parentFirstName} {formValues.parentLastName}</p>
+                            <p><strong>Email:</strong> {formValues.parentEmail}</p>
+                            <p><strong>Phone:</strong> {formValues.parentPhone}</p>
+                            <p><strong>Address:</strong> {`${formValues.address}, ${formValues.city}, ${formValues.state} ${formValues.zip}`}</p>
+                        </div>
+                        <Separator />
+                        <div>
+                            <h4 className="font-semibold mb-2">Payment Plan</h4>
+                            <p><strong>Plan:</strong> {formValues.paymentPlan}</p>
+                        </div>
+                         <Separator />
+                        <div>
+                            <h4 className="font-semibold mb-2">Emergency Contact</h4>
+                            <p><strong>Name:</strong> {formValues.emergencyContactName}</p>
+                            <p><strong>Phone:</strong> {formValues.emergencyContactPhone}</p>
+                        </div>
+                    </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={form.handleSubmit(onSubmit)} disabled={isLoading}>
