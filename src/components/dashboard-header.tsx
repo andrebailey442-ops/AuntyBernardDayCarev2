@@ -10,38 +10,31 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from './ui/button';
-import { Bell, LogOut, Settings } from 'lucide-react';
+import { Bell, LogOut, Settings, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { ScholarStartLogo } from './icons';
 import { DashboardNav } from './dashboard-nav';
+import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 
 export function DashboardHeader() {
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
-      <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
+      <div className="flex items-center gap-2">
         <Link
-          href="/dashboard"
-          className="flex items-center gap-2 text-lg font-semibold md:text-base"
-        >
-          <ScholarStartLogo className="h-6 w-6 text-primary" />
-          <span className="font-bold">ScholarStart</span>
-        </Link>
-        <DashboardNav />
-      </nav>
+            href="/dashboard"
+            className="flex items-center gap-2 text-lg font-semibold"
+          >
+            <ScholarStartLogo className="h-6 w-6 text-primary" />
+            <span className="font-bold">ScholarStart</span>
+          </Link>
+      </div>
       
-      {/* Mobile Menu can be added here if needed */}
+      <div className="hidden md:flex md:items-center md:gap-5 lg:gap-6 text-sm font-medium">
+        <DashboardNav />
+      </div>
 
-      <div className="flex w-full items-center gap-4 md:ml-auto md:w-auto">
-        <div className="md:hidden">
-            <Link href="/dashboard" className="flex items-center gap-2">
-                <ScholarStartLogo className="w-8 h-8 text-primary" />
-                <span className="text-xl font-bold font-headline">ScholarStart</span>
-            </Link>
-        </div>
-        <div className="ml-auto flex-1 sm:flex-initial">
-          {/* Search can go here if needed */}
-        </div>
+      <div className="flex w-full items-center gap-4 justify-end">
         <Button variant="ghost" size="icon" className="rounded-full">
           <Bell className="h-5 w-5" />
           <span className="sr-only">Toggle notifications</span>
@@ -76,6 +69,24 @@ export function DashboardHeader() {
             </Link>
           </DropdownMenuContent>
         </DropdownMenu>
+        <div className="md:hidden">
+            <Sheet>
+                <SheetTrigger asChild>
+                    <Button
+                    variant="outline"
+                    size="icon"
+                    >
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Toggle navigation menu</span>
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="right">
+                    <nav className="grid gap-6 text-lg font-medium mt-8">
+                      <DashboardNav />
+                    </nav>
+                </SheetContent>
+            </Sheet>
+        </div>
       </div>
     </header>
   );

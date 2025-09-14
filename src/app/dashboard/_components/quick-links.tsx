@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { PlusCircle, FileText, UserPlus } from 'lucide-react';
+import { PlusCircle, FileText, UserPlus, GraduationCap } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -23,6 +23,11 @@ const links = [
   {
     href: '/dashboard/grades',
     label: 'Enter New Grades',
+    icon: GraduationCap,
+  },
+  {
+    href: '/dashboard/attendance',
+    label: 'Take Attendance',
     icon: PlusCircle,
   },
 ];
@@ -34,17 +39,15 @@ export default function QuickLinks() {
         <CardTitle>Quick Links</CardTitle>
         <CardDescription>Fast access to common tasks.</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="flex flex-col space-y-2">
+      <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {links.map((link) => (
             <Link key={link.label} href={link.href} passHref legacyBehavior>
-              <Button variant="outline" className="justify-start">
-                <link.icon className="mr-2 h-4 w-4" />
-                {link.label}
+              <Button variant="outline" className="flex flex-col h-28 w-full justify-center gap-2">
+                <link.icon className="h-6 w-6" />
+                <span>{link.label}</span>
               </Button>
             </Link>
           ))}
-        </div>
       </CardContent>
     </Card>
   );

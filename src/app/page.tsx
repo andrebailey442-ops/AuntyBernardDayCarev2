@@ -15,7 +15,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScholarStartLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 
@@ -62,19 +62,20 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="flex flex-col items-center gap-4">
-            <ScholarStartLogo className="h-16 w-16 text-primary" />
-            <h1 className="text-4xl font-bold font-headline text-center text-foreground">
-            Welcome to ScholarStart
+      <div className="w-full max-w-md space-y-6">
+        <div className="flex flex-col items-center gap-4 text-center">
+            <ScholarStartLogo className="h-12 w-12 text-primary" />
+            <h1 className="text-3xl font-bold">
+              ScholarStart
             </h1>
-            <p className="text-muted-foreground text-center">
-            The smart way to manage your preschool.
+            <p className="text-muted-foreground">
+              Welcome back! Please enter your credentials to log in.
             </p>
         </div>
         <Card>
             <CardHeader>
-            <CardTitle className="text-2xl text-center">Admin Login</CardTitle>
+              <CardTitle>Login</CardTitle>
+              <CardDescription>Use "Admin" and "admin" to continue.</CardDescription>
             </CardHeader>
             <CardContent>
             <Form {...form}>
@@ -121,9 +122,6 @@ export default function LoginPage() {
             </Form>
             </CardContent>
         </Card>
-        <p className="text-xs text-muted-foreground text-center">
-            Demo credentials: Admin / admin
-        </p>
       </div>
     </main>
   );

@@ -10,6 +10,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from './ui/button';
 
 type NavItem = {
   href: string;
@@ -30,14 +31,15 @@ export function DashboardNav() {
   return (
     <>
       {navItems.map((item) => (
-        <Link
+         <Link
           key={item.href}
           href={item.href}
           className={cn(
-            'text-muted-foreground transition-colors hover:text-foreground',
-            pathname === item.href && 'text-foreground'
+            'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
+            pathname === item.href && 'bg-muted text-primary'
           )}
         >
+          <item.icon className="h-4 w-4" />
           {item.label}
         </Link>
       ))}
