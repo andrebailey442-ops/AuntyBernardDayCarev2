@@ -157,7 +157,8 @@ export function NewStudentForm() {
             zip: data.zip,
             afterCare: data.afterCare,
             emergencyContactName: data.emergencyContactName,
-            emergencyContactPhone: data.medicalConditions,
+            emergencyContactPhone: data.emergencyContactPhone,
+            medicalConditions: data.medicalConditions,
         };
         await addStudent(data.studentId, studentData);
         
@@ -334,7 +335,7 @@ export function NewStudentForm() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={(e) => { e.preventDefault(); handleOpenDialog(); }} className="space-y-8">
             <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Student Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -485,18 +486,17 @@ export function NewStudentForm() {
                     </FormItem>
                  )} />
             </div>
+            
+            <div className="flex gap-4">
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? 'Submitting...' : 'Submit Registration'}
+                </Button>
+                 <Button type="button" variant="outline" className="w-full" onClick={downloadNewStudentApplication}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download PDF
+                </Button>
+            </div>
             <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <div className="flex gap-4">
-                    <AlertDialogTrigger asChild>
-                        <Button type="button" className="w-full" onClick={handleOpenDialog} disabled={isLoading}>
-                            {isLoading ? 'Submitting...' : 'Submit Registration'}
-                        </Button>
-                    </AlertDialogTrigger>
-                     <Button type="button" variant="outline" className="w-full" onClick={downloadNewStudentApplication}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Download PDF
-                    </Button>
-                </div>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Confirm Registration</AlertDialogTitle>
@@ -545,3 +545,5 @@ export function NewStudentForm() {
     </Card>
   );
 }
+
+    
