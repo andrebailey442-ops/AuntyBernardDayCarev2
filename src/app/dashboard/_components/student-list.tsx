@@ -32,9 +32,8 @@ import { STUDENTS } from '@/lib/data';
 export default function StudentList() {
   const router = useRouter();
 
-  const handleViewProfile = (studentId: string) => {
-    // In a real app, you'd navigate to a detailed student profile page
-    console.log(`Viewing profile for student ${studentId}`);
+  const handleEditProfile = (studentId: string) => {
+    router.push(`/dashboard/students/${studentId}/edit`);
   };
 
   const handleGenerateReport = (studentId: string) => {
@@ -94,7 +93,7 @@ export default function StudentList() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => handleViewProfile(student.id)}>View Profile</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleEditProfile(student.id)}>Edit Profile</DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleGenerateReport(student.id)}
                       >
