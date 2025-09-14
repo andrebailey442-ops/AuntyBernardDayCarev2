@@ -1,6 +1,7 @@
 
 'use client';
 
+import * as React from 'react';
 import { Pie, PieChart, ResponsiveContainer, Cell } from 'recharts';
 import {
   Card,
@@ -17,7 +18,6 @@ import {
   ChartLegendContent,
 } from '@/components/ui/chart';
 import type { Grade } from '@/lib/types';
-import * as React from 'react';
 
 const chartConfig = {
   count: {
