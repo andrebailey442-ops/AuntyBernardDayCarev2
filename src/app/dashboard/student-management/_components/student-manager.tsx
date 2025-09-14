@@ -4,7 +4,9 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Search, Trash2, GraduationCap } from 'lucide-react';
+import { Search, Trash2, GraduationCap, Download } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import { format } from 'date-fns';
 import {
   Card,
   CardContent,
@@ -23,7 +25,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import type { Student } from '@/lib/types';
+import type { Student, Grade } from '@/lib/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,7 +50,11 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
 import { getStudents, deleteStudent, initializeStudentData, updateStudent } from '@/services/students';
+import { getGradesByStudent } from '@/services/grades';
+import { getAttendanceByStudent } from '@/services/attendance';
+import { getSubjects } from '@/services/subjects';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
 
 
 export default function StudentManager() {
@@ -60,6 +66,8 @@ export default function StudentManager() {
   const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
   const [dialogContent, setDialogContent] = React.useState<'report' | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [selectedStudents, setSelectedStudents] = React.useState<string[]>([]);
+  const [isDownloading, setIsDownloading] = React.useState(false);
 
   const fetchStudents = React.useCallback(async () => {
     setLoading(true);
@@ -79,6 +87,22 @@ export default function StudentManager() {
     );
     setFilteredStudents(results);
   }, [searchTerm, allStudents]);
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedStudents(filteredStudents.map(s => s.id));
+    } else {
+      setSelectedStudents([]);
+    }
+  }
+
+  const handleSelectStudent = (studentId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedStudents(prev => [...prev, studentId]);
+    } else {
+      setSelectedStudents(prev => prev.filter(id => id !== studentId));
+    }
+  }
 
   const handleViewProfile = (studentId: string) => {
     router.push(`/dashboard/students/${studentId}`);
@@ -133,6 +157,83 @@ export default function StudentManager() {
     }
   };
 
+  const handleDownloadReports = async () => {
+    setIsDownloading(true);
+    toast({
+      title: 'Generating Reports',
+      description: `Preparing to download ${selectedStudents.length} report(s). Please wait...`,
+    });
+
+    for (const studentId of selectedStudents) {
+      const student = allStudents.find(s => s.id === studentId);
+      if (!student) continue;
+
+      try {
+        const [grades, attendanceRecords, subjects] = await Promise.all([
+          getGradesByStudent(studentId),
+          getAttendanceByStudent(studentId),
+          getSubjects(),
+        ]);
+
+        const attendanceSummary = { present: 0, absent: 0, tardy: 0 };
+        attendanceRecords.forEach(a => {
+          attendanceSummary[a.status]++;
+        });
+        
+        const getSubjectName = (subjectId: string) => subjects.find(s => s.id === subjectId)?.name || 'N/A';
+
+        const doc = new jsPDF();
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(24);
+        doc.text('ScholarStart', 20, 22);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(18);
+        doc.text(`Report Card for ${student.name}`, 20, 35);
+        doc.setLineWidth(0.5);
+        doc.line(20, 40, 190, 40);
+        let y = 60;
+        doc.setFontSize(12);
+        doc.text(`Student ID: ${student.id}`, 20, y); y += 10;
+        doc.text(`Report Date: ${format(new Date(), 'PPP')}`, 20, y); y += 15;
+
+        doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+        doc.text('Grades', 20, y); y += 10;
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(12);
+        if(grades.length > 0) {
+            grades.forEach(grade => {
+                doc.text(`${getSubjectName(grade.subject)}: ${grade.grade}`, 25, y); y+= 7;
+            });
+        } else {
+            doc.text('No grades recorded for this period.', 25, y); y+= 7;
+        }
+        y += 10;
+        doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+        doc.text('Attendance Summary', 20, y); y += 10;
+        doc.setFontSize(12); doc.setFont('helvetica', 'normal');
+        doc.text(`Present: ${attendanceSummary.present} days`, 25, y); y += 7;
+        doc.text(`Absent: ${attendanceSummary.absent} days`, 25, y); y += 7;
+        doc.text(`Tardy: ${attendanceSummary.tardy} days`, 25, y);
+
+        doc.save(`${student.name.replace(' ', '_')}_ReportCard.pdf`);
+
+      } catch (error) {
+        console.error(`Failed to generate report for ${student.name}:`, error);
+        toast({
+          variant: 'destructive',
+          title: 'Download Failed',
+          description: `Could not generate PDF for ${student.name}.`,
+        });
+      }
+    }
+    
+    setIsDownloading(false);
+    setSelectedStudents([]);
+    toast({
+        title: 'Download Complete',
+        description: 'Finished generating all selected reports.',
+    });
+  }
+
   const openDialog = (student: Student, content: 'report') => {
     setSelectedStudent(student);
     setDialogContent(content);
@@ -147,16 +248,22 @@ export default function StudentManager() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search by name or ID..."
-              className="pl-8 sm:w-[300px]"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                type="search"
+                placeholder="Search by name or ID..."
+                className="pl-8 sm:w-[300px]"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <Button onClick={handleDownloadReports} disabled={selectedStudents.length === 0 || isDownloading}>
+                <Download className="mr-2 h-4 w-4" />
+                {isDownloading ? 'Downloading...' : `Download (${selectedStudents.length})`}
+            </Button>
           </div>
         </div>
         <AlertDialog>
@@ -164,6 +271,13 @@ export default function StudentManager() {
             <Table>
               <TableHeader>
                 <TableRow>
+                    <TableHead padding="checkbox" className="w-12">
+                        <Checkbox
+                        checked={selectedStudents.length === filteredStudents.length && filteredStudents.length > 0}
+                        onCheckedChange={(checked) => handleSelectAll(!!checked)}
+                        aria-label="Select all"
+                        />
+                    </TableHead>
                   <TableHead>Student</TableHead>
                   <TableHead>Age</TableHead>
                   <TableHead>Status</TableHead>
@@ -174,6 +288,7 @@ export default function StudentManager() {
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
+                        <TableCell><Skeleton className="h-4 w-4" /></TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
                             <Skeleton className="h-10 w-10 rounded-full" />
@@ -190,7 +305,14 @@ export default function StudentManager() {
                   ))
                 ) : filteredStudents.length > 0 ? (
                   filteredStudents.map((student) => (
-                    <TableRow key={student.id}>
+                    <TableRow key={student.id} data-state={selectedStudents.includes(student.id) && "selected"}>
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                            checked={selectedStudents.includes(student.id)}
+                            onCheckedChange={(checked) => handleSelectStudent(student.id, !!checked)}
+                            aria-label={`Select student ${student.name}`}
+                        />
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Image
@@ -267,7 +389,7 @@ export default function StudentManager() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center">
+                    <TableCell colSpan={5} className="h-24 text-center">
                       No enrolled students found.
                     </TableCell>
                   </TableRow>
@@ -285,3 +407,5 @@ export default function StudentManager() {
     </Card>
   );
 }
+
+    
