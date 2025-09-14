@@ -22,15 +22,28 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { STUDENTS, FEES } from '@/lib/data';
+import { STUDENTS, FEES, SUBJECTS } from '@/lib/data';
 import type { Student, Fee } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+  } from "@/components/ui/dialog"
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function FinancialManager() {
   const router = useRouter();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = React.useState('');
   const [filteredStudents, setFilteredStudents] = React.useState<Student[]>(STUDENTS);
+  const [makePaymentStudentId, setMakePaymentStudentId] = React.useState('');
+  const [updatePaymentStudentId, setUpdatePaymentStudentId] = React.useState('');
 
   React.useEffect(() => {
     const results = STUDENTS.filter(student =>
@@ -52,11 +65,20 @@ export default function FinancialManager() {
       }
   }
   
-  const handleActionClick = (message: string) => {
+  const handleMakePayment = () => {
     toast({
-      title: 'Action Triggered',
-      description: message,
+      title: 'Payment Processed',
+      description: `Payment for student ID ${makePaymentStudentId} has been recorded.`,
     });
+    setMakePaymentStudentId('');
+  }
+  
+  const handleUpdatePayment = () => {
+    toast({
+      title: 'Payment Updated',
+      description: `Payment status for student ID ${updatePaymentStudentId} has been updated.`,
+    });
+    setUpdatePaymentStudentId('');
   }
 
   return (
@@ -115,14 +137,82 @@ export default function FinancialManager() {
             />
           </div>
           <div className="space-x-2">
-            <Button onClick={() => handleActionClick('Opening payment form...')}>
-                <DollarSign className="mr-2 h-4 w-4"/>
-                Make Payment
-            </Button>
-             <Button variant="secondary" onClick={() => handleActionClick('Opening form to update payment...')}>
-                <Edit className="mr-2 h-4 w-4"/>
-                Update Payment
-            </Button>
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button>
+                        <DollarSign className="mr-2 h-4 w-4"/>
+                        Make Payment
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Make a Payment</DialogTitle>
+                        <DialogDescription>Enter student and payment details.</DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="make-payment-student-id" className="text-right">Student ID</Label>
+                            <Input id="make-payment-student-id" value={makePaymentStudentId} onChange={(e) => setMakePaymentStudentId(e.target.value)} className="col-span-3" placeholder="SID-..." />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="payment-plan" className="text-right">Payment Plan</Label>
+                             <Select>
+                                <SelectTrigger className="col-span-3">
+                                    <SelectValue placeholder="Select a plan" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="full">Full Payment ($2,375)</SelectItem>
+                                    <SelectItem value="installments">Two Installments ($1,250)</SelectItem>
+                                    <SelectItem value="monthly">Monthly Plan ($625)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                         <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="amount" className="text-right">Amount</Label>
+                            <Input id="amount" type="number" placeholder="Enter amount" className="col-span-3" />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={handleMakePayment} disabled={!makePaymentStudentId}>Process Payment</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button variant="secondary">
+                        <Edit className="mr-2 h-4 w-4"/>
+                        Update Payment
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Update Payment Status</DialogTitle>
+                        <DialogDescription>Enter student ID to update their payment record.</DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="update-payment-student-id" className="text-right">Student ID</Label>
+                            <Input id="update-payment-student-id" value={updatePaymentStudentId} onChange={(e) => setUpdatePaymentStudentId(e.target.value)} className="col-span-3" placeholder="SID-..." />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="status" className="text-right">New Status</Label>
+                             <Select>
+                                <SelectTrigger className="col-span-3">
+                                    <SelectValue placeholder="Select a status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="paid">Paid</SelectItem>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="overdue">Overdue</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={handleUpdatePayment} disabled={!updatePaymentStudentId}>Update Status</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
           </div>
         </div>
         <Table>
@@ -167,7 +257,7 @@ export default function FinancialManager() {
                         <User className="mr-2 h-4 w-4" />
                         View Profile
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleActionClick('Printing invoice...')}>
+                    <Button variant="outline" size="sm" onClick={() => toast({ title: 'Printing Invoice...', description: `Preparing invoice for ${student.name}`})}>
                         <Printer className="mr-2 h-4 w-4" />
                         Print Invoice
                     </Button>
