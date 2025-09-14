@@ -38,7 +38,7 @@ export default function DashboardSelectionPage() {
                     <CardDescription>Handle check-in, check-out, and activities for the after-care program.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-1 flex-col justify-end">
-                    <Link href="/dashboard/aftercare" className="w-full">
+                    <Link href="/dashboard/after-care" className="w-full">
                         <Button variant="secondary" className="w-full">Go to After Care Dashboard</Button>
                     </Link>
                 </CardContent>

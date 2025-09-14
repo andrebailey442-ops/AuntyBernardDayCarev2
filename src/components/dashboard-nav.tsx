@@ -35,7 +35,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard/financial', label: 'Financial', icon: DollarSign },
   { href: '/dashboard/forms', label: 'Forms', icon: FileText },
   { href: '/dashboard/reports', label: 'Reports', icon: FileText },
-  { href: '/dashboard/aftercare', label: 'After Care', icon: Sunset },
+  { href: '/dashboard/after-care', label: 'After Care', icon: Sunset },
 ];
 
 export function DashboardNav() {
