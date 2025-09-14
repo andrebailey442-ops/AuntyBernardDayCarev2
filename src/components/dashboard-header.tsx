@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from './ui/button';
-import { Bell, LogOut, Settings, Menu } from 'lucide-react';
+import { Bell, LogOut, Settings, Menu, Users } from 'lucide-react';
 import Link from 'next/link';
 import { ScholarStartLogo } from './icons';
 import { DashboardNav } from './dashboard-nav';
@@ -57,6 +57,10 @@ export function DashboardHeader() {
             <DropdownMenuItem>
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
+            </DropdownMenuItem>
+             <DropdownMenuItem>
+              <Users className="mr-2 h-4 w-4" />
+              <span>Manage Users</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
