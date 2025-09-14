@@ -1,6 +1,3 @@
-
-'use server';
-
 import type { Fee } from '@/lib/types';
 import { getFromLocalStorage, saveToLocalStorage, initializeLocalStorage } from '@/lib/local-storage';
 import { FEES } from '@/lib/data';

@@ -1,6 +1,3 @@
-
-'use server';
-
 import type { Grade } from '@/lib/types';
 import { format } from 'date-fns';
 import { getFromLocalStorage, saveToLocalStorage, initializeLocalStorage } from '@/lib/local-storage';

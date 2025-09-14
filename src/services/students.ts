@@ -1,6 +1,3 @@
-
-'use server';
-
 import type { Student } from '@/lib/types';
 import { getFromLocalStorage, saveToLocalStorage, initializeLocalStorage } from '@/lib/local-storage';
 import { STUDENTS } from '@/lib/data';
