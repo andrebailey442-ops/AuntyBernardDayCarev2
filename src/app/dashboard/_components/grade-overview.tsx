@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Pie, PieChart, ResponsiveContainer, Cell } from 'recharts';
@@ -17,10 +18,10 @@ import {
 } from '@/components/ui/chart';
 
 const chartData = [
-  { grade: 'A', count: 45, fill: 'hsl(var(--chart-1))' },
-  { grade: 'B', count: 30, fill: 'hsl(var(--chart-2))' },
-  { grade: 'C', count: 15, fill: 'hsl(var(--chart-4))' },
-  { grade: 'Incomplete', count: 10, fill: 'hsl(var(--muted))' },
+  { grade: 'A', count: 0, fill: 'hsl(var(--chart-1))' },
+  { grade: 'B', count: 0, fill: 'hsl(var(--chart-2))' },
+  { grade: 'C', count: 0, fill: 'hsl(var(--chart-4))' },
+  { grade: 'Incomplete', count: 0, fill: 'hsl(var(--muted))' },
 ];
 
 const chartConfig = {

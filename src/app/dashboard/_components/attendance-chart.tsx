@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
@@ -15,11 +16,11 @@ import {
 } from '@/components/ui/chart';
 
 const chartData = [
-  { day: 'Mon', present: 28, absent: 2, tardy: 1 },
-  { day: 'Tue', present: 30, absent: 0, tardy: 1 },
-  { day: 'Wed', present: 29, absent: 1, tardy: 1 },
-  { day: 'Thu', present: 31, absent: 0, tardy: 0 },
-  { day: 'Fri', present: 27, absent: 3, tardy: 1 },
+  { day: 'Mon', present: 0, absent: 0, tardy: 0 },
+  { day: 'Tue', present: 0, absent: 0, tardy: 0 },
+  { day: 'Wed', present: 0, absent: 0, tardy: 0 },
+  { day: 'Thu', present: 0, absent: 0, tardy: 0 },
+  { day: 'Fri', present: 0, absent: 0, tardy: 0 },
 ];
 
 const chartConfig = {
