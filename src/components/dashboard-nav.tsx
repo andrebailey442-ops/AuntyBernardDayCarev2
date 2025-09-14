@@ -8,6 +8,7 @@ import {
   GraduationCap,
   FileText,
   Book,
+  DollarSign,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -25,6 +26,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard/grades', label: 'Grades', icon: GraduationCap },
   { href: '/dashboard/forms', label: 'Forms', icon: FileText },
   { href: '/dashboard/reports', label: 'Reports', icon: Book },
+  { href: '/dashboard/fees', label: 'Fees', icon: DollarSign },
 ];
 
 export function DashboardNav() {

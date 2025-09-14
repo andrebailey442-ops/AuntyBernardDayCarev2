@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { PlusCircle, FileText, UserPlus, GraduationCap, Book } from 'lucide-react';
+import { PlusCircle, FileText, UserPlus, GraduationCap, Book, DollarSign } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -35,6 +35,11 @@ const links = [
     href: '/dashboard/reports',
     label: 'View Reports',
     icon: Book,
+  },
+  {
+    href: '/dashboard/fees',
+    label: 'Fee Payments',
+    icon: DollarSign,
   }
 ];
 
@@ -45,12 +50,12 @@ export default function QuickLinks() {
         <CardTitle>Actions</CardTitle>
         <CardDescription>Fast access to common tasks.</CardDescription>
       </CardHeader>
-      <CardContent className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <CardContent className="grid grid-cols-2 md:grid-cols-6 gap-4">
           {links.map((link) => (
             <Link key={link.label} href={link.href} passHref legacyBehavior>
               <Button variant="outline" className="flex flex-col h-28 w-full justify-center gap-2">
                 <link.icon className="h-6 w-6" />
-                <span>{link.label}</span>
+                <span className="text-center">{link.label}</span>
               </Button>
             </Link>
           ))}

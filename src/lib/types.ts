@@ -42,3 +42,11 @@ export type FormDocument = {
     description: string;
     icon: keyof typeof import('lucide-react').icons;
 };
+
+export type Fee = {
+    id: string;
+    studentId: string;
+    amount: number;
+    status: 'Paid' | 'Pending' | 'Overdue';
+    plan: 'Full Payment' | 'Two Installments' | 'Monthly Plan';
+};
