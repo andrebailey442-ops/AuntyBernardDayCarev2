@@ -1,7 +1,7 @@
 
 'use server';
 
-import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Student } from '@/lib/types';
 
@@ -21,10 +21,9 @@ export const getStudent = async (id: string): Promise<Student | null> => {
     return null;
 }
 
-export const addStudent = async (student: Omit<Student, 'id'>) => {
+export const addStudent = async (id: string, student: Omit<Student, 'id'>) => {
     const studentsCol = collection(db, 'students');
-    const docRef = await addDoc(studentsCol, student);
-    return docRef.id;
+    await setDoc(doc(studentsCol, id), student);
 };
 
 export const updateStudent = async (id: string, student: Partial<Student>) => {
@@ -36,3 +35,5 @@ export const deleteStudent = async (id: string) => {
     const studentDoc = doc(db, 'students', id);
     await deleteDoc(studentDoc);
 };
+
+    

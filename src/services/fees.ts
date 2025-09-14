@@ -1,7 +1,7 @@
 
 'use server';
 
-import { collection, doc, getDocs, updateDoc, query, where, getDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, updateDoc, query, where, getDoc, addDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Fee } from '@/lib/types';
 
@@ -23,7 +23,15 @@ export const getFeeByStudentId = async (studentId: string): Promise<Fee | null> 
     return null;
 }
 
+export const addFee = async (fee: Omit<Fee, 'id'>) => {
+    const feesCol = collection(db, 'fees');
+    const docRef = await addDoc(feesCol, fee);
+    return docRef.id;
+}
+
 export const updateFee = async (id: string, fee: Partial<Fee>) => {
     const feeDoc = doc(db, 'fees', id);
     await updateDoc(feeDoc, fee);
 };
+
+    

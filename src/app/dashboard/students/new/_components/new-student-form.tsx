@@ -50,6 +50,14 @@ import {
     AlertDialogTrigger,
   } from "@/components/ui/alert-dialog"
 import { addStudent } from '@/services/students';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { addFee } from '@/services/fees';
 
 
 const newStudentSchema = z.object({
@@ -65,6 +73,9 @@ const newStudentSchema = z.object({
   city: z.string().min(1, 'City is required'),
   state: z.string().min(1, 'State is required'),
   zip: z.string().min(1, 'ZIP code is required'),
+  paymentPlan: z.enum(['Full Payment', 'Two Installments', 'Monthly Plan'], {
+    required_error: "Payment plan is required"
+  }),
   emergencyContactName: z.string().min(1, 'Emergency contact name is required'),
   emergencyContactPhone: z.string().min(1, 'Emergency contact phone is required'),
   medicalConditions: z.string().optional(),
@@ -106,7 +117,7 @@ export function NewStudentForm() {
     }
   }, [dob, form]);
 
-  const onSubmit = async (data: NewStudentFormValues) => {
+  const onSubmit = async (data: NewStudentFormValues & { studentId: string }) => {
     setIsLoading(true);
     try {
         const studentData = {
@@ -117,7 +128,20 @@ export function NewStudentForm() {
             imageHint: 'child portrait',
             dob: data.dob.toISOString(),
         };
-        await addStudent(studentData);
+        await addStudent(data.studentId, studentData);
+        
+        let amount = 0;
+        if (data.paymentPlan === 'Full Payment') amount = 2375;
+        if (data.paymentPlan === 'Two Installments') amount = 2500;
+        if (data.paymentPlan === 'Monthly Plan') amount = 2500;
+
+        const feeData = {
+            studentId: data.studentId,
+            plan: data.paymentPlan,
+            amount: amount,
+            status: 'Pending' as 'Pending' | 'Paid' | 'Overdue',
+        }
+        await addFee(feeData);
 
         toast({
         title: 'Registration Submitted',
@@ -344,7 +368,31 @@ export function NewStudentForm() {
             <Separator />
             
             <div className="space-y-4">
-                <h3 className="text-xl font-semibold">Payment Plans</h3>
+                <h3 className="text-xl font-semibold">Payment Plan</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                    control={form.control}
+                    name="paymentPlan"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Select a Payment Plan</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Choose a plan..." />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            <SelectItem value="Full Payment">Full Payment ($2,375)</SelectItem>
+                            <SelectItem value="Two Installments">Two Installments ($1,250 x 2)</SelectItem>
+                            <SelectItem value="Monthly Plan">Monthly Plan ($625 x 4)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
                  <Card className="md:col-span-2">
                     <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
                         <div>
@@ -422,3 +470,5 @@ export function NewStudentForm() {
     </Card>
   );
 }
+
+    
