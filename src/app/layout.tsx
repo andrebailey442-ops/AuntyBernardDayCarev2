@@ -24,7 +24,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className={cn('font-sans antialiased')}>
+      <body className={cn('font-sans antialiased')} suppressHydrationWarning>
         <AuthProvider>
             {children}
             <Toaster />
