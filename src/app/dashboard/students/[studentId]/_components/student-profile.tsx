@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { getStudent } from '@/services/students';
 import { getFeeByStudentId } from '@/services/fees';
 import { Skeleton } from '@/components/ui/skeleton';
+import { format } from 'date-fns';
 
 type StudentProfileProps = {
     studentId: string;
@@ -74,22 +75,7 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
       );
   }
 
-  // Mock data for display, similar to edit form
-  const mockDetails = {
-    parentFirstName: 'John',
-    parentLastName: 'Doe',
-    parentEmail: student.parentContact,
-    parentPhone: '(555) 123-4567',
-    address: '123 Main St',
-    city: 'Anytown',
-    state: 'CA',
-    zip: '12345',
-    emergencyContactName: 'Jane Doe',
-    emergencyContactPhone: '(555) 765-4321',
-    medicalConditions: 'None'
-  };
-
-    const getStatusVariant = (status: 'Paid' | 'Pending' | 'Overdue') => {
+  const getStatusVariant = (status: 'Paid' | 'Pending' | 'Overdue') => {
       switch(status) {
           case 'Paid': return 'default';
           case 'Pending': return 'secondary';
@@ -127,7 +113,7 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                     <div><p className="text-sm text-muted-foreground">First Name</p><p>{student.name.split(' ')[0]}</p></div>
                     <div><p className="text-sm text-muted-foreground">Last Name</p><p>{student.name.split(' ').slice(1).join(' ')}</p></div>
                     <div><p className="text-sm text-muted-foreground">Age</p><p>{student.age}</p></div>
-                    <div><p className="text-sm text-muted-foreground">Date of Birth</p><p>{new Date(new Date().setFullYear(new Date().getFullYear() - student.age)).toLocaleDateString()}</p></div>
+                    <div><p className="text-sm text-muted-foreground">Date of Birth</p><p>{format(new Date(student.dob), 'PPP')}</p></div>
                 </div>
             </div>
 
@@ -136,11 +122,11 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
             <div>
                 <h3 className="text-xl font-semibold mb-4">Parent/Guardian Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><p className="text-sm text-muted-foreground">First Name</p><p>{mockDetails.parentFirstName}</p></div>
-                    <div><p className="text-sm text-muted-foreground">Last Name</p><p>{mockDetails.parentLastName}</p></div>
-                    <div><p className="text-sm text-muted-foreground">Email</p><p>{mockDetails.parentEmail}</p></div>
-                    <div><p className="text-sm text-muted-foreground">Phone</p><p>{mockDetails.parentPhone}</p></div>
-                    <div className="md:col-span-2"><p className="text-sm text-muted-foreground">Address</p><p>{`${mockDetails.address}, ${mockDetails.city}, ${mockDetails.state} ${mockDetails.zip}`}</p></div>
+                    <div><p className="text-sm text-muted-foreground">First Name</p><p>{student.parentFirstName || 'N/A'}</p></div>
+                    <div><p className="text-sm text-muted-foreground">Last Name</p><p>{student.parentLastName || 'N/A'}</p></div>
+                    <div><p className="text-sm text-muted-foreground">Email</p><p>{student.parentContact}</p></div>
+                    <div><p className="text-sm text-muted-foreground">Phone</p><p>{student.parentPhone || 'N/A'}</p></div>
+                    <div className="md:col-span-2"><p className="text-sm text-muted-foreground">Address</p><p>{`${student.address || ''}, ${student.city || ''}, ${student.state || ''} ${student.zip || ''}`}</p></div>
                 </div>
             </div>
 
@@ -165,9 +151,9 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
             <div>
                 <h3 className="text-xl font-semibold mb-4">Emergency and Health Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><p className="text-sm text-muted-foreground">Emergency Contact</p><p>{mockDetails.emergencyContactName}</p></div>
-                    <div><p className="text-sm text-muted-foreground">Emergency Phone</p><p>{mockDetails.emergencyContactPhone}</p></div>
-                    <div className="md:col-span-2"><p className="text-sm text-muted-foreground">Medical Conditions</p><p>{mockDetails.medicalConditions}</p></div>
+                    <div><p className="text-sm text-muted-foreground">Emergency Contact</p><p>{student.emergencyContactName || 'N/A'}</p></div>
+                    <div><p className="text-sm text-muted-foreground">Emergency Phone</p><p>{student.emergencyContactPhone || 'N/A'}</p></div>
+                    <div className="md:col-span-2"><p className="text-sm text-muted-foreground">Medical Conditions</p><p>{student.medicalConditions || 'None'}</p></div>
                 </div>
             </div>
         </div>

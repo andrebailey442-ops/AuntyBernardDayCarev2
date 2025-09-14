@@ -1,14 +1,26 @@
 
+
 import type { LucideIcon } from 'lucide-react';
 
 export type Student = {
   id: string;
   name: string;
   age: number;
-  dob?: string;
-  parentContact: string;
+  dob: string;
+  parentContact: string; // email
   avatarUrl: string;
   imageHint: string;
+  // Extended details from form
+  parentFirstName?: string;
+  parentLastName?: string;
+  parentPhone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  medicalConditions?: string;
 };
 
 export type GradeCategory = 'daily' | 'projects' | 'tests' | 'quizzes';

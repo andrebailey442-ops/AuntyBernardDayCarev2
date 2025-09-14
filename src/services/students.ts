@@ -13,12 +13,17 @@ export const getStudents = async (): Promise<Student[]> => {
 };
 
 export const getStudent = async (id: string): Promise<Student | null> => {
-    const studentDocRef = doc(db, 'students', id);
-    const studentSnap = await getDoc(studentDocRef);
-    if (studentSnap.exists()) {
-        return { id: studentSnap.id, ...studentSnap.data() } as Student;
+    try {
+        const studentDocRef = doc(db, 'students', id);
+        const studentSnap = await getDoc(studentDocRef);
+        if (studentSnap.exists()) {
+            return { id: studentSnap.id, ...studentSnap.data() } as Student;
+        }
+        return null;
+    } catch (error) {
+        console.error("Error fetching student:", error);
+        return null;
     }
-    return null;
 }
 
 export const addStudent = async (id: string, student: Omit<Student, 'id'>) => {
@@ -33,7 +38,7 @@ export const updateStudent = async (id: string, student: Partial<Student>) => {
 
 export const deleteStudent = async (id: string) => {
     const studentDoc = doc(db, 'students', id);
+    // Before deleting student, you might want to delete related data (fees, grades, attendance)
+    // This is not implemented here for brevity
     await deleteDoc(studentDoc);
 };
-
-    

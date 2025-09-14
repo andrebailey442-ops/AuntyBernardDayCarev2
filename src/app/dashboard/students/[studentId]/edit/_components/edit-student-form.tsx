@@ -76,7 +76,6 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     defaultValues: {
         firstName: '',
         lastName: '',
-        dob: new Date(),
         parentFirstName: '',
         parentLastName: '',
         parentEmail: '',
@@ -99,23 +98,22 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
             setStudent(studentData);
             const [firstName, ...lastName] = studentData.name.split(' ');
             
-            // This is mock data, so we'll invent some parent and address details
             form.reset({
                 firstName: firstName,
                 lastName: lastName.join(' '),
-                dob: studentData.dob ? new Date(studentData.dob) : new Date(new Date().setFullYear(new Date().getFullYear() - studentData.age)), // Approximate DOB
+                dob: studentData.dob ? new Date(studentData.dob) : new Date(new Date().setFullYear(new Date().getFullYear() - studentData.age)),
                 age: studentData.age,
-                parentFirstName: 'John',
-                parentLastName: 'Doe',
+                parentFirstName: studentData.parentFirstName || '',
+                parentLastName: studentData.parentLastName || '',
                 parentEmail: studentData.parentContact,
-                parentPhone: '(555) 123-4567',
-                address: '123 Main St',
-                city: 'Anytown',
-                state: 'CA',
-                zip: '12345',
-                emergencyContactName: 'Jane Doe',
-                emergencyContactPhone: '(555) 765-4321',
-                medicalConditions: 'None'
+                parentPhone: studentData.parentPhone || '',
+                address: studentData.address || '',
+                city: studentData.city || '',
+                state: studentData.state || '',
+                zip: studentData.zip || '',
+                emergencyContactName: studentData.emergencyContactName || '',
+                emergencyContactPhone: studentData.emergencyContactPhone || '',
+                medicalConditions: studentData.medicalConditions || ''
             });
         } else {
             toast({ variant: 'destructive', title: 'Error', description: 'Student not found.' });
@@ -144,12 +142,21 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
   const onSubmit = async (data: EditStudentFormValues) => {
     setIsLoading(true);
     try {
-        const updatedData = {
+        const updatedData: Partial<Student> = {
             name: `${data.firstName} ${data.lastName}`,
             age: data.age,
             dob: data.dob.toISOString(),
             parentContact: data.parentEmail,
-            // You would also save other fields here
+            parentFirstName: data.parentFirstName,
+            parentLastName: data.parentLastName,
+            parentPhone: data.parentPhone,
+            address: data.address,
+            city: data.city,
+            state: data.state,
+            zip: data.zip,
+            emergencyContactName: data.emergencyContactName,
+            emergencyContactPhone: data.emergencyContactPhone,
+            medicalConditions: data.medicalConditions,
         };
         await updateStudent(studentId, updatedData);
 

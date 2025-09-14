@@ -144,6 +144,16 @@ export function NewStudentForm() {
             avatarUrl: `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/100/100`,
             imageHint: 'child portrait',
             dob: data.dob.toISOString(),
+            parentFirstName: data.parentFirstName,
+            parentLastName: data.parentLastName,
+            parentPhone: data.parentPhone,
+            address: data.address,
+            city: data.city,
+            state: data.state,
+            zip: data.zip,
+            emergencyContactName: data.emergencyContactName,
+            emergencyContactPhone: data.emergencyContactPhone,
+            medicalConditions: data.medicalConditions,
         };
         await addStudent(data.studentId, studentData);
         
@@ -464,9 +474,11 @@ export function NewStudentForm() {
             </div>
             <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <div className="flex gap-4">
-                    <Button type="button" className="w-full" onClick={handleOpenDialog} disabled={isLoading}>
-                        {isLoading ? 'Submitting...' : 'Submit Registration'}
-                    </Button>
+                    <AlertDialogTrigger asChild>
+                        <Button type="button" className="w-full" onClick={handleOpenDialog} disabled={isLoading}>
+                            {isLoading ? 'Submitting...' : 'Submit Registration'}
+                        </Button>
+                    </AlertDialogTrigger>
                      <Button type="button" variant="outline" className="w-full" onClick={downloadNewStudentApplication}>
                         <Download className="mr-2 h-4 w-4" />
                         Download PDF
@@ -519,5 +531,3 @@ export function NewStudentForm() {
     </Card>
   );
 }
-
-    
