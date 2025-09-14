@@ -3,7 +3,6 @@
 
 import QuickLinks from './_components/quick-links';
 import DashboardStats from './_components/dashboard-stats';
-import HeroSlideshow from './_components/hero-slideshow';
 import StudentList from './_components/student-list';
 import AttendanceChart from './_components/attendance-chart';
 import GradeOverview from './_components/grade-overview';
@@ -11,9 +10,6 @@ import GradeOverview from './_components/grade-overview';
 export default function DashboardPage() {
   return (
      <div className="grid auto-rows-max items-start gap-4 md:gap-8">
-        <div className="col-span-1 lg:col-span-3">
-            <HeroSlideshow />
-        </div>
         <div className="col-span-1 lg:col-span-3">
             <QuickLinks />
         </div>
