@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "student-liam",
+      "description": "Avatar for Liam",
+      "imageUrl": "https://picsum.photos/seed/101/100/100",
+      "imageHint": "child portrait"
+    },
+    {
+      "id": "student-olivia",
+      "description": "Avatar for Olivia",
+      "imageUrl": "https://picsum.photos/seed/102/100/100",
+      "imageHint": "child smiling"
+    },
+    {
+      "id": "student-noah",
+      "description": "Avatar for Noah",
+      "imageUrl": "https://picsum.photos/seed/103/100/100",
+      "imageHint": "kid playing"
+    },
+    {
+      "id": "student-emma",
+      "description": "Avatar for Emma",
+      "imageUrl": "https://picsum.photos/seed/104/100/100",
+      "imageHint": "girl laughing"
+    },
+    {
+      "id": "student-lucas",
+      "description": "Avatar for Lucas",
+      "imageUrl": "https://picsum.photos/seed/105/100/100",
+      "imageHint": "boy reading"
+    },
+    {
+      "id": "student-ava",
+      "description": "Avatar for Ava",
+      "imageUrl": "https://picsum.photos/seed/106/100/100",
+      "imageHint": "child painting"
+    }
+  ]
 }
