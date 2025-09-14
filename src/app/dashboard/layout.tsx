@@ -1,10 +1,11 @@
+
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { DashboardHeader } from '@/components/dashboard-header';
 import { useAuth } from '@/hooks/use-auth';
-import { getTeacherPermissions } from '@/services/permissions';
+import { getTeacherPermissions, initializePermissionData } from '@/services/permissions';
 
 export default function DashboardLayout({
   children,
@@ -13,14 +14,14 @@ export default function DashboardLayout({
 }) {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const pathname =
-    typeof window !== 'undefined' ? window.location.pathname : '';
+  const pathname = usePathname();
 
   React.useEffect(() => {
     if (!loading) {
       if (!user) {
         router.replace('/');
       } else if (user.role === 'Teacher') {
+        initializePermissionData();
         // Redirect teacher if they try to access a forbidden page
         const checkPermissions = async () => {
           const permissions = await getTeacherPermissions();

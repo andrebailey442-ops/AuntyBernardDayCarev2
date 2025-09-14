@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -31,7 +32,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard/grades', label: 'Grades', icon: GraduationCap },
   { href: '/dashboard/financial', label: 'Financial', icon: DollarSign },
   { href: '/dashboard/forms', label: 'Forms', icon: FileText },
-  { href: '/dashboard/manage-users', label: 'Manage Users', icon: ShieldCheck, adminOnly: true },
+  { href: '/dashboard/reports', label: 'Reports', icon: FileText },
 ];
 
 export function DashboardNav() {
@@ -42,7 +43,7 @@ export function DashboardNav() {
   React.useEffect(() => {
     const determineVisibleItems = async () => {
       if (user?.role === 'Admin') {
-        setVisibleNavItems(navItems.filter(item => !item.adminOnly));
+        setVisibleNavItems(navItems);
       } else if (user?.role === 'Teacher') {
         initializePermissionData();
         const permissions = await getTeacherPermissions();
