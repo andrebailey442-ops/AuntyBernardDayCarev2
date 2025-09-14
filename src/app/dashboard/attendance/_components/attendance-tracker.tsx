@@ -45,7 +45,7 @@ import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { getStudents } from '@/services/students';
 import { getSubjects } from '@/services/subjects';
-import { getAttendance } from '@/services/attendance';
+import { getAttendance, upsertAttendance } from '@/services/attendance';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type AttendanceState = Record<string, AttendanceStatus>;
@@ -60,6 +60,7 @@ export default function AttendanceTracker() {
   const [loadingSuggestions, setLoadingSuggestions] = React.useState<Record<string, boolean>>({});
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(true);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -121,12 +122,29 @@ export default function AttendanceTracker() {
     }
   };
 
-  const saveAttendance = () => {
+  const saveAttendance = async () => {
     if (!selectedSubject) return;
-    toast({
-        title: 'Attendance Saved',
-        description: `Attendance for ${selectedSubject.name} on ${format(date, 'PPP')} has been successfully recorded.`,
-    });
+    setSaving(true);
+    try {
+      const promises = students.map(student => {
+        const status = attendance[student.id];
+        return upsertAttendance(student.id, selectedSubject.id, date, status);
+      });
+      await Promise.all(promises);
+      toast({
+          title: 'Attendance Saved',
+          description: `Attendance for ${selectedSubject.name} on ${format(date, 'PPP')} has been successfully recorded.`,
+      });
+    } catch (error) {
+      console.error("Failed to save attendance: ", error);
+      toast({
+        variant: 'destructive',
+        title: 'Save Failed',
+        description: 'Could not save attendance records.',
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -161,7 +179,7 @@ export default function AttendanceTracker() {
               />
             </PopoverContent>
           </Popover>
-          <Select onValueChange={(value) => setSelectedSubject(subjects.find(s => s.id === value)!)} value={selectedSubject?.id}>
+          <Select onValueChange={(value) => setSelectedSubject(subjects.find(s => s.id === value) || null)} value={selectedSubject?.id || ''}>
               <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select Subject" />
               </SelectTrigger>
@@ -171,7 +189,9 @@ export default function AttendanceTracker() {
                   ))}
               </SelectContent>
           </Select>
-          <Button onClick={saveAttendance}><Check className="mr-2 h-4 w-4"/>Save Attendance</Button>
+          <Button onClick={saveAttendance} disabled={saving}>
+              {saving ? 'Saving...' : <><Check className="mr-2 h-4 w-4"/>Save Attendance</>}
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
@@ -220,7 +240,7 @@ export default function AttendanceTracker() {
                 </TableCell>
                 <TableCell>
                   <RadioGroup
-                    value={attendance[student.id]}
+                    value={attendance[student.id] || 'present'}
                     onValueChange={(value: string) =>
                       handleStatusChange(student.id, value as AttendanceStatus)
                     }

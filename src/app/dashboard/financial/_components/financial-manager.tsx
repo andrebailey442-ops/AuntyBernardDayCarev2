@@ -88,12 +88,35 @@ export default function FinancialManager() {
       }
   }
   
-  const handleMakePayment = () => {
-    toast({
-      title: 'Payment Processed',
-      description: `Payment for student ID ${makePaymentStudentId} has been recorded.`,
-    });
-    setMakePaymentStudentId('');
+  const handleMakePayment = async () => {
+    if (!makePaymentStudentId) return;
+    try {
+        const feeToUpdate = await getFeeByStudentId(makePaymentStudentId);
+        if (!feeToUpdate) {
+            throw new Error('Fee record not found for student.');
+        }
+        await updateFee(feeToUpdate.id, { status: 'Paid' });
+
+        setFees(prevFees =>
+            prevFees.map(fee =>
+                fee.studentId === makePaymentStudentId
+                ? { ...fee, status: 'Paid' }
+                : fee
+            )
+        );
+        toast({
+            title: 'Payment Processed',
+            description: `Payment for student ID ${makePaymentStudentId} has been recorded as Paid.`,
+        });
+        setMakePaymentStudentId('');
+    } catch(error) {
+        console.error("Failed to process payment: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Failed to process payment.',
+        });
+    }
   }
   
   const handleUpdatePayment = async () => {
@@ -324,9 +347,9 @@ export default function FinancialManager() {
                   </TableCell>
                   <TableCell>${fee?.amount.toFixed(2)}</TableCell>
                   <TableCell>
-                    <Badge variant={getStatusVariant(fee?.status || 'Pending')}>{fee?.status}</Badge>
+                    <Badge variant={fee?.status ? getStatusVariant(fee.status) : 'outline'}>{fee?.status ?? 'N/A'}</Badge>
                   </TableCell>
-                  <TableCell>{fee?.plan}</TableCell>
+                  <TableCell>{fee?.plan ?? 'N/A'}</TableCell>
                   <TableCell className="text-right space-x-2">
                     <Button variant="outline" size="sm" onClick={() => router.push(`/dashboard/students/${student.id}`)}>
                         <User className="mr-2 h-4 w-4" />

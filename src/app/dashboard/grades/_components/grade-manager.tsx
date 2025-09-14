@@ -31,7 +31,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Check } from 'lucide-react';
 import { getStudents } from '@/services/students';
 import { getSubjects } from '@/services/subjects';
-import { getGrades } from '@/services/grades';
+import { getGrades, upsertGrade } from '@/services/grades';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type GradeState = { [studentId: string]: { [subjectId: string]: string } };
@@ -42,6 +42,7 @@ export default function GradeManager() {
   const [students, setStudents] = React.useState<Student[]>([]);
   const [subjects, setSubjects] = React.useState<Subject[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -78,12 +79,33 @@ export default function GradeManager() {
     }));
   };
 
-  const handleSaveAll = () => {
-    console.log('Saving grades:', grades);
-    toast({
-      title: 'Grades Saved',
-      description: 'All student grades have been successfully updated.',
-    });
+  const handleSaveAll = async () => {
+    setSaving(true);
+    try {
+      const promises: Promise<void>[] = [];
+      for (const studentId in grades) {
+        for (const subjectId in grades[studentId]) {
+          const grade = grades[studentId][subjectId];
+          if (grade) { // Only save if a grade is selected
+            promises.push(upsertGrade(studentId, subjectId, grade));
+          }
+        }
+      }
+      await Promise.all(promises);
+      toast({
+        title: 'Grades Saved',
+        description: 'All student grades have been successfully updated.',
+      });
+    } catch (error) {
+      console.error("Failed to save grades: ", error);
+      toast({
+        variant: 'destructive',
+        title: 'Save Failed',
+        description: 'Could not save grades.',
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -94,9 +116,8 @@ export default function GradeManager() {
             <CardTitle>Grade Management</CardTitle>
             <CardDescription>Enter grades for each student across all subjects.</CardDescription>
           </div>
-          <Button onClick={handleSaveAll}>
-            <Check className="mr-2 h-4 w-4" />
-            Save All Grades
+          <Button onClick={handleSaveAll} disabled={saving}>
+            {saving ? 'Saving...' : <><Check className="mr-2 h-4 w-4" /> Save All Grades</>}
           </Button>
         </CardHeader>
         <CardContent>
