@@ -28,19 +28,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  RadioGroup,
-  RadioGroupItem,
-} from '@/components/ui/radio-group';
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
 import type { AttendanceStatus, Student, Subject } from '@/lib/types';
-import { suggestAttendance } from '@/ai/flows/suggest-attendance';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { getStudents, initializeStudentData } from '@/services/students';
@@ -48,16 +42,13 @@ import { getSubjects, initializeSubjectData } from '@/services/subjects';
 import { getAttendance, upsertAttendance, initializeAttendanceData } from '@/services/attendance';
 import { Skeleton } from '@/components/ui/skeleton';
 
-type AttendanceState = Record<string, AttendanceStatus>;
+type AttendanceState = { [studentId: string]: { [subjectId: string]: AttendanceStatus } };
 
 export default function AttendanceTracker() {
   const [date, setDate] = React.useState<Date>(new Date());
   const [students, setStudents] = React.useState<Student[]>([]);
   const [subjects, setSubjects] = React.useState<Subject[]>([]);
-  const [allAttendance, setAllAttendance] = React.useState<any[]>([]);
-  const [selectedSubject, setSelectedSubject] = React.useState<Subject | null>(null);
   const [attendance, setAttendance] = React.useState<AttendanceState>({});
-  const [loadingSuggestions, setLoadingSuggestions] = React.useState<Record<string, boolean>>({});
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
@@ -69,75 +60,61 @@ export default function AttendanceTracker() {
         initializeSubjectData();
         initializeAttendanceData();
 
-        const [studentList, subjectList, attendanceList] = await Promise.all([
+        const [studentList, subjectList] = await Promise.all([
             getStudents(),
             getSubjects(),
-            getAttendance()
         ]);
         setStudents(studentList);
         setSubjects(subjectList);
-        setAllAttendance(attendanceList);
-        if (subjectList.length > 0) {
-            setSelectedSubject(subjectList[0]);
-        }
         setLoading(false);
     };
     fetchData();
   }, []);
 
   React.useEffect(() => {
-    if (!selectedSubject || students.length === 0) return;
+    if (students.length === 0 || subjects.length === 0) return;
 
     const formattedDate = format(date, 'yyyy-MM-dd');
-    const todaysAttendance = allAttendance.filter(
-      (a) => a.date === formattedDate && a.subject === selectedSubject.id
-    );
+    const fetchTodaysAttendance = async () => {
+      const allAttendance = await getAttendance();
+      const todaysAttendance = allAttendance.filter((a) => a.date === formattedDate);
 
-    const initialState: AttendanceState = {};
-    students.forEach(student => {
-        const record = todaysAttendance.find(a => a.studentId === student.id);
-        initialState[student.id] = record ? record.status : 'present';
-    });
-    setAttendance(initialState);
-  }, [date, selectedSubject, students, allAttendance]);
-
-  const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
-    setAttendance((prev) => ({ ...prev, [studentId]: status }));
-  };
-  
-  const handleSuggest = async (student: Student) => {
-    setLoadingSuggestions(prev => ({...prev, [student.id]: true}));
-    try {
-      const suggestion = await suggestAttendance({ studentId: student.id, date: format(date, 'yyyy-MM-dd') });
-      handleStatusChange(student.id, suggestion.status);
-      toast({
-        title: `Suggestion for ${student.name}`,
-        description: `Status set to "${suggestion.status}". ${suggestion.reason || ''}`,
+      const initialState: AttendanceState = {};
+      students.forEach(student => {
+        initialState[student.id] = {};
+        subjects.forEach(subject => {
+            const record = todaysAttendance.find(a => a.studentId === student.id && a.subject === subject.id);
+            initialState[student.id][subject.id] = record ? record.status : 'present';
+        });
       });
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: 'destructive',
-        title: 'Suggestion Failed',
-        description: 'Could not get an AI suggestion at this time.',
-      });
-    } finally {
-        setLoadingSuggestions(prev => ({...prev, [student.id]: false}));
+      setAttendance(initialState);
     }
+    fetchTodaysAttendance();
+
+  }, [date, students, subjects]);
+
+  const handleStatusChange = (studentId: string, subjectId: string, status: AttendanceStatus) => {
+    setAttendance((prev) => ({ 
+        ...prev, 
+        [studentId]: {
+            ...(prev[studentId] || {}),
+            [subjectId]: status
+        } 
+    }));
   };
 
   const saveAttendance = async () => {
-    if (!selectedSubject) return;
     setSaving(true);
     try {
-      const promises = students.map(student => {
-        const status = attendance[student.id];
-        return upsertAttendance(student.id, selectedSubject.id, date, status);
-      });
+      const promises = Object.entries(attendance).flatMap(([studentId, subjectStatuses]) => 
+        Object.entries(subjectStatuses).map(([subjectId, status]) => 
+          upsertAttendance(studentId, subjectId, date, status)
+        )
+      );
       await Promise.all(promises);
       toast({
           title: 'Attendance Saved',
-          description: `Attendance for ${selectedSubject.name} on ${format(date, 'PPP')} has been successfully recorded.`,
+          description: `Attendance for ${format(date, 'PPP')} has been successfully recorded.`,
       });
     } catch (error) {
       console.error("Failed to save attendance: ", error);
@@ -183,16 +160,6 @@ export default function AttendanceTracker() {
               />
             </PopoverContent>
           </Popover>
-          <Select onValueChange={(value) => setSelectedSubject(subjects.find(s => s.id === value) || null)} value={selectedSubject?.id || ''}>
-              <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select Subject" />
-              </SelectTrigger>
-              <SelectContent>
-                  {subjects.map(subject => (
-                      <SelectItem key={subject.id} value={subject.id}>{subject.name}</SelectItem>
-                  ))}
-              </SelectContent>
-          </Select>
           <Button onClick={saveAttendance} disabled={saving}>
               {saving ? 'Saving...' : <><Check className="mr-2 h-4 w-4"/>Save Attendance</>}
           </Button>
@@ -202,34 +169,32 @@ export default function AttendanceTracker() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Student</TableHead>
-              <TableHead className="text-center">Status</TableHead>
-              <TableHead className="text-right">AI</TableHead>
+              <TableHead className="w-[200px] sticky left-0 bg-background">Student</TableHead>
+              {subjects.map(subject => (
+                  <TableHead key={subject.id} className="min-w-[150px] text-center">{subject.name}</TableHead>
+              ))}
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
                 Array.from({length: 5}).map((_, i) => (
                     <TableRow key={i}>
-                        <TableCell>
+                        <TableCell className="sticky left-0 bg-background">
                             <div className="flex items-center gap-3">
                                 <Skeleton className="h-10 w-10 rounded-full" />
-                                <Skeleton className="h-4 w-[150px]" />
+                                <Skeleton className="h-4 w-[120px]" />
                             </div>
                         </TableCell>
-                        <TableCell>
-                            <div className="flex justify-center space-x-2 md:space-x-4">
-                                <Skeleton className="h-4 w-[70px]" />
-                                <Skeleton className="h-4 w-[70px]" />
-                                <Skeleton className="h-4 w-[70px]" />
-                            </div>
-                        </TableCell>
-                        <TableCell className="text-right"><Skeleton className="h-8 w-[100px]" /></TableCell>
+                        {subjects.map(subject => (
+                             <TableCell key={subject.id} className="text-center">
+                                <Skeleton className="h-10 w-full" />
+                             </TableCell>
+                        ))}
                     </TableRow>
                 ))
             ) : students.map((student) => (
               <TableRow key={student.id}>
-                <TableCell>
+                <TableCell className="font-medium sticky left-0 bg-background">
                   <div className="flex items-center gap-3">
                     <Image
                       alt="Student avatar"
@@ -239,37 +204,26 @@ export default function AttendanceTracker() {
                       width="40"
                       data-ai-hint={student.imageHint}
                     />
-                    <div className="font-medium">{student.name}</div>
+                    <span>{student.name}</span>
                   </div>
                 </TableCell>
-                <TableCell>
-                  <RadioGroup
-                    value={attendance[student.id] || 'present'}
-                    onValueChange={(value: string) =>
-                      handleStatusChange(student.id, value as AttendanceStatus)
-                    }
-                    className="flex justify-center space-x-2 md:space-x-4"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="present" id={`present-${student.id}`} />
-                      <Label htmlFor={`present-${student.id}`}>Present</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="absent" id={`absent-${student.id}`} />
-                      <Label htmlFor={`absent-${student.id}`}>Absent</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="tardy" id={`tardy-${student.id}`} />
-                      <Label htmlFor={`tardy-${student.id}`}>Tardy</Label>
-                    </div>
-                  </RadioGroup>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => handleSuggest(student)} disabled={loadingSuggestions[student.id]}>
-                    <Wand2 className="h-4 w-4 mr-2"/>
-                    {loadingSuggestions[student.id] ? 'Thinking...' : 'Suggest'}
-                  </Button>
-                </TableCell>
+                {subjects.map(subject => (
+                    <TableCell key={subject.id} className="text-center">
+                        <Select
+                            value={attendance[student.id]?.[subject.id] || 'present'}
+                            onValueChange={(value) => handleStatusChange(student.id, subject.id, value as AttendanceStatus)}
+                        >
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="present">Present</SelectItem>
+                                <SelectItem value="absent">Absent</SelectItem>
+                                <SelectItem value="tardy">Tardy</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </TableCell>
+                ))}
               </TableRow>
             ))}
           </TableBody>
