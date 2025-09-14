@@ -226,7 +226,7 @@ export default function FormList() {
                     return (
                         <Card key={form.id}>
                             <CardHeader className="flex flex-row items-center gap-4">
-                                {Icon && <Icon className="w-8 h-8 text-primary" />}
+                                <Icon className="w-8 h-8 text-primary" />
                                 <CardTitle>{form.title}</CardTitle>
                             </CardHeader>
                             <CardContent>
