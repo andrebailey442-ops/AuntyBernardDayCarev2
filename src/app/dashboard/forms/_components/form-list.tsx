@@ -13,6 +13,7 @@ import { FORMS } from '@/lib/data';
 import { useToast } from '@/hooks/use-toast';
 import type { LucideProps } from 'lucide-react';
 import type { ForwardRefExoticComponent, RefAttributes } from 'react';
+import { jsPDF } from 'jspdf';
 
 
 type IconComponents = {
@@ -28,11 +29,35 @@ const icons: IconComponents = {
 export default function FormList() {
     const { toast } = useToast();
 
-    const handleDownload = (title: string) => {
-        toast({
-            title: "Download Started",
-            description: `${title} is being downloaded.`
-        });
+    const handleDownload = (title: string, description: string) => {
+        try {
+            const doc = new jsPDF();
+            
+            doc.setFontSize(22);
+            doc.text(title, 20, 20);
+            
+            doc.setFontSize(12);
+            doc.text(description, 20, 30);
+            
+            // Add more form fields as needed
+            doc.setFontSize(12);
+            doc.text('Name: __________________________', 20, 50);
+            doc.text('Date: __________________________', 20, 60);
+
+            doc.save(`${title.replace(/\s+/g, '-')}.pdf`);
+
+            toast({
+                title: "Download Started",
+                description: `${title} is being downloaded.`
+            });
+        } catch (error) {
+            console.error(error);
+            toast({
+                variant: 'destructive',
+                title: "Download Failed",
+                description: `Could not generate PDF for ${title}.`
+            });
+        }
     }
 
     return (
@@ -54,7 +79,7 @@ export default function FormList() {
                                 <p className="text-sm text-muted-foreground">{form.description}</p>
                             </CardContent>
                             <CardFooter>
-                                <Button className="w-full" onClick={() => handleDownload(form.title)}>
+                                <Button className="w-full" onClick={() => handleDownload(form.title, form.description)}>
                                     <Download className="mr-2 h-4 w-4" /> Download
                                 </Button>
                             </CardFooter>
