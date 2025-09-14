@@ -22,8 +22,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { STUDENTS, FEES } from '@/lib/data';
-import type { Student, Fee } from '@/lib/types';
+import { STUDENTS } from '@/lib/data';
+import type { Student } from '@/lib/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,7 +42,7 @@ export default function StudentManager() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [filteredStudents, setFilteredStudents] = React.useState<Student[]>(STUDENTS);
   const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
-  const [dialogContent, setDialogContent] = React.useState<'fee' | 'report' | null>(null);
+  const [dialogContent, setDialogContent] = React.useState<'report' | null>(null);
 
   React.useEffect(() => {
     const results = STUDENTS.filter(student =>
@@ -50,19 +50,6 @@ export default function StudentManager() {
     );
     setFilteredStudents(results);
   }, [searchTerm]);
-
-  const getStudentFee = (studentId: string): Fee | undefined => {
-      return FEES.find(fee => fee.studentId === studentId);
-  }
-
-  const getStatusVariant = (status?: 'Paid' | 'Pending' | 'Overdue') => {
-      switch(status) {
-          case 'Paid': return 'default';
-          case 'Pending': return 'secondary';
-          case 'Overdue': return 'destructive';
-          default: return 'outline';
-      }
-  }
 
   const handleViewProfile = (studentId: string) => {
     router.push(`/dashboard/students/${studentId}`);
@@ -76,7 +63,7 @@ export default function StudentManager() {
     router.push(`/dashboard/reports/${studentId}`);
   };
 
-  const openDialog = (student: Student, content: 'fee' | 'report') => {
+  const openDialog = (student: Student, content: 'report') => {
     setSelectedStudent(student);
     setDialogContent(content);
   }
@@ -86,7 +73,7 @@ export default function StudentManager() {
       <CardHeader>
         <CardTitle>Student Management</CardTitle>
         <CardDescription>
-          Search for students by name or ID to view their profile, reports, and fee status.
+          Search for students by name or ID to view their profile and reports.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -108,15 +95,12 @@ export default function StudentManager() {
               <TableRow>
                 <TableHead>Student</TableHead>
                 <TableHead>Age</TableHead>
-                <TableHead>Fee Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredStudents.length > 0 ? (
-                filteredStudents.map((student) => {
-                  const fee = getStudentFee(student.id);
-                  return (
+                filteredStudents.map((student) => (
                   <TableRow key={student.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -137,9 +121,6 @@ export default function StudentManager() {
                     <TableCell>
                       <Badge variant="outline">{student.age}</Badge>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={getStatusVariant(fee?.status || 'Pending')}>{fee?.status}</Badge>
-                    </TableCell>
                     <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -154,9 +135,6 @@ export default function StudentManager() {
                             <DropdownMenuItem onClick={() => handleEditProfile(student.id)}>Edit Profile</DropdownMenuItem>
                             <DropdownMenuSeparator />
                              <DialogTrigger asChild>
-                               <DropdownMenuItem onClick={() => openDialog(student, 'fee')}>View Fee Payment</DropdownMenuItem>
-                             </DialogTrigger>
-                             <DialogTrigger asChild>
                                 <DropdownMenuItem onClick={() => openDialog(student, 'report')}>View Report</DropdownMenuItem>
                              </DialogTrigger>
                              <DropdownMenuSeparator />
@@ -167,10 +145,10 @@ export default function StudentManager() {
                         </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                )})
+                ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">
+                  <TableCell colSpan={3} className="h-24 text-center">
                     No students found.
                   </TableCell>
                 </TableRow>
@@ -179,7 +157,6 @@ export default function StudentManager() {
           </Table>
           {selectedStudent && (
              <DialogContent className={dialogContent === 'report' ? 'sm:max-w-3xl' : 'sm:max-w-[425px]'}>
-              {dialogContent === 'fee' && <FeeDetails student={selectedStudent} fee={getStudentFee(selectedStudent.id)}/>}
               {dialogContent === 'report' && <ReportCardDialog student={selectedStudent} />}
             </DialogContent>
           )}
