@@ -1,3 +1,4 @@
+'use client';
 import Link from 'next/link';
 import { PlusCircle, FileText, UserPlus, GraduationCap } from 'lucide-react';
 import {
@@ -11,7 +12,7 @@ import { Button } from '@/components/ui/button';
 
 const links = [
   {
-    href: '#',
+    href: '/dashboard/students/new',
     label: 'Add New Student',
     icon: UserPlus,
   },

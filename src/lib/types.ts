@@ -11,6 +11,11 @@ export type Student = {
 
 export type GradeCategory = 'daily' | 'projects' | 'tests' | 'quizzes';
 
+export type Subject = {
+    id: string;
+    name: string;
+}
+
 export type Grade = {
   id: string;
   studentId: string;
@@ -28,6 +33,7 @@ export type Attendance = {
   studentId: string;
   date: string;
   status: AttendanceStatus;
+  subject: string;
 };
 
 export type FormDocument = {

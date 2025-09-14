@@ -30,32 +30,41 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from '@/components/ui/radio-group';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { STUDENTS, ATTENDANCE } from '@/lib/data';
-import type { AttendanceStatus, Student } from '@/lib/types';
+import { STUDENTS, ATTENDANCE, SUBJECTS } from '@/lib/data';
+import type { AttendanceStatus, Student, Subject } from '@/lib/types';
 import { suggestAttendance } from '@/ai/flows/suggest-attendance';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 
 type AttendanceState = Record<string, AttendanceStatus>;
 
 export default function AttendanceTracker() {
   const [date, setDate] = React.useState<Date>(new Date());
+  const [selectedSubject, setSelectedSubject] = React.useState<Subject>(SUBJECTS[0]);
   const [attendance, setAttendance] = React.useState<AttendanceState>({});
   const [loadingSuggestions, setLoadingSuggestions] = React.useState<Record<string, boolean>>({});
   const { toast } = useToast();
 
   React.useEffect(() => {
     const formattedDate = format(date, 'yyyy-MM-dd');
-    const todaysAttendance = ATTENDANCE.filter((a) => a.date === formattedDate);
+    const todaysAttendance = ATTENDANCE.filter(
+      (a) => a.date === formattedDate && a.subject === selectedSubject.id
+    );
     const initialState: AttendanceState = {};
     STUDENTS.forEach(student => {
         const record = todaysAttendance.find(a => a.studentId === student.id);
         initialState[student.id] = record ? record.status : 'present';
     });
     setAttendance(initialState);
-  }, [date]);
+  }, [date, selectedSubject]);
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     setAttendance((prev) => ({ ...prev, [studentId]: status }));
@@ -85,7 +94,7 @@ export default function AttendanceTracker() {
   const saveAttendance = () => {
     toast({
         title: 'Attendance Saved',
-        description: `Attendance for ${format(date, 'PPP')} has been successfully recorded.`,
+        description: `Attendance for ${selectedSubject.name} on ${format(date, 'PPP')} has been successfully recorded.`,
     });
   };
 
@@ -104,7 +113,7 @@ export default function AttendanceTracker() {
               <Button
                 variant={'outline'}
                 className={cn(
-                  'w-[280px] justify-start text-left font-normal',
+                  'w-[240px] justify-start text-left font-normal',
                   !date && 'text-muted-foreground'
                 )}
               >
@@ -121,6 +130,16 @@ export default function AttendanceTracker() {
               />
             </PopoverContent>
           </Popover>
+          <Select onValueChange={(value) => setSelectedSubject(SUBJECTS.find(s => s.id === value)!)} defaultValue={selectedSubject.id}>
+              <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select Subject" />
+              </SelectTrigger>
+              <SelectContent>
+                  {SUBJECTS.map(subject => (
+                      <SelectItem key={subject.id} value={subject.id}>{subject.name}</SelectItem>
+                  ))}
+              </SelectContent>
+          </Select>
           <Button onClick={saveAttendance}><Check className="mr-2 h-4 w-4"/>Save Attendance</Button>
         </div>
       </CardHeader>
