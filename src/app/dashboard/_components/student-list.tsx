@@ -24,6 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +32,10 @@ import { STUDENTS } from '@/lib/data';
 
 export default function StudentList() {
   const router = useRouter();
+
+  const handleViewProfile = (studentId: string) => {
+    router.push(`/dashboard/students/${studentId}`);
+  };
 
   const handleEditProfile = (studentId: string) => {
     router.push(`/dashboard/students/${studentId}/edit`);
@@ -93,7 +98,9 @@ export default function StudentList() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => handleViewProfile(student.id)}>View Profile</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleEditProfile(student.id)}>Edit Profile</DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={() => handleGenerateReport(student.id)}
                       >

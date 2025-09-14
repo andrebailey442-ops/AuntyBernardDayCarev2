@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Search, Printer } from 'lucide-react';
+import { Search, Printer, User } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -57,6 +57,10 @@ export default function FeeManager() {
           default: return 'outline';
       }
   }
+
+  const handleViewProfile = (studentId: string) => {
+    router.push(`/dashboard/students/${studentId}`);
+  };
 
   return (
     <>
@@ -151,7 +155,11 @@ export default function FeeManager() {
                     <Badge variant={getStatusVariant(fee?.status || 'Pending')}>{fee?.status}</Badge>
                   </TableCell>
                   <TableCell>{fee?.plan}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right space-x-2">
+                    <Button variant="outline" size="sm" onClick={() => handleViewProfile(student.id)}>
+                        <User className="mr-2 h-4 w-4" />
+                        View Profile
+                    </Button>
                     <Button variant="outline" size="sm">
                         <Printer className="mr-2 h-4 w-4" />
                         Print Invoice
