@@ -8,9 +8,9 @@ import { deleteFeeByStudentId } from './fees';
 
 const STORAGE_KEY = 'students';
 
-// Initialize with seed data if it doesn't exist
-initializeLocalStorage(STORAGE_KEY, STUDENTS);
-
+export const initializeStudentData = () => {
+    initializeLocalStorage(STORAGE_KEY, STUDENTS);
+}
 
 export const getStudents = async (): Promise<Student[]> => {
     return getFromLocalStorage<Student>(STORAGE_KEY);
@@ -49,5 +49,5 @@ export const deleteStudent = async (id: string) => {
     // For now, we'll imagine they exist and call them
     // e.g. await deleteGradesByStudentId(id);
     // e.g. await deleteAttendanceByStudentId(id);
-    // e.g. await deleteFeeByStudentId(id);
+    await deleteFeeByStudentId(id);
 };

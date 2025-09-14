@@ -20,10 +20,10 @@ import { ScholarStartLogo } from '@/components/icons';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { getStudent } from '@/services/students';
-import { getGradesByStudent } from '@/services/grades';
-import { getAttendanceByStudent } from '@/services/attendance';
-import { getSubjects } from '@/services/subjects';
+import { getStudent, initializeStudentData } from '@/services/students';
+import { getGradesByStudent, initializeGradeData } from '@/services/grades';
+import { getAttendanceByStudent, initializeAttendanceData } from '@/services/attendance';
+import { getSubjects, initializeSubjectData } from '@/services/subjects';
 
 type ReportCardProps = {
   studentId: string;
@@ -41,6 +41,10 @@ export default function ReportCard({ studentId }: ReportCardProps) {
   React.useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
+      initializeStudentData();
+      initializeGradeData();
+      initializeAttendanceData();
+      initializeSubjectData();
       const studentData = await getStudent(studentId);
       if (studentData) {
         setStudent(studentData);

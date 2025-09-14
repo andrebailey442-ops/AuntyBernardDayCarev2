@@ -37,8 +37,8 @@ import {
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InvoiceDialog from './invoice-dialog';
-import { getStudents } from '@/services/students';
-import { getFees, getFeeByStudentId, updateFee } from '@/services/fees';
+import { getStudents, initializeStudentData } from '@/services/students';
+import { getFees, getFeeByStudentId, updateFee, initializeFeeData } from '@/services/fees';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function FinancialManager() {
@@ -58,6 +58,8 @@ export default function FinancialManager() {
 
   const fetchData = React.useCallback(async () => {
     setLoading(true);
+    initializeStudentData();
+    initializeFeeData();
     const [studentList, feeList] = await Promise.all([getStudents(), getFees()]);
     setStudents(studentList);
     setFees(feeList);

@@ -43,9 +43,9 @@ import type { AttendanceStatus, Student, Subject } from '@/lib/types';
 import { suggestAttendance } from '@/ai/flows/suggest-attendance';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
-import { getStudents } from '@/services/students';
-import { getSubjects } from '@/services/subjects';
-import { getAttendance, upsertAttendance } from '@/services/attendance';
+import { getStudents, initializeStudentData } from '@/services/students';
+import { getSubjects, initializeSubjectData } from '@/services/subjects';
+import { getAttendance, upsertAttendance, initializeAttendanceData } from '@/services/attendance';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type AttendanceState = Record<string, AttendanceStatus>;
@@ -65,6 +65,10 @@ export default function AttendanceTracker() {
   React.useEffect(() => {
     const fetchData = async () => {
         setLoading(true);
+        initializeStudentData();
+        initializeSubjectData();
+        initializeAttendanceData();
+
         const [studentList, subjectList, attendanceList] = await Promise.all([
             getStudents(),
             getSubjects(),

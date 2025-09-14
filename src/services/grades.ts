@@ -8,8 +8,9 @@ import { GRADES } from '@/lib/data';
 
 const STORAGE_KEY = 'grades';
 
-// Initialize with seed data if it doesn't exist
-initializeLocalStorage(STORAGE_KEY, GRADES);
+export const initializeGradeData = () => {
+    initializeLocalStorage(STORAGE_KEY, GRADES);
+}
 
 export const getGrades = async (): Promise<Grade[]> => {
     return getFromLocalStorage<Grade>(STORAGE_KEY);

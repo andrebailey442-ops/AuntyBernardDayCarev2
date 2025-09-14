@@ -7,9 +7,9 @@ import { FEES } from '@/lib/data';
 
 const STORAGE_KEY = 'fees';
 
-// Initialize with seed data if it doesn't exist
-initializeLocalStorage(STORAGE_KEY, FEES);
-
+export const initializeFeeData = () => {
+    initializeLocalStorage(STORAGE_KEY, FEES);
+}
 
 export const getFees = async (): Promise<Fee[]> => {
     return getFromLocalStorage<Fee>(STORAGE_KEY);
@@ -51,4 +51,10 @@ export const updateFee = async (id: string, feeUpdate: Partial<Fee>) => {
              console.error(`Could not find fee to update with ID: ${id}`);
         }
     }
+};
+
+export const deleteFeeByStudentId = async (studentId: string) => {
+    let allFees = await getFees();
+    const updatedFees = allFees.filter(f => f.studentId !== studentId);
+    saveToLocalStorage(STORAGE_KEY, updatedFees);
 };

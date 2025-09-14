@@ -37,7 +37,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import type { Student } from '@/lib/types';
-import { getStudent, updateStudent } from '@/services/students';
+import { getStudent, updateStudent, initializeStudentData } from '@/services/students';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const editStudentSchema = z.object({
@@ -93,6 +93,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
   React.useEffect(() => {
     const fetchStudent = async () => {
         setIsFetching(true);
+        initializeStudentData();
         const studentData = await getStudent(studentId);
         if (studentData) {
             setStudent(studentData);

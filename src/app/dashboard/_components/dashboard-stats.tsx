@@ -5,9 +5,9 @@ import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Activity, Users, CheckCircle, FileText } from 'lucide-react';
-import { getStudents } from '@/services/students';
-import { getAttendance } from '@/services/attendance';
-import { getFees } from '@/services/fees';
+import { getStudents, initializeStudentData } from '@/services/students';
+import { getAttendance, initializeAttendanceData } from '@/services/attendance';
+import { getFees, initializeFeeData } from '@/services/fees';
 
 export default function DashboardStats() {
     const [loading, setLoading] = React.useState(true);
@@ -18,6 +18,10 @@ export default function DashboardStats() {
     React.useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
+            initializeStudentData();
+            initializeAttendanceData();
+            initializeFeeData();
+            
             const [students, attendance, fees] = await Promise.all([
                 getStudents(),
                 getAttendance(),

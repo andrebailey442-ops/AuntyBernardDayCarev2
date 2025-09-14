@@ -8,8 +8,9 @@ import { ATTENDANCE } from '@/lib/data';
 
 const STORAGE_KEY = 'attendance';
 
-// Initialize with seed data if it doesn't exist
-initializeLocalStorage(STORAGE_KEY, ATTENDANCE);
+export const initializeAttendanceData = () => {
+    initializeLocalStorage(STORAGE_KEY, ATTENDANCE);
+}
 
 export const getAttendance = async (): Promise<Attendance[]> => {
     return getFromLocalStorage<Attendance>(STORAGE_KEY);

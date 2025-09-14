@@ -47,7 +47,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
-import { getStudents, deleteStudent } from '@/services/students';
+import { getStudents, deleteStudent, initializeStudentData } from '@/services/students';
 import { Skeleton } from '@/components/ui/skeleton';
 
 
@@ -63,6 +63,7 @@ export default function StudentManager() {
 
   const fetchStudents = React.useCallback(async () => {
     setLoading(true);
+    initializeStudentData();
     const studentList = await getStudents();
     setAllStudents(studentList);
     setLoading(false);

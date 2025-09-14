@@ -30,7 +30,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { getStudents } from '@/services/students';
+import { getStudents, initializeStudentData } from '@/services/students';
 import type { Student } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -42,6 +42,7 @@ export default function StudentList() {
   React.useEffect(() => {
     const fetchStudents = async () => {
       setLoading(true);
+      initializeStudentData();
       const studentList = await getStudents();
       setStudents(studentList);
       setLoading(false);
