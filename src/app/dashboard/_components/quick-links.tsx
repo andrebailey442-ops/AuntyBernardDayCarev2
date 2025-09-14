@@ -52,7 +52,7 @@ export default function QuickLinks() {
       </CardHeader>
       <CardContent className="grid grid-cols-2 md:grid-cols-6 gap-4">
           {links.map((link) => (
-            <Link key={link.label} href={link.href} passHref legacyBehavior>
+            <Link key={link.label} href={link.href} className="flex">
               <Button variant="outline" className="flex flex-col h-28 w-full justify-center gap-2">
                 <link.icon className="h-6 w-6" />
                 <span className="text-center">{link.label}</span>
