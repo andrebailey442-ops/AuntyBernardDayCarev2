@@ -1,106 +1,33 @@
 
-'use client';
-
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Activity, Users, CheckCircle, FileText } from 'lucide-react';
-import { getStudents, initializeStudentData } from '@/services/students';
-import { getAttendance, initializeAttendanceData } from '@/services/attendance';
-import { getFees, initializeFeeData } from '@/services/fees';
+import { getStudents } from '@/services/students';
+import { getAttendance } from '@/services/attendance';
+import { getFees } from '@/services/fees';
 
-export default function DashboardStats() {
-    const [loading, setLoading] = React.useState(true);
-    const [totalStudents, setTotalStudents] = React.useState(0);
-    const [attendanceRate, setAttendanceRate] = React.useState(0);
-    const [revenue, setRevenue] = React.useState(0);
+export default async function DashboardStats() {
+    const [students, attendance, fees] = await Promise.all([
+        getStudents(),
+        getAttendance(),
+        getFees()
+    ]);
 
-    React.useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            await Promise.all([
-                initializeStudentData(),
-                initializeAttendanceData(),
-                initializeFeeData()
-            ]);
-            
-            const [students, attendance, fees] = await Promise.all([
-                getStudents(),
-                getAttendance(),
-                getFees()
-            ]);
+    // Calculate total students (enrolled only)
+    const enrolledStudents = students.filter(s => s.status === 'enrolled');
+    const totalStudents = enrolledStudents.length;
 
-            // Calculate total students (enrolled only)
-            const enrolledStudents = students.filter(s => s.status === 'enrolled');
-            setTotalStudents(enrolledStudents.length);
-
-            // Calculate attendance rate
-            if (attendance.length > 0) {
-                const presentCount = attendance.filter(a => a.status === 'present').length;
-                const rate = (presentCount / attendance.length) * 100;
-                setAttendanceRate(rate);
-            } else {
-                setAttendanceRate(0);
-            }
-            
-            // Calculate revenue
-            const totalRevenue = fees.filter(f => f.status === 'Paid').reduce((sum, f) => sum + f.amount, 0);
-            setRevenue(totalRevenue);
-
-
-            setLoading(false);
-        }
-        fetchData();
-    }, []);
-
-    if (loading) {
-        return (
-            <>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <Skeleton className="h-8 w-1/4" />
-                        <Skeleton className="h-4 w-3/4 mt-1" />
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Attendance Rate</CardTitle>
-                         <CheckCircle className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <Skeleton className="h-8 w-1/2" />
-                        <Skeleton className="h-4 w-1/2 mt-1" />
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Active Forms</CardTitle>
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">3</div>
-                        <p className="text-xs text-muted-foreground">
-                            Total available forms
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-                        <Activity className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <Skeleton className="h-8 w-1/2" />
-                        <Skeleton className="h-4 w-1/2 mt-1" />
-                    </CardContent>
-                </Card>
-            </>
-        )
+    // Calculate attendance rate
+    let attendanceRate = 0;
+    if (attendance.length > 0) {
+        const presentCount = attendance.filter(a => a.status === 'present').length;
+        const rate = (presentCount / attendance.length) * 100;
+        attendanceRate = rate;
     }
+    
+    // Calculate revenue
+    const totalRevenue = fees.filter(f => f.status === 'Paid').reduce((sum, f) => sum + f.amount, 0);
+
 
     return (
         <>
@@ -146,7 +73,7 @@ export default function DashboardStats() {
                     <Activity className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">${revenue.toLocaleString()}</div>
+                    <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
                     <p className="text-xs text-muted-foreground">
                         Total revenue from paid fees
                     </p>

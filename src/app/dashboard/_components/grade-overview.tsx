@@ -16,13 +16,8 @@ import {
   ChartLegend,
   ChartLegendContent,
 } from '@/components/ui/chart';
-
-const chartData = [
-  { grade: 'A', count: 0, fill: 'hsl(var(--chart-1))' },
-  { grade: 'B', count: 0, fill: 'hsl(var(--chart-2))' },
-  { grade: 'C', count: 0, fill: 'hsl(var(--chart-4))' },
-  { grade: 'Incomplete', count: 0, fill: 'hsl(var(--muted))' },
-];
+import type { Grade } from '@/lib/types';
+import * as React from 'react';
 
 const chartConfig = {
   count: {
@@ -46,7 +41,37 @@ const chartConfig = {
   },
 };
 
-export default function GradeOverview() {
+const gradeColors: { [key: string]: string } = {
+  A: 'hsl(var(--chart-1))',
+  B: 'hsl(var(--chart-2))',
+  C: 'hsl(var(--chart-4))',
+  Incomplete: 'hsl(var(--muted))',
+  D: 'hsl(var(--chart-3))',
+  F: 'hsl(var(--destructive))',
+};
+
+type GradeOverviewProps = {
+    grades: Grade[];
+}
+
+export default function GradeOverview({ grades }: GradeOverviewProps) {
+  const gradeDistribution = React.useMemo(() => {
+    const counts: {[key: string]: number} = { A: 0, B: 0, C: 0, D: 0, F: 0, Incomplete: 0 };
+    grades.forEach(grade => {
+      if (grade.grade && grade.grade in counts) {
+        counts[grade.grade]++;
+      } else if (grade.grade === 'Incomplete') {
+          counts['Incomplete']++;
+      }
+    });
+
+    return Object.entries(counts).map(([grade, count]) => ({
+      grade,
+      count,
+      fill: gradeColors[grade] || 'hsl(var(--muted))',
+    })).filter(item => item.count > 0);
+  }, [grades]);
+  
   return (
     <Card>
       <CardHeader>
@@ -65,13 +90,13 @@ export default function GradeOverview() {
                 content={<ChartTooltipContent hideLabel />}
               />
               <Pie
-                data={chartData}
+                data={gradeDistribution}
                 dataKey="count"
                 nameKey="grade"
                 innerRadius={60}
                 strokeWidth={5}
               >
-                {chartData.map((entry, index) => (
+                {gradeDistribution.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.fill} />
                 ))}
               </Pie>

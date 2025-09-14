@@ -1,13 +1,18 @@
 
-'use client';
-
 import QuickLinks from '../_components/quick-links';
 import DashboardStats from '../_components/dashboard-stats';
 import StudentList from '../_components/student-list';
 import AttendanceChart from '../_components/attendance-chart';
 import GradeOverview from '../_components/grade-overview';
+import { getAttendance } from '@/services/attendance';
+import { getGrades } from '@/services/grades';
 
-export default function PreschoolDashboardPage() {
+export default async function PreschoolDashboardPage() {
+  const [attendance, grades] = await Promise.all([
+    getAttendance(),
+    getGrades()
+  ]);
+
   return (
      <div className="grid auto-rows-max items-start gap-4 md:gap-8">
         <div className="col-span-1 lg:col-span-3">
@@ -21,8 +26,8 @@ export default function PreschoolDashboardPage() {
                 <StudentList />
             </div>
             <div className="grid gap-4 auto-rows-max">
-                <AttendanceChart />
-                <GradeOverview />
+                <AttendanceChart attendance={attendance} />
+                <GradeOverview grades={grades} />
             </div>
         </div>
       </div>
