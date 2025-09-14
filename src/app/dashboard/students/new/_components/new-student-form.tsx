@@ -47,7 +47,6 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-    AlertDialogTrigger,
   } from "@/components/ui/alert-dialog"
 import { addStudent } from '@/services/students';
 import {
@@ -304,21 +303,25 @@ export function NewStudentForm() {
   }
 
   return (
-    <Card className="max-w-4xl mx-auto">
-      <CardHeader className="text-center">
-        <div className="flex items-center justify-center gap-4 mb-4">
-            <ScholarStartLogo className="h-12 w-12 text-primary" />
-            <CardTitle className="text-3xl">Student Registration</CardTitle>
-        </div>
-        <CardDescription>
-          Please fill out the form below to register a new student.
-        </CardDescription>
-        {studentId && (
-            <div className="pt-4">
-                <p className="text-sm font-semibold text-muted-foreground">Generated Student ID</p>
-                <p className="text-lg font-mono text-primary">{studentId}</p>
+    <Card className="max-w-4xl mx-auto border-4 border-primary/10 shadow-lg">
+      <CardHeader>
+        <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-4">
+                <ScholarStartLogo className="h-12 w-12 text-primary" />
+                <div>
+                    <CardTitle className="text-3xl">Student Registration</CardTitle>
+                    <CardDescription>
+                    Please fill out the form below to register a new student.
+                    </CardDescription>
+                </div>
             </div>
-        )}
+            {studentId && (
+                <div className="text-right">
+                    <p className="text-sm font-semibold text-muted-foreground">Generated Student ID</p>
+                    <p className="text-lg font-mono text-primary">{studentId}</p>
+                </div>
+            )}
+        </div>
       </CardHeader>
       <CardContent>
         <Form {...form}>
