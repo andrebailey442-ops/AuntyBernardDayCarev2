@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { LucideProps } from 'lucide-react';
 import type { ForwardRefExoticComponent, RefAttributes } from 'react';
 import { jsPDF } from 'jspdf';
+import { ScholarStartLogo } from '@/components/icons';
 
 
 type IconComponents = {
@@ -29,33 +30,186 @@ const icons: IconComponents = {
 export default function FormList() {
     const { toast } = useToast();
 
-    const handleDownload = (title: string, description: string) => {
+    const addLogoAndHeader = (doc: jsPDF, title: string) => {
+      // This is a placeholder for a real logo.
+      // In a real app, you'd use a base64 encoded image.
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(24);
+      doc.text('ScholarStart', 20, 22);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(18);
+      doc.text(title, 20, 35);
+      doc.setLineWidth(0.5);
+      doc.line(20, 40, 190, 40);
+    };
+
+    const addFormField = (doc: jsPDF, label: string, y: number) => {
+      doc.setFontSize(12);
+      doc.text(label, 20, y);
+      doc.setLineWidth(0.2);
+      doc.line(20, y + 2, 190, y + 2);
+    };
+
+    const addCheckboxField = (doc: jsPDF, label: string, y: number) => {
+        doc.setFontSize(12);
+        doc.rect(20, y - 4, 5, 5); // Simple square for checkbox
+        doc.text(label, 30, y);
+    }
+
+    const addSignatureLine = (doc: jsPDF, y: number) => {
+        doc.setFontSize(12);
+        doc.text('Signature:', 20, y);
+        doc.line(40, y, 110, y);
+        doc.text('Date:', 120, y);
+        doc.line(132, y, 190, y);
+    }
+
+    const downloadNewStudentApplication = () => {
+        const doc = new jsPDF();
+        addLogoAndHeader(doc, 'Student Registration Form');
+        let y = 60;
+
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Student Information', 20, y);
+        y += 15;
+        addFormField(doc, 'First Name:', y);
+        y += 15;
+        addFormField(doc, 'Last Name:', y);
+        y += 15;
+        addFormField(doc, 'Date of Birth (YYYY-MM-DD):', y);
+        y += 25;
+
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Parent/Guardian Information', 20, y);
+        y += 15;
+        addFormField(doc, "Parent's First Name:", y);
+        y += 15;
+        addFormField(doc, "Parent's Last Name:", y);
+        y += 15;
+        addFormField(doc, 'Email Address:', y);
+        y += 15;
+        addFormField(doc, 'Phone Number:', y);
+        y += 15;
+        addFormField(doc, 'Home Address:', y);
+        y += 15;
+        addFormField(doc, 'City:', y);
+        y += 15;
+        addFormField(doc, 'State:', y);
+        y += 15;
+        addFormField(doc, 'ZIP Code:', y);
+        y += 25;
+        
+        doc.addPage();
+        y = 30;
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Emergency and Health Information', 20, y);
+        y += 15;
+        addFormField(doc, 'Emergency Contact Name:', y);
+        y += 15;
+        addFormField(doc, 'Emergency Contact Phone:', y);
+        y += 15;
+        doc.setFontSize(12);
+        doc.text('Allergies or Medical Conditions (Please describe):', 20, y);
+        y += 5;
+        doc.setLineWidth(0.2);
+        doc.rect(20, y, 170, 40); // Text area
+        y += 60;
+
+        addSignatureLine(doc, y);
+        
+        doc.save('New-Student-Application.pdf');
+    }
+
+    const downloadMedicalConsentForm = () => {
+        const doc = new jsPDF();
+        addLogoAndHeader(doc, 'Medical & Consent Form');
+        let y = 60;
+
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Child's Information", 20, y);
+        y += 15;
+        addFormField(doc, "Child's Full Name:", y);
+        y += 15;
+        addFormField(doc, 'Date of Birth:', y);
+        y += 25;
+
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Health Information', 20, y);
+        y += 15;
+        doc.setFontSize(12);
+        doc.text('Known Allergies (food, medication, environmental):', 20, y);
+        y += 5;
+        doc.rect(20, y, 170, 20);
+        y += 30;
+        doc.text('Current Medications (name, dosage, frequency):', 20, y);
+        y += 5;
+        doc.rect(20, y, 170, 20);
+        y += 30;
+        addFormField(doc, "Physician's Name:", y);
+        y += 15;
+        addFormField(doc, "Physician's Phone Number:", y);
+        y += 15;
+        addFormField(doc, 'Insurance Provider:', y);
+        y += 15;
+        addFormField(doc, 'Policy Number:', y);
+        y += 25;
+        
+        doc.addPage();
+        y = 30;
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Consent for Treatment & Activities', 20, y);
+        y += 10;
+        doc.setFontSize(10);
+        doc.text("I, the undersigned, as the parent or legal guardian of the child named above, do hereby give my consent for the administration of any emergency medical treatment deemed necessary by a licensed physician or dentist. This consent is given in advance of any specific diagnosis, treatment, or hospital care being required, and is intended to grant authority to any qualified medical personnel to render care.", 20, y, { maxWidth: 170 });
+        y += 40;
+        addCheckboxField(doc, "I give my consent.", y);
+        y += 15;
+
+        doc.setFontSize(10);
+        doc.text("I also grant permission for my child to participate in all school activities, including any off-campus trips that may be scheduled throughout the school year.", 20, y, { maxWidth: 170 });
+        y += 20;
+        addCheckboxField(doc, "I give my consent.", y);
+        y += 30;
+        
+        doc.setFontSize(12);
+        doc.text('Parent/Guardian Name (Please Print):', 20, y);
+        doc.line(80, y, 190, y);
+        y += 20;
+
+        addSignatureLine(doc, y);
+
+        doc.save('Medical-and-Consent-Form.pdf');
+    }
+
+    const handleDownload = (formId: string) => {
         try {
-            const doc = new jsPDF();
-            
-            doc.setFontSize(22);
-            doc.text(title, 20, 20);
-            
-            doc.setFontSize(12);
-            doc.text(description, 20, 30);
-            
-            // Add more form fields as needed
-            doc.setFontSize(12);
-            doc.text('Name: __________________________', 20, 50);
-            doc.text('Date: __________________________', 20, 60);
+            if (formId === 'f1') {
+                downloadNewStudentApplication();
+            } else if (formId === 'f2') {
+                downloadMedicalConsentForm();
+            }
 
-            doc.save(`${title.replace(/\s+/g, '-')}.pdf`);
-
-            toast({
-                title: "Download Started",
-                description: `${title} is being downloaded.`
-            });
+            const form = FORMS.find(f => f.id === formId);
+            if (form) {
+                toast({
+                    title: "Download Started",
+                    description: `${form.title} is being downloaded.`
+                });
+            }
         } catch (error) {
             console.error(error);
+            const form = FORMS.find(f => f.id === formId);
             toast({
                 variant: 'destructive',
                 title: "Download Failed",
-                description: `Could not generate PDF for ${title}.`
+                description: `Could not generate PDF for ${form?.title || 'the form'}.`
             });
         }
     }
@@ -79,8 +233,8 @@ export default function FormList() {
                                 <p className="text-sm text-muted-foreground">{form.description}</p>
                             </CardContent>
                             <CardFooter>
-                                <Button className="w-full" onClick={() => handleDownload(form.title, form.description)}>
-                                    <Download className="mr-2 h-4 w-4" /> Download
+                                <Button className="w-full" onClick={() => handleDownload(form.id)}>
+                                    <Download className="mr-2 h-4 w-4" /> Download PDF
                                 </Button>
                             </CardFooter>
                         </Card>
