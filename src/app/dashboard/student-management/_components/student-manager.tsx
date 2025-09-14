@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Search, Trash2 } from 'lucide-react';
+import { Search, Trash2, GraduationCap } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -47,7 +47,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
-import { getStudents, deleteStudent, initializeStudentData } from '@/services/students';
+import { getStudents, deleteStudent, initializeStudentData, updateStudent } from '@/services/students';
 import { Skeleton } from '@/components/ui/skeleton';
 
 
@@ -65,7 +65,7 @@ export default function StudentManager() {
     setLoading(true);
     initializeStudentData();
     const studentList = await getStudents();
-    setAllStudents(studentList);
+    setAllStudents(studentList.filter(s => s.status !== 'graduated'));
     setLoading(false);
   }, []);
 
@@ -75,7 +75,7 @@ export default function StudentManager() {
 
   React.useEffect(() => {
     const results = allStudents.filter(student =>
-      student.name.toLowerCase().includes(searchTerm.toLowerCase()) || student.id.includes(searchTerm)
+      (student.name.toLowerCase().includes(searchTerm.toLowerCase()) || student.id.includes(searchTerm))
     );
     setFilteredStudents(results);
   }, [searchTerm, allStudents]);
@@ -90,6 +90,26 @@ export default function StudentManager() {
   
   const handleViewReportPage = (studentId: string) => {
     router.push(`/dashboard/reports/${studentId}`);
+  };
+
+  const handleGraduate = async (studentId: string) => {
+    try {
+      await updateStudent(studentId, { status: 'graduated' });
+      setAllStudents(prev =>
+        prev.filter(s => s.id !== studentId)
+      );
+      toast({
+        title: 'Student Graduated',
+        description: 'The student has been moved to the graduated list.',
+      });
+    } catch (error) {
+      console.error('Failed to graduate student:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Could not update student status.',
+      });
+    }
   };
 
   const handleRemoveStudent = async (studentId: string) => {
@@ -123,7 +143,7 @@ export default function StudentManager() {
       <CardHeader>
         <CardTitle>Student Management</CardTitle>
         <CardDescription>
-          Search for students by name or ID to view their profile and reports.
+          Search for enrolled students by name or ID to view their profile and reports.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -146,6 +166,7 @@ export default function StudentManager() {
                 <TableRow>
                   <TableHead>Student</TableHead>
                   <TableHead>Age</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -163,6 +184,7 @@ export default function StudentManager() {
                         </div>
                       </TableCell>
                       <TableCell><Skeleton className="h-4 w-[50px]" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
                       <TableCell className="text-right"><Skeleton className="h-8 w-8" /></TableCell>
                     </TableRow>
                   ))
@@ -188,6 +210,11 @@ export default function StudentManager() {
                       <TableCell>
                         <Badge variant="outline">{student.age}</Badge>
                       </TableCell>
+                      <TableCell>
+                        <Badge variant={student.status === 'graduated' ? 'secondary' : 'default'}>
+                          {student.status === 'graduated' ? 'Graduated' : 'Enrolled'}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -202,11 +229,15 @@ export default function StudentManager() {
                               <DropdownMenuItem onClick={() => handleEditProfile(student.id)}>Edit Profile</DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DialogTrigger asChild>
-                                  <DropdownMenuItem onClick={() => openDialog(student, 'report')}>View Report</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => openDialog(student, 'report')}>View Report Summary</DropdownMenuItem>
                               </DialogTrigger>
-                              <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => handleViewReportPage(student.id)}>
-                                View Report Card Page
+                                View Full Report Page
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleGraduate(student.id)}>
+                                <GraduationCap className="mr-2 h-4 w-4" />
+                                Graduate Student
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <AlertDialogTrigger asChild>
@@ -236,8 +267,8 @@ export default function StudentManager() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center">
-                      No students found.
+                    <TableCell colSpan={4} className="h-24 text-center">
+                      No enrolled students found.
                     </TableCell>
                   </TableRow>
                 )}

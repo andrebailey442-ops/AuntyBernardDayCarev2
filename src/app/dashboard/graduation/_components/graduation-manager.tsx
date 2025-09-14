@@ -67,12 +67,12 @@ export default function GraduationManager() {
   };
 
   const calculateGPA = (grades: Grade[]): string => {
-    if (grades.length === 0) return 'N/A';
+    if (!grades || grades.length === 0) return 'N/A';
     const gradePoints: { [key: string]: number } = { A: 4.0, B: 3.0, C: 2.0, D: 1.0, F: 0.0 };
     let totalPoints = 0;
     let gradedSubjects = 0;
     grades.forEach(grade => {
-      if (grade.grade in gradePoints) {
+      if (grade.grade && grade.grade in gradePoints) {
         totalPoints += gradePoints[grade.grade];
         gradedSubjects++;
       }
