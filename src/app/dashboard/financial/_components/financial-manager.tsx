@@ -42,6 +42,7 @@ export default function FinancialManager() {
   const router = useRouter();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = React.useState('');
+  const [fees, setFees] = React.useState<Fee[]>(FEES);
   const [filteredStudents, setFilteredStudents] = React.useState<Student[]>(STUDENTS);
   const [makePaymentStudentId, setMakePaymentStudentId] = React.useState('');
   const [updatePaymentStudentId, setUpdatePaymentStudentId] = React.useState('');
@@ -58,7 +59,7 @@ export default function FinancialManager() {
   }, [searchTerm]);
 
   const getStudentFee = (studentId: string): Fee | undefined => {
-      return FEES.find(fee => fee.studentId === studentId);
+      return fees.find(fee => fee.studentId === studentId);
   }
 
   const getStatusVariant = (status: 'Paid' | 'Pending' | 'Overdue') => {
@@ -79,6 +80,13 @@ export default function FinancialManager() {
   }
   
   const handleUpdatePayment = () => {
+    setFees(prevFees =>
+        prevFees.map(fee =>
+            fee.studentId === updatePaymentStudentId
+            ? { ...fee, status: newPaymentStatus as 'Paid' | 'Pending' | 'Overdue' }
+            : fee
+        )
+    );
     toast({
       title: 'Payment Updated',
       description: `Payment status for student ID ${updatePaymentStudentId} has been updated to ${newPaymentStatus}.`,
@@ -298,5 +306,3 @@ export default function FinancialManager() {
     </>
   );
 }
-
-    

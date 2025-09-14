@@ -53,7 +53,7 @@ export default function StudentManager() {
   const router = useRouter();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = React.useState('');
-  const [allStudents, setAllStudents] = React.useState<Student[]>(STUDENTS);
+  const [allStudents, setAllStudents] = React.useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = React.useState<Student[]>(allStudents);
   const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
   const [dialogContent, setDialogContent] = React.useState<'report' | null>(null);
