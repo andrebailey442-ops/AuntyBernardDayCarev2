@@ -440,8 +440,8 @@ export function NewStudentForm() {
             <AlertDialog>
                 <div className="flex gap-4">
                     <AlertDialogTrigger asChild>
-                        <Button type="button" className="w-full" disabled={isLoading}>
-                            {isLoading ? 'Submitting...' : 'Submit Registration'}
+                        <Button type="button" className="w-full">
+                            Submit Registration
                         </Button>
                     </AlertDialogTrigger>
                     <Button type="button" variant="outline" className="w-full" onClick={downloadNewStudentApplication} disabled={isLoading}>
@@ -458,8 +458,8 @@ export function NewStudentForm() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={form.handleSubmit(onSubmit)}>
-                            Confirm
+                        <AlertDialogAction onClick={form.handleSubmit(onSubmit)} disabled={isLoading}>
+                            {isLoading ? 'Submitting...' : 'Confirm'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
