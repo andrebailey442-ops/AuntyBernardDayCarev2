@@ -13,6 +13,7 @@ import {
   DollarSign,
   type LucideIcon,
   ShieldCheck,
+  Sunset,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
@@ -33,6 +34,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard/financial', label: 'Financial', icon: DollarSign },
   { href: '/dashboard/forms', label: 'Forms', icon: FileText },
   { href: '/dashboard/reports', label: 'Reports', icon: FileText },
+  { href: '/dashboard/after-care', label: 'After Care', icon: Sunset },
 ];
 
 export function DashboardNav() {
