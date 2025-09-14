@@ -25,7 +25,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import type { Student, Grade } from '@/lib/types';
+import type { Student } from '@/lib/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,7 +49,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
-import { getStudents, deleteStudent, initializeStudentData, updateStudent } from '@/services/students';
+import { getStudents, deleteStudent, updateStudent } from '@/services/students';
 import { getGradesByStudent } from '@/services/grades';
 import { getAttendanceByStudent } from '@/services/attendance';
 import { getSubjects } from '@/services/subjects';
@@ -71,7 +71,6 @@ export default function StudentManager() {
 
   const fetchStudents = React.useCallback(async () => {
     setLoading(true);
-    await initializeStudentData();
     const studentList = await getStudents();
     setAllStudents(studentList.filter(s => s.status !== 'graduated'));
     setLoading(false);

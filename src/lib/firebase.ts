@@ -1,17 +1,23 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
 
-const firebaseConfig = {
-  projectId: "studio-7262222087-d52bd",
-  appId: "1:87707585037:web:5a1859b199aac0c6e96344",
-  storageBucket: "studio-7262222087-d52bd.firebasestorage.app",
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: "studio-7262222087-d52bd.firebaseapp.com",
-  messagingSenderId: "87707585037"
-};
+import admin from 'firebase-admin';
+import { getApps } from 'firebase-admin/app';
 
-// Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
+if (!getApps().length) {
+    const serviceAccount = {
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    };
+    try {
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount)
+        });
+    } catch (error: any) {
+        if (!/already exists/u.test(error.message)) {
+            console.error('Firebase admin initialization error', error.stack)
+        }
+    }
+}
 
-export { db };
+
+export const db = admin.firestore();

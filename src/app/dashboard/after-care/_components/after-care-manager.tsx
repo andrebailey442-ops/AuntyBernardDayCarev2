@@ -22,9 +22,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Student } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { getStudents, initializeStudentData } from '@/services/students';
+import { getStudents } from '@/services/students';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Check, LogIn, LogOut, Users } from 'lucide-react';
+import { LogIn, LogOut, Users } from 'lucide-react';
 
 type AfterCareStatus = 'Checked-In' | 'Checked-Out';
 type StudentStatus = {
@@ -40,7 +40,6 @@ export default function AfterCareManager() {
   React.useEffect(() => {
     const fetchStudents = async () => {
       setLoading(true);
-      await initializeStudentData();
       const allStudents = await getStudents();
       const afterCareStudents = allStudents.filter(student => student.afterCare);
       setStudents(afterCareStudents);

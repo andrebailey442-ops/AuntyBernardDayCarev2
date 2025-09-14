@@ -22,12 +22,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Student, Grade } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { getStudents, initializeStudentData, updateStudent } from '@/services/students';
-import { getGradesByStudent, initializeGradeData } from '@/services/grades';
+import { getStudents, updateStudent } from '@/services/students';
+import { getGradesByStudent } from '@/services/grades';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Award, GraduationCap } from 'lucide-react';
 import jsPDF from 'jspdf';
-import { ScholarStartLogo } from '@/components/icons';
 
 export default function GraduationManager() {
   const { toast } = useToast();
@@ -37,8 +36,6 @@ export default function GraduationManager() {
   React.useEffect(() => {
     const fetchStudents = async () => {
       setLoading(true);
-      await initializeStudentData();
-      await initializeGradeData();
       const studentList = await getStudents();
       setStudents(studentList);
       setLoading(false);

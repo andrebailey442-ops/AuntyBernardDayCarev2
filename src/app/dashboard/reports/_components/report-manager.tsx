@@ -24,7 +24,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { Student } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
-import { getStudents, initializeStudentData } from '@/services/students';
+import { getStudents } from '@/services/students';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ReportManager() {
@@ -37,7 +37,6 @@ export default function ReportManager() {
   React.useEffect(() => {
     const fetchStudents = async () => {
         setLoading(true);
-        await initializeStudentData();
         const studentList = await getStudents();
         setStudents(studentList);
         setFilteredStudents(studentList);

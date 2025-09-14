@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Check, Wand2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -37,9 +37,9 @@ import {
 import type { AttendanceStatus, Student, Subject } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
-import { getStudents, initializeStudentData } from '@/services/students';
-import { getSubjects, initializeSubjectData } from '@/services/subjects';
-import { getAttendance, upsertAttendance, initializeAttendanceData } from '@/services/attendance';
+import { getStudents } from '@/services/students';
+import { getSubjects } from '@/services/subjects';
+import { getAttendance, upsertAttendance } from '@/services/attendance';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type AttendanceState = { [studentId: string]: { [subjectId: string]: AttendanceStatus } };
@@ -56,12 +56,6 @@ export default function AttendanceTracker() {
   React.useEffect(() => {
     const fetchData = async () => {
         setLoading(true);
-        await Promise.all([
-            initializeStudentData(),
-            initializeSubjectData(),
-            initializeAttendanceData()
-        ]);
-
         const [studentList, subjectList] = await Promise.all([
             getStudents(),
             getSubjects(),

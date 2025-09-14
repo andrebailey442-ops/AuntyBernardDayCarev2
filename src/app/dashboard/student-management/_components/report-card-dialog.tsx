@@ -15,9 +15,9 @@ import type { Student, Grade, Subject } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
-import { getGradesByStudent, initializeGradeData } from '@/services/grades';
-import { getAttendanceByStudent, initializeAttendanceData } from '@/services/attendance';
-import { getSubjects, initializeSubjectData } from '@/services/subjects';
+import { getGradesByStudent } from '@/services/grades';
+import { getAttendanceByStudent } from '@/services/attendance';
+import { getSubjects } from '@/services/subjects';
 
 type ReportCardDialogProps = {
   student: Student;
@@ -37,11 +37,6 @@ export default function ReportCardDialog({ student }: ReportCardDialogProps) {
   React.useEffect(() => {
     const fetchData = async () => {
         setLoading(true);
-        await Promise.all([
-            initializeGradeData(),
-            initializeAttendanceData(),
-            initializeSubjectData()
-        ]);
         const [studentGrades, studentAttendance, subjectData] = await Promise.all([
             getGradesByStudent(student.id),
             getAttendanceByStudent(student.id),

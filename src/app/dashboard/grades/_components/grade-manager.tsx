@@ -29,9 +29,9 @@ import {
 import type { Student, Subject } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Check } from 'lucide-react';
-import { getStudents, initializeStudentData } from '@/services/students';
-import { getSubjects, initializeSubjectData } from '@/services/subjects';
-import { getGrades, upsertGrade, initializeGradeData } from '@/services/grades';
+import { getStudents } from '@/services/students';
+import { getSubjects } from '@/services/subjects';
+import { getGrades, upsertGrade } from '@/services/grades';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type GradeState = { [studentId: string]: { [subjectId: string]: string } };
@@ -47,11 +47,6 @@ export default function GradeManager() {
   React.useEffect(() => {
     const fetchData = async () => {
         setLoading(true);
-        await Promise.all([
-            initializeStudentData(),
-            initializeSubjectData(),
-            initializeGradeData()
-        ]);
         const [studentList, subjectList, gradeList] = await Promise.all([
             getStudents(),
             getSubjects(),

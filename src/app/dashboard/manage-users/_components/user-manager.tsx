@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -58,7 +59,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import type { User, UserRole } from '@/lib/types';
-import { getUsers, addUser, removeUser, resetPassword, initializeUserData } from '@/services/users';
+import { getUsers, addUser, removeUser, resetPassword } from '@/services/users';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function UserManager() {
@@ -81,7 +82,6 @@ export default function UserManager() {
   React.useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
-      await initializeUserData();
       const userList = await getUsers();
       setUsers(userList);
       setLoading(false);

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -12,9 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ShieldCheck } from 'lucide-react';
 import { PERMISSIONS } from '@/lib/data';
-import { getTeacherPermissions, saveTeacherPermissions, initializePermissionData } from '@/services/permissions';
+import { getTeacherPermissions, saveTeacherPermissions } from '@/services/permissions';
 
 export default function PermissionManager() {
   const { toast } = useToast();
@@ -25,7 +25,6 @@ export default function PermissionManager() {
   React.useEffect(() => {
     const fetchPermissions = async () => {
       setLoading(true);
-      await initializePermissionData();
       const currentPermissions = await getTeacherPermissions();
       setPermissions(currentPermissions);
       setLoading(false);

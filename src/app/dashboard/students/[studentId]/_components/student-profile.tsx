@@ -16,8 +16,8 @@ import type { Student, Fee } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { getStudent, initializeStudentData } from '@/services/students';
-import { getFeeByStudentId, initializeFeeData } from '@/services/fees';
+import { getStudent } from '@/services/students';
+import { getFeeByStudentId } from '@/services/fees';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 
@@ -34,7 +34,6 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
   React.useEffect(() => {
     const fetchData = async () => {
         setLoading(true);
-        await Promise.all([initializeStudentData(), initializeFeeData()]);
         const studentData = await getStudent(studentId);
         if (studentData) {
             setStudent(studentData);

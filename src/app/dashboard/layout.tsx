@@ -4,28 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import {
-  Bell,
-  Home,
-  LineChart,
-  Package,
-  Package2,
-  ShoppingCart,
-  Users,
-  Menu,
-  LogOut,
-  Settings
-} from 'lucide-react';
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,13 +13,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { ScholarStartLogo } from '@/components/icons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Bell, LogOut, Settings, Menu, Users } from 'lucide-react';
+import { ScholarStartLogo } from '@/components/icons';
 import { DashboardNav } from '@/components/dashboard-nav';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/hooks/use-auth';
-import { getTeacherPermissions, initializePermissionData } from '@/services/permissions';
+import { getTeacherPermissions } from '@/services/permissions';
 import { DashboardHeader } from '@/components/dashboard-header';
 import HeroSlideshow from './_components/hero-slideshow';
 
@@ -59,7 +39,6 @@ export default function DashboardLayout({
         if (!user) {
           router.replace('/');
         } else if (user.role === 'Teacher') {
-          await initializePermissionData();
           // Redirect teacher if they try to access a forbidden page
           const permissions = await getTeacherPermissions();
           // The base dashboard and preschool pages are always allowed for teachers

@@ -1,7 +1,6 @@
 
 
 import Image from 'next/image';
-import { MoreHorizontal } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -19,7 +18,6 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { getStudents } from '@/services/students';
-import type { Student } from '@/lib/types';
 import StudentListActions from './student-list-actions';
 
 

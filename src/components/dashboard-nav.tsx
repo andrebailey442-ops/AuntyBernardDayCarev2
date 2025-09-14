@@ -5,21 +5,19 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutGrid,
   ClipboardCheck,
   GraduationCap,
   FileText,
   Users,
   DollarSign,
   type LucideIcon,
-  ShieldCheck,
   Sunset,
   Home,
   Award,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
-import { getTeacherPermissions, initializePermissionData } from '@/services/permissions';
+import { getTeacherPermissions } from '@/services/permissions';
 
 type NavItem = {
   href: string;
@@ -50,7 +48,6 @@ export function DashboardNav() {
       if (user?.role === 'Admin') {
         setVisibleNavItems(navItems);
       } else if (user?.role === 'Teacher') {
-        await initializePermissionData();
         const permissions = await getTeacherPermissions();
         // The main dashboard link is always visible
         const teacherNav = navItems.filter(item => 
