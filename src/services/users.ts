@@ -1,4 +1,3 @@
-
 import type { User, UserRole } from '@/lib/types';
 import { getFromLocalStorage, saveToLocalStorage, initializeLocalStorage } from '@/lib/local-storage';
 import { USERS } from '@/lib/data';
@@ -42,3 +41,9 @@ export const resetPassword = async (userId: string, newPassword?: string): Promi
         saveToLocalStorage(STORAGE_KEY, users);
     }
 };
+
+export const authenticateUser = async (username: string, password?: string): Promise<User | null> => {
+    const users = await getUsers();
+    const user = users.find(u => u.username === username && u.password === password);
+    return user || null;
+}

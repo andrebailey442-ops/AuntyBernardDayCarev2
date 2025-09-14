@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScholarStartLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
 
 const loginSchema = z.object({
   username: z.string().min(1, { message: 'Username is required.' }),
@@ -30,6 +31,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
+  const { login } = useAuth();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -39,26 +41,35 @@ export default function LoginPage() {
     },
   });
 
-  const onSubmit = (data: LoginFormValues) => {
+  const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
-    // Mock authentication
-    setTimeout(() => {
-      if (data.username === 'Admin' && data.password === 'admin') {
+    try {
+      const user = await login(data.username, data.password);
+      if (user) {
         toast({
           title: 'Login Successful',
-          description: 'Welcome back!',
+          description: `Welcome back, ${user.username}!`,
         });
         router.push('/dashboard');
       } else {
-        toast({
-          variant: 'destructive',
-          title: 'Login Failed',
-          description: 'Invalid username or password.',
-        });
-        setIsLoading(false);
+        throw new Error('Invalid credentials');
       }
-    }, 1000);
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: 'Invalid username or password.',
+      });
+    } finally {
+        setIsLoading(false);
+    }
   };
+
+  const handleTeacherLogin = () => {
+    form.setValue('username', 'Teacher');
+    form.setValue('password', 'teacher');
+    form.handleSubmit(onSubmit)();
+  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
@@ -80,44 +91,49 @@ export default function LoginPage() {
             <CardContent>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                    control={form.control}
-                    name="username"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Username</FormLabel>
-                        <FormControl>
-                        <Input
-                            placeholder="Admin"
-                            {...field}
-                            disabled={isLoading}
-                        />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                        <Input
-                            type="password"
-                            placeholder="admin"
-                            {...field}
-                            disabled={isLoading}
-                        />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? 'Signing in...' : 'Sign In'}
-                </Button>
+                  <FormField
+                      control={form.control}
+                      name="username"
+                      render={({ field }) => (
+                      <FormItem>
+                          <FormLabel>Username</FormLabel>
+                          <FormControl>
+                          <Input
+                              placeholder="Admin"
+                              {...field}
+                              disabled={isLoading}
+                          />
+                          </FormControl>
+                          <FormMessage />
+                      </FormItem>
+                      )}
+                  />
+                  <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                      <FormItem>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                          <Input
+                              type="password"
+                              placeholder="admin"
+                              {...field}
+                              disabled={isLoading}
+                          />
+                          </FormControl>
+                          <FormMessage />
+                      </FormItem>
+                      )}
+                  />
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                        {isLoading ? 'Signing in...' : 'Sign In as Admin'}
+                    </Button>
+                    <Button type="button" variant="secondary" className="w-full" onClick={handleTeacherLogin} disabled={isLoading}>
+                        {isLoading ? 'Signing in...' : 'Sign In as Teacher'}
+                    </Button>
+                  </div>
                 </form>
             </Form>
             </CardContent>

@@ -15,8 +15,17 @@ import Link from 'next/link';
 import { ScholarStartLogo } from './icons';
 import { DashboardNav } from './dashboard-nav';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 
 export function DashboardHeader() {
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  }
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
@@ -44,32 +53,32 @@ export function DashboardHeader() {
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
               <Avatar className="h-9 w-9">
                 <AvatarImage
-                  src="https://picsum.photos/seed/admin/100/100"
-                  alt="Admin"
+                  src={user?.avatarUrl}
+                  alt={user?.username}
                 />
-                <AvatarFallback>AD</AvatarFallback>
+                <AvatarFallback>{user?.username.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuLabel>{user?.username}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </DropdownMenuItem>
-             <DropdownMenuItem asChild>
-                <Link href="/dashboard/manage-users">
-                  <Users className="mr-2 h-4 w-4" />
-                  <span>Manage Users</span>
-                </Link>
-             </DropdownMenuItem>
+             {user?.role === 'Admin' && (
+                <DropdownMenuItem asChild>
+                    <Link href="/dashboard/manage-users">
+                    <Users className="mr-2 h-4 w-4" />
+                    <span>Manage Users</span>
+                    </Link>
+                </DropdownMenuItem>
+             )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
-              </Link>
+            <DropdownMenuItem onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

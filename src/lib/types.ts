@@ -75,3 +75,10 @@ export type User = {
   avatarUrl: string;
   imageHint: string;
 };
+
+export type Permission = {
+    id: string;
+    label: string;
+    role: 'Teacher' | 'Admin';
+    allowed: boolean;
+}
