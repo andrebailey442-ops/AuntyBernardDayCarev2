@@ -36,7 +36,7 @@ export default function QuickLinks() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Quick Links</CardTitle>
+        <CardTitle>Actions</CardTitle>
         <CardDescription>Fast access to common tasks.</CardDescription>
       </CardHeader>
       <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-4">
