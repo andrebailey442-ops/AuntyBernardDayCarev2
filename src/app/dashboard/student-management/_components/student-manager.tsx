@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Search, User } from 'lucide-react';
+import { Search } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -33,11 +33,16 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import FeeDetails from './fee-details';
+import ReportCardDialog from './report-card-dialog';
 
 export default function StudentManager() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = React.useState('');
   const [filteredStudents, setFilteredStudents] = React.useState<Student[]>(STUDENTS);
+  const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
+  const [dialogContent, setDialogContent] = React.useState<'fee' | 'report' | null>(null);
 
   React.useEffect(() => {
     const results = STUDENTS.filter(student =>
@@ -50,7 +55,7 @@ export default function StudentManager() {
       return FEES.find(fee => fee.studentId === studentId);
   }
 
-  const getStatusVariant = (status: 'Paid' | 'Pending' | 'Overdue') => {
+  const getStatusVariant = (status?: 'Paid' | 'Pending' | 'Overdue') => {
       switch(status) {
           case 'Paid': return 'default';
           case 'Pending': return 'secondary';
@@ -67,9 +72,14 @@ export default function StudentManager() {
     router.push(`/dashboard/students/${studentId}/edit`);
   };
   
-  const handleViewReport = (studentId: string) => {
+  const handleViewReportPage = (studentId: string) => {
     router.push(`/dashboard/reports/${studentId}`);
   };
+
+  const openDialog = (student: Student, content: 'fee' | 'report') => {
+    setSelectedStudent(student);
+    setDialogContent(content);
+  }
 
   return (
     <Card>
@@ -92,73 +102,88 @@ export default function StudentManager() {
             />
           </div>
         </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Student</TableHead>
-              <TableHead>Age</TableHead>
-              <TableHead>Fee Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredStudents.length > 0 ? (
-              filteredStudents.map((student) => {
-                const fee = getStudentFee(student.id);
-                return (
-                <TableRow key={student.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Image
-                        alt="Student avatar"
-                        className="aspect-square rounded-full object-cover"
-                        height="40"
-                        src={student.avatarUrl}
-                        width="40"
-                        data-ai-hint={student.imageHint}
-                      />
-                      <div>
-                        <div className="font-medium">{student.name}</div>
-                        <div className="text-sm text-muted-foreground font-mono">{student.id}</div>
+        <Dialog onOpenChange={(open) => !open && setDialogContent(null)}>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Student</TableHead>
+                <TableHead>Age</TableHead>
+                <TableHead>Fee Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredStudents.length > 0 ? (
+                filteredStudents.map((student) => {
+                  const fee = getStudentFee(student.id);
+                  return (
+                  <TableRow key={student.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Image
+                          alt="Student avatar"
+                          className="aspect-square rounded-full object-cover"
+                          height="40"
+                          src={student.avatarUrl}
+                          width="40"
+                          data-ai-hint={student.imageHint}
+                        />
+                        <div>
+                          <div className="font-medium">{student.name}</div>
+                          <div className="text-sm text-muted-foreground font-mono">{student.id}</div>
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{student.age}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusVariant(fee?.status || 'Pending')}>{fee?.status}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => handleViewProfile(student.id)}>View Profile</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEditProfile(student.id)}>Edit Profile</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleViewReport(student.id)}>
-                          View Report Card
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{student.age}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusVariant(fee?.status || 'Pending')}>{fee?.status}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleViewProfile(student.id)}>View Profile</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditProfile(student.id)}>Edit Profile</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                             <DialogTrigger asChild>
+                               <DropdownMenuItem onClick={() => openDialog(student, 'fee')}>View Fee Payment</DropdownMenuItem>
+                             </DialogTrigger>
+                             <DialogTrigger asChild>
+                                <DropdownMenuItem onClick={() => openDialog(student, 'report')}>View Report</DropdownMenuItem>
+                             </DialogTrigger>
+                             <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleViewReportPage(student.id)}>
+                              View Report Card Page
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                )})
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-24 text-center">
+                    No students found.
                   </TableCell>
                 </TableRow>
-              )})
-            ) : (
-              <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
-                  No students found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+              )}
+            </TableBody>
+          </Table>
+          {selectedStudent && (
+             <DialogContent className={dialogContent === 'report' ? 'sm:max-w-3xl' : 'sm:max-w-[425px]'}>
+              {dialogContent === 'fee' && <FeeDetails student={selectedStudent} fee={getStudentFee(selectedStudent.id)}/>}
+              {dialogContent === 'report' && <ReportCardDialog student={selectedStudent} />}
+            </DialogContent>
+          )}
+        </Dialog>
       </CardContent>
     </Card>
   );

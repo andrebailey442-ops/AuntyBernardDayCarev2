@@ -8,7 +8,7 @@ type ReportCardPageProps = {
 
 export default function ReportCardPage({ params }: ReportCardPageProps) {
   return (
-    <div>
+    <div className="space-y-6">
       <ReportCard studentId={params.studentId} />
     </div>
   );
