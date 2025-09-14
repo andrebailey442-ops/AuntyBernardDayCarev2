@@ -32,7 +32,11 @@ const slideImages = [
     }
 ]
 
-export default function HeroSlideshow() {
+type HeroSlideshowProps = {
+    title: string;
+};
+
+export default function HeroSlideshow({ title }: HeroSlideshowProps) {
     const plugin = React.useRef(
         Autoplay({ delay: 5000, stopOnInteraction: true })
     )
@@ -61,7 +65,7 @@ export default function HeroSlideshow() {
                     <div className="flex items-center gap-4 bg-black/50 p-6 rounded-lg">
                         <ScholarStartLogo className="h-16 w-16 text-white" />
                         <h1 className="text-5xl font-bold text-white tracking-wider">
-                            ScholarStart
+                            {title}
                         </h1>
                     </div>
                 </div>
