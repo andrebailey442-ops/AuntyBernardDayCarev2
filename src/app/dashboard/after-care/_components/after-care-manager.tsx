@@ -41,12 +41,13 @@ export default function AfterCareManager() {
     const fetchStudents = async () => {
       setLoading(true);
       initializeStudentData();
-      const studentList = await getStudents();
-      setStudents(studentList);
+      const allStudents = await getStudents();
+      const afterCareStudents = allStudents.filter(student => student.afterCare);
+      setStudents(afterCareStudents);
       
       // Initialize all students to 'Checked-Out'
       const initialStatuses: StudentStatus = {};
-      studentList.forEach(student => {
+      afterCareStudents.forEach(student => {
         initialStatuses[student.id] = 'Checked-Out';
       });
       setStudentStatuses(initialStatuses);

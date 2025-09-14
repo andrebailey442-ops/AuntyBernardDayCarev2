@@ -57,6 +57,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { addFee } from '@/services/fees';
+import { Switch } from '@/components/ui/switch';
 
 
 const newStudentSchema = z.object({
@@ -75,6 +76,7 @@ const newStudentSchema = z.object({
   paymentPlan: z.enum(['Full Payment', 'Two Installments', 'Monthly Plan'], {
     required_error: "Payment plan is required"
   }),
+  afterCare: z.boolean().default(false),
   emergencyContactName: z.string().min(1, 'Emergency contact name is required'),
   emergencyContactPhone: z.string().min(1, 'Emergency contact phone is required'),
   medicalConditions: z.string().optional(),
@@ -105,6 +107,7 @@ export function NewStudentForm() {
         state: '',
         zip: '',
         paymentPlan: undefined,
+        afterCare: false,
         emergencyContactName: '',
         emergencyContactPhone: '',
         medicalConditions: '',
@@ -150,6 +153,7 @@ export function NewStudentForm() {
             city: data.city,
             state: data.state,
             zip: data.zip,
+            afterCare: data.afterCare,
             emergencyContactName: data.emergencyContactName,
             emergencyContactPhone: data.emergencyContactPhone,
             medicalConditions: data.medicalConditions,
@@ -406,9 +410,8 @@ export function NewStudentForm() {
             <Separator />
             
             <div className="space-y-4">
-                <h3 className="text-xl font-semibold">Payment Plan</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
+                <h3 className="text-xl font-semibold">Program Enrollment</h3>
+                 <FormField
                     control={form.control}
                     name="paymentPlan"
                     render={({ field }) => (
@@ -429,27 +432,29 @@ export function NewStudentForm() {
                         <FormMessage />
                         </FormItem>
                     )}
-                    />
-                </div>
-                 <Card className="md:col-span-2">
-                    <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
-                        <div>
-                            <h4 className="font-semibold">Full Payment</h4>
-                            <p className="text-sm text-muted-foreground">Pay upfront and receive a 5% discount.</p>
-                            <p className="text-lg font-bold mt-2">$2,375</p>
+                />
+                <FormField
+                    control={form.control}
+                    name="afterCare"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                        <div className="space-y-0.5">
+                            <FormLabel className="text-base">
+                            After-Care Program
+                            </FormLabel>
+                            <FormDescription>
+                            Enroll this student in the after-care program.
+                            </FormDescription>
                         </div>
-                        <div>
-                            <h4 className="font-semibold">Two Installments</h4>
-                            <p className="text-sm text-muted-foreground">$1,250 at the beginning and mid-point of the semester.</p>
-                            <p className="text-lg font-bold mt-2">$1,250 x 2</p>
-                        </div>
-                        <div>
-                            <h4 className="font-semibold">Monthly Plan</h4>
-                            <p className="text-sm text-muted-foreground">Four monthly installments of $625.</p>
-                            <p className="text-lg font-bold mt-2">$625 x 4</p>
-                        </div>
-                    </CardContent>
-                </Card>
+                        <FormControl>
+                            <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            />
+                        </FormControl>
+                        </FormItem>
+                    )}
+                />
             </div>
 
             <Separator />
@@ -510,8 +515,9 @@ export function NewStudentForm() {
                         </div>
                         <Separator />
                         <div>
-                            <h4 className="font-semibold mb-2">Payment Plan</h4>
-                            <p><strong>Plan:</strong> {formValues.paymentPlan}</p>
+                            <h4 className="font-semibold mb-2">Program Enrollment</h4>
+                            <p><strong>Payment Plan:</strong> {formValues.paymentPlan}</p>
+                            <p><strong>After Care:</strong> {formValues.afterCare ? 'Yes' : 'No'}</p>
                         </div>
                          <Separator />
                         <div>

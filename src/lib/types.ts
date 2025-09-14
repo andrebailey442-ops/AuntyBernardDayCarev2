@@ -10,6 +10,7 @@ export type Student = {
   parentContact: string; // email
   avatarUrl: string;
   imageHint: string;
+  afterCare?: boolean;
   // Extended details from form
   parentFirstName?: string;
   parentLastName?: string;
