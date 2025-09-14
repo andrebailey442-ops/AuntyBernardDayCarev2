@@ -1,35 +1,46 @@
 
 'use server';
 
-import { collection, getDocs, query, where, setDoc, doc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import type { Attendance, AttendanceStatus } from '@/lib/types';
 import { format } from 'date-fns';
+import { getFromLocalStorage, saveToLocalStorage, initializeLocalStorage } from '@/lib/local-storage';
+import { ATTENDANCE } from '@/lib/data';
+
+const STORAGE_KEY = 'attendance';
+
+// Initialize with seed data if it doesn't exist
+initializeLocalStorage(STORAGE_KEY, ATTENDANCE);
 
 export const getAttendance = async (): Promise<Attendance[]> => {
-    const attendanceCol = collection(db, 'attendance');
-    const attendanceSnapshot = await getDocs(attendanceCol);
-    const attendanceList = attendanceSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Attendance));
-    return attendanceList;
+    return getFromLocalStorage<Attendance>(STORAGE_KEY);
 };
 
 export const getAttendanceByStudent = async (studentId: string): Promise<Attendance[]> => {
-    const attendanceCol = collection(db, 'attendance');
-    const q = query(attendanceCol, where("studentId", "==", studentId));
-    const attendanceSnapshot = await getDocs(q);
-    const attendanceList = attendanceSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Attendance));
-    return attendanceList;
+    const allAttendance = await getAttendance();
+    return allAttendance.filter(a => a.studentId === studentId);
 }
 
 export const upsertAttendance = async (studentId: string, subject: string, date: Date, status: AttendanceStatus) => {
     const formattedDate = format(date, 'yyyy-MM-dd');
+    const allAttendance = await getAttendance();
+
     const attendanceId = `${studentId}_${subject}_${formattedDate}`;
-    const attendanceDocRef = doc(db, 'attendance', attendanceId);
+    const existingIndex = allAttendance.findIndex(a => a.id === attendanceId);
     
-    await setDoc(attendanceDocRef, {
-        studentId,
-        subject,
-        date: formattedDate,
-        status
-    }, { merge: true });
+    if (existingIndex > -1) {
+        // Update existing record
+        allAttendance[existingIndex] = { ...allAttendance[existingIndex], status };
+    } else {
+        // Add new record
+        const newRecord: Attendance = {
+            id: attendanceId,
+            studentId,
+            subject,
+            date: formattedDate,
+            status
+        };
+        allAttendance.push(newRecord);
+    }
+    
+    saveToLocalStorage(STORAGE_KEY, allAttendance);
 }

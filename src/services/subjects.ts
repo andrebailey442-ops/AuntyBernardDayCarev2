@@ -1,13 +1,15 @@
 
 'use server';
 
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import type { Subject } from '@/lib/types';
+import { getFromLocalStorage, initializeLocalStorage } from '@/lib/local-storage';
+import { SUBJECTS } from '@/lib/data';
+
+const STORAGE_KEY = 'subjects';
+
+// Initialize with seed data if it doesn't exist
+initializeLocalStorage(STORAGE_KEY, SUBJECTS);
 
 export const getSubjects = async (): Promise<Subject[]> => {
-    const subjectsCol = collection(db, 'subjects');
-    const subjectSnapshot = await getDocs(subjectsCol);
-    const subjectList = subjectSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Subject));
-    return subjectList;
+    return getFromLocalStorage<Subject>(STORAGE_KEY);
 };

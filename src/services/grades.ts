@@ -1,37 +1,48 @@
 
 'use server';
 
-import { collection, getDocs, query, where, setDoc, doc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import type { Grade, GradeCategory } from '@/lib/types';
+import type { Grade } from '@/lib/types';
 import { format } from 'date-fns';
+import { getFromLocalStorage, saveToLocalStorage, initializeLocalStorage } from '@/lib/local-storage';
+import { GRADES } from '@/lib/data';
+
+const STORAGE_KEY = 'grades';
+
+// Initialize with seed data if it doesn't exist
+initializeLocalStorage(STORAGE_KEY, GRADES);
 
 export const getGrades = async (): Promise<Grade[]> => {
-    const gradesCol = collection(db, 'grades');
-    const gradeSnapshot = await getDocs(gradesCol);
-    const gradeList = gradeSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Grade));
-    return gradeList;
+    return getFromLocalStorage<Grade>(STORAGE_KEY);
 };
 
 export const getGradesByStudent = async (studentId: string): Promise<Grade[]> => {
-    const gradesCol = collection(db, 'grades');
-    const q = query(gradesCol, where("studentId", "==", studentId));
-    const gradeSnapshot = await getDocs(q);
-    const gradeList = gradeSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Grade));
-    return gradeList;
+    const allGrades = await getGrades();
+    return allGrades.filter(g => g.studentId === studentId);
 };
 
 export const upsertGrade = async (studentId: string, subject: string, grade: string) => {
+    const allGrades = await getGrades();
     const gradeId = `${studentId}_${subject}`;
-    const gradeDocRef = doc(db, 'grades', gradeId);
+    const existingIndex = allGrades.findIndex(g => g.id === gradeId);
 
-    const gradeData: Omit<Grade, 'id'> = {
+    const gradeData = {
         studentId,
         subject,
         grade: grade as Grade['grade'],
-        category: 'daily', // Defaulting category, can be expanded later
+        category: 'daily', // Defaulting category
         date: format(new Date(), 'yyyy-MM-dd'),
     };
     
-    await setDoc(gradeDocRef, gradeData, { merge: true });
+    if (existingIndex > -1) {
+        allGrades[existingIndex] = { ...allGrades[existingIndex], ...gradeData };
+    } else {
+        const newGrade: Grade = {
+            id: gradeId,
+            ...gradeData,
+            notes: ''
+        }
+        allGrades.push(newGrade);
+    }
+    
+    saveToLocalStorage(STORAGE_KEY, allGrades);
 };

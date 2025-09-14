@@ -1,37 +1,54 @@
 
 'use server';
 
-import { collection, doc, getDocs, updateDoc, query, where, getDoc, addDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import type { Fee } from '@/lib/types';
+import { getFromLocalStorage, saveToLocalStorage, initializeLocalStorage } from '@/lib/local-storage';
+import { FEES } from '@/lib/data';
+
+const STORAGE_KEY = 'fees';
+
+// Initialize with seed data if it doesn't exist
+initializeLocalStorage(STORAGE_KEY, FEES);
+
 
 export const getFees = async (): Promise<Fee[]> => {
-    const feesCol = collection(db, 'fees');
-    const feeSnapshot = await getDocs(feesCol);
-    const feeList = feeSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Fee));
-    return feeList;
+    return getFromLocalStorage<Fee>(STORAGE_KEY);
 };
 
 export const getFeeByStudentId = async (studentId: string): Promise<Fee | null> => {
-    const feesCol = collection(db, 'fees');
-    const q = query(feesCol, where("studentId", "==", studentId));
-    const feeSnapshot = await getDocs(q);
-    if (!feeSnapshot.empty) {
-        const feeDoc = feeSnapshot.docs[0];
-        return { id: feeDoc.id, ...feeDoc.data() } as Fee;
-    }
-    return null;
+    const allFees = await getFees();
+    return allFees.find(fee => fee.studentId === studentId) || null;
 }
 
 export const addFee = async (fee: Omit<Fee, 'id'>) => {
-    const feesCol = collection(db, 'fees');
-    const docRef = await addDoc(feesCol, fee);
-    return docRef.id;
+    const allFees = await getFees();
+    const newFee: Fee = {
+        id: `fee-${Date.now()}`,
+        ...fee,
+    };
+    allFees.push(newFee);
+    saveToLocalStorage(STORAGE_KEY, allFees);
+    return newFee.id;
 }
 
-export const updateFee = async (id: string, fee: Partial<Fee>) => {
-    const feeDoc = doc(db, 'fees', id);
-    await updateDoc(feeDoc, fee);
+export const updateFee = async (id: string, feeUpdate: Partial<Fee>) => {
+    let allFees = await getFees();
+    const feeIndex = allFees.findIndex(f => f.id === id);
+    if (feeIndex > -1) {
+        allFees[feeIndex] = { ...allFees[feeIndex], ...feeUpdate };
+        saveToLocalStorage(STORAGE_KEY, allFees);
+    } else {
+        // Handle case where fee record for a student might not exist yet, especially on first payment
+        if (feeUpdate.studentId) {
+            const studentFeeIndex = allFees.findIndex(f => f.studentId === feeUpdate.studentId);
+            if (studentFeeIndex > -1) {
+                allFees[studentFeeIndex] = { ...allFees[studentFeeIndex], ...feeUpdate };
+                saveToLocalStorage(STORAGE_KEY, allFees);
+            } else {
+                console.error(`Could not find fee to update for student ID: ${feeUpdate.studentId}`);
+            }
+        } else {
+             console.error(`Could not find fee to update with ID: ${id}`);
+        }
+    }
 };
-
-    
