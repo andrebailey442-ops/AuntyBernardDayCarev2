@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import { PlusCircle, FileText, UserPlus, GraduationCap, Users, DollarSign, ClipboardCheck, Sunset } from 'lucide-react';
@@ -42,7 +43,7 @@ const links = [
     icon: ClipboardCheck,
   },
   {
-    href: '/dashboard/after-care',
+    href: '/dashboard/aftercare',
     label: 'After Care',
     icon: Sunset,
   }

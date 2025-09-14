@@ -1,30 +1,49 @@
 
 'use client';
 
-import QuickLinks from './_components/quick-links';
-import DashboardStats from './_components/dashboard-stats';
-import StudentList from './_components/student-list';
-import AttendanceChart from './_components/attendance-chart';
-import GradeOverview from './_components/grade-overview';
+import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { GraduationCap, Sunset } from 'lucide-react';
+import { ScholarStartLogo } from '@/components/icons';
 
-export default function DashboardPage() {
+export default function DashboardSelectionPage() {
   return (
-     <div className="grid auto-rows-max items-start gap-4 md:gap-8">
-        <div className="col-span-1 lg:col-span-3">
-            <QuickLinks />
+    <div className="flex flex-col items-center justify-center gap-8">
+        <div className="text-center">
+            <h1 className="text-3xl font-bold">Welcome to ScholarStart</h1>
+            <p className="text-muted-foreground">Please select a section to manage.</p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 col-span-1 lg:col-span-3">
-            <DashboardStats />
+        <div className="grid w-full max-w-4xl grid-cols-1 gap-8 md:grid-cols-2">
+            <Card className="flex flex-col">
+                <CardHeader className="text-center">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                        <GraduationCap className="h-8 w-8 text-primary" />
+                    </div>
+                    <CardTitle>Preschool Management</CardTitle>
+                    <CardDescription>Manage students, attendance, grades, and financials for the preschool program.</CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-1 flex-col justify-end">
+                    <Link href="/dashboard/preschool" className="w-full">
+                        <Button className="w-full">Go to Preschool Dashboard</Button>
+                    </Link>
+                </CardContent>
+            </Card>
+            <Card className="flex flex-col">
+                <CardHeader className="text-center">
+                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent/20">
+                        <Sunset className="h-8 w-8 text-accent-foreground" />
+                    </div>
+                    <CardTitle>After Care Management</CardTitle>
+                    <CardDescription>Handle check-in, check-out, and activities for the after-care program.</CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-1 flex-col justify-end">
+                    <Link href="/dashboard/aftercare" className="w-full">
+                        <Button variant="secondary" className="w-full">Go to After Care Dashboard</Button>
+                    </Link>
+                </CardContent>
+            </Card>
         </div>
-        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3 col-span-1 lg:col-span-3">
-            <div className="lg:col-span-2 xl:col-span-2">
-                <StudentList />
-            </div>
-            <div className="grid gap-4 auto-rows-max">
-                <AttendanceChart />
-                <GradeOverview />
-            </div>
-        </div>
-      </div>
+    </div>
   );
 }
