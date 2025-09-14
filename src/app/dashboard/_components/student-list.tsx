@@ -44,7 +44,7 @@ export default function StudentList() {
       setLoading(true);
       await initializeStudentData();
       const studentList = await getStudents();
-      setStudents(studentList);
+      setStudents(studentList.filter(student => student.status !== 'graduated'));
       setLoading(false);
     };
     fetchStudents();
