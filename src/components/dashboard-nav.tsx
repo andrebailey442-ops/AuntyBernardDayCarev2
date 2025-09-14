@@ -7,12 +7,10 @@ import {
   ClipboardCheck,
   GraduationCap,
   FileText,
-  Book,
-  DollarSign,
+  Users,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from './ui/button';
 
 type NavItem = {
   href: string;
@@ -22,11 +20,10 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutGrid },
+  { href: '/dashboard/student-management', label: 'Student Management', icon: Users },
   { href: '/dashboard/attendance', label: 'Attendance', icon: ClipboardCheck },
   { href: '/dashboard/grades', label: 'Grades', icon: GraduationCap },
   { href: '/dashboard/forms', label: 'Forms', icon: FileText },
-  { href: '/dashboard/reports', label: 'Reports', icon: Book },
-  { href: '/dashboard/fees', label: 'Fees', icon: DollarSign },
 ];
 
 export function DashboardNav() {
