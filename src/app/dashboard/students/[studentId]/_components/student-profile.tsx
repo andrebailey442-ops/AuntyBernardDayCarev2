@@ -10,12 +10,12 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
-import { ScholarStartLogo } from '@/components/icons';
 import { useRouter } from 'next/navigation';
-import { STUDENTS } from '@/lib/data';
-import type { Student } from '@/lib/types';
+import { STUDENTS, FEES } from '@/lib/data';
+import type { Student, Fee } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 
 type StudentProfileProps = {
     studentId: string;
@@ -24,11 +24,16 @@ type StudentProfileProps = {
 export default function StudentProfile({ studentId }: StudentProfileProps) {
   const router = useRouter();
   const [student, setStudent] = React.useState<Student | null>(null);
+  const [fee, setFee] = React.useState<Fee | null>(null);
 
   React.useEffect(() => {
     const studentData = STUDENTS.find(s => s.id === studentId);
     if (studentData) {
         setStudent(studentData);
+        const feeData = FEES.find(f => f.studentId === studentId);
+        if (feeData) {
+          setFee(feeData);
+        }
     } else {
         router.push('/dashboard');
     }
@@ -52,6 +57,15 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
     emergencyContactPhone: '(555) 765-4321',
     medicalConditions: 'None'
   };
+
+    const getStatusVariant = (status: 'Paid' | 'Pending' | 'Overdue') => {
+      switch(status) {
+          case 'Paid': return 'default';
+          case 'Pending': return 'secondary';
+          case 'Overdue': return 'destructive';
+          default: return 'outline';
+      }
+  }
 
   return (
     <>
@@ -100,6 +114,22 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
             </div>
 
             <Separator />
+            
+            {fee && (
+              <>
+                <div>
+                    <h3 className="text-xl font-semibold mb-4">Fee & Payment Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div><p className="text-sm text-muted-foreground">Payment Plan</p><p>{fee.plan}</p></div>
+                        <div><p className="text-sm text-muted-foreground">Amount Due</p><p>${fee.amount.toFixed(2)}</p></div>
+                        <div><p className="text-sm text-muted-foreground">Status</p><p><Badge variant={getStatusVariant(fee.status)}>{fee.status}</Badge></p></div>
+                    </div>
+                </div>
+
+                <Separator />
+              </>
+            )}
+
 
             <div>
                 <h3 className="text-xl font-semibold mb-4">Emergency and Health Information</h3>

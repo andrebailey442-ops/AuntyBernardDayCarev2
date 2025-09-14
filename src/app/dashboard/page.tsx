@@ -1,6 +1,6 @@
+'use client';
+
 import StudentList from './_components/student-list';
-import AttendanceChart from './_components/attendance-chart';
-import GradeOverview from './_components/grade-overview';
 import QuickLinks from './_components/quick-links';
 import {
   Card,
@@ -114,12 +114,6 @@ export default function DashboardPage() {
           </Card>
            <div className="col-span-1 lg:col-span-4">
               <StudentList />
-            </div>
-            <div className="col-span-1 lg:col-span-2">
-              <AttendanceChart />
-            </div>
-            <div className="col-span-1 lg:col-span-2">
-              <GradeOverview />
             </div>
       </div>
   );
