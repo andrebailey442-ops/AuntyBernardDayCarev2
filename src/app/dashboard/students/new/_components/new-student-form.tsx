@@ -46,6 +46,7 @@ import { jsPDF } from 'jspdf';
 
 
 const newStudentSchema = z.object({
+  studentId: z.string(),
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   dob: z.date({ required_error: 'Date of birth is required' }),
@@ -69,10 +70,20 @@ export function NewStudentForm() {
   const { toast } = useToast();
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(false);
+  const [studentId, setStudentId] = React.useState('');
 
   const form = useForm<NewStudentFormValues>({
     resolver: zodResolver(newStudentSchema),
+    defaultValues: {
+        studentId: '',
+    }
   });
+
+  React.useEffect(() => {
+    const newId = `SID-${Date.now()}`;
+    setStudentId(newId);
+    form.setValue('studentId', newId);
+  }, [form]);
 
   const dob = form.watch('dob');
 
@@ -132,7 +143,13 @@ export function NewStudentForm() {
     try {
         const doc = new jsPDF();
         addLogoAndHeader(doc, 'Student Registration Form');
-        let y = 60;
+        let y = 50;
+
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Student ID: ${studentId}`, 20, y);
+        y += 10;
+        
 
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
@@ -213,6 +230,12 @@ export function NewStudentForm() {
         <CardDescription>
           Please fill out the form below to register a new student.
         </CardDescription>
+        {studentId && (
+            <div className="pt-4">
+                <p className="text-sm font-semibold text-muted-foreground">Student ID</p>
+                <p className="text-lg font-mono text-primary">{studentId}</p>
+            </div>
+        )}
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -250,7 +273,7 @@ export function NewStudentForm() {
                         <FormItem>
                             <FormLabel>Age</FormLabel>
                             <FormControl>
-                                <Input type="number" placeholder="Age" {...field} disabled />
+                                <Input type="number" placeholder="Age" {...field} value={field.value ?? ''} disabled />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -331,3 +354,5 @@ export function NewStudentForm() {
     </Card>
   );
 }
+
+    

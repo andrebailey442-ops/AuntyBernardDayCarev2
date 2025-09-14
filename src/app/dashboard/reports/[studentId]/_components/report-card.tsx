@@ -82,6 +82,8 @@ export default function ReportCard({ studentId }: ReportCardProps) {
         y += 10;
         doc.setFontSize(12);
         doc.setFont('helvetica', 'normal');
+        doc.text(`Student ID: ${student.id}`, 20, y);
+        y += 7;
         doc.text(`Name: ${student.name}`, 20, y);
         y += 7;
         doc.text(`Age: ${student.age}`, 20, y);
@@ -183,6 +185,7 @@ export default function ReportCard({ studentId }: ReportCardProps) {
                 </Avatar>
                 <div>
                     <p className="font-semibold">{student.name}</p>
+                    <p className="text-sm text-muted-foreground">ID: {student.id}</p>
                     <p className="text-sm text-muted-foreground">Age: {student.age}</p>
                     <p className="text-sm text-muted-foreground">Report Date: {format(new Date(), 'PPP')}</p>
                 </div>
@@ -247,3 +250,5 @@ export default function ReportCard({ studentId }: ReportCardProps) {
     </>
   );
 }
+
+    
