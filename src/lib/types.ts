@@ -64,3 +64,14 @@ export type Fee = {
     status: 'Paid' | 'Pending' | 'Overdue';
     plan: 'Full Payment' | 'Two Installments' | 'Monthly Plan';
 };
+
+export type UserRole = 'Admin' | 'Teacher';
+
+export type User = {
+  id: string;
+  username: string;
+  role: UserRole;
+  password?: string; // Should be handled securely in a real app
+  avatarUrl: string;
+  imageHint: string;
+};

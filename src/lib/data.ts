@@ -1,4 +1,5 @@
-import type { Student, Subject, Grade, Attendance, Fee } from './types';
+
+import type { Student, Subject, Grade, Attendance, Fee, User } from './types';
 
 export const STUDENTS: Student[] = [];
 
@@ -15,3 +16,14 @@ export const GRADES: Grade[] = [];
 export const ATTENDANCE: Attendance[] = [];
 
 export const FEES: Fee[] = [];
+
+export const USERS: User[] = [
+    {
+      id: 'user-1',
+      username: 'Admin',
+      role: 'Admin',
+      password: 'admin',
+      avatarUrl: 'https://picsum.photos/seed/admin/100/100',
+      imageHint: 'person avatar'
+    }
+];

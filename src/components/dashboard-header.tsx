@@ -58,10 +58,12 @@ export function DashboardHeader() {
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </DropdownMenuItem>
-             <DropdownMenuItem>
-              <Users className="mr-2 h-4 w-4" />
-              <span>Manage Users</span>
-            </DropdownMenuItem>
+             <DropdownMenuItem asChild>
+                <Link href="/dashboard/manage-users">
+                  <Users className="mr-2 h-4 w-4" />
+                  <span>Manage Users</span>
+                </Link>
+             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link href="/">
