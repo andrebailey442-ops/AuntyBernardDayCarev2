@@ -9,11 +9,7 @@ import {
   FileText,
   type LucideIcon,
 } from 'lucide-react';
-import {
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-} from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
 
 type NavItem = {
   href: string;
@@ -28,27 +24,23 @@ const navItems: NavItem[] = [
   { href: '/dashboard/forms', label: 'Forms', icon: FileText },
 ];
 
-export function SidebarNav() {
+export function DashboardNav() {
   const pathname = usePathname();
 
   return (
-    <SidebarMenu>
+    <>
       {navItems.map((item) => (
-        <SidebarMenuItem key={item.href}>
-          <Link href={item.href} legacyBehavior passHref>
-            <SidebarMenuButton
-              asChild
-              isActive={pathname === item.href}
-              tooltip={item.label}
-            >
-              <a>
-                <item.icon />
-                <span>{item.label}</span>
-              </a>
-            </SidebarMenuButton>
-          </Link>
-        </SidebarMenuItem>
+        <Link
+          key={item.href}
+          href={item.href}
+          className={cn(
+            'text-muted-foreground transition-colors hover:text-foreground',
+            pathname === item.href && 'text-foreground'
+          )}
+        >
+          {item.label}
+        </Link>
       ))}
-    </SidebarMenu>
+    </>
   );
 }

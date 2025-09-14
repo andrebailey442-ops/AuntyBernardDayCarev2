@@ -1,9 +1,5 @@
 'use client';
 
-import { usePathname } from 'next/navigation';
-import {
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,29 +13,35 @@ import { Button } from './ui/button';
 import { Bell, LogOut, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { ScholarStartLogo } from './icons';
+import { DashboardNav } from './dashboard-nav';
 
 export function DashboardHeader() {
-  const pathname = usePathname();
-  
-  const getTitle = () => {
-    if (pathname.startsWith('/dashboard/attendance')) return 'Attendance';
-    if (pathname.startsWith('/dashboard/grades')) return 'Grades';
-    if (pathname.startsWith('/dashboard/forms')) return 'Forms';
-    return 'Dashboard';
-  };
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6">
-      <SidebarTrigger className="md:hidden" />
-      
-      <div className="flex items-center gap-2">
-        <Link href="/dashboard" className="flex items-center gap-2">
-            <ScholarStartLogo className="w-8 h-8 text-primary" />
-            <span className="text-xl font-bold font-headline hidden md:inline-block">ScholarStart</span>
+    <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
+      <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-2 text-lg font-semibold md:text-base"
+        >
+          <ScholarStartLogo className="h-6 w-6 text-primary" />
+          <span className="font-bold">ScholarStart</span>
         </Link>
-      </div>
+        <DashboardNav />
+      </nav>
+      
+      {/* Mobile Menu can be added here if needed */}
 
-      <div className="ml-auto flex items-center gap-4">
+      <div className="flex w-full items-center gap-4 md:ml-auto md:w-auto">
+        <div className="md:hidden">
+            <Link href="/dashboard" className="flex items-center gap-2">
+                <ScholarStartLogo className="w-8 h-8 text-primary" />
+                <span className="text-xl font-bold font-headline">ScholarStart</span>
+            </Link>
+        </div>
+        <div className="ml-auto flex-1 sm:flex-initial">
+          {/* Search can go here if needed */}
+        </div>
         <Button variant="ghost" size="icon" className="rounded-full">
           <Bell className="h-5 w-5" />
           <span className="sr-only">Toggle notifications</span>
@@ -48,7 +50,10 @@ export function DashboardHeader() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-8 w-8 rounded-full">
               <Avatar className="h-9 w-9">
-                <AvatarImage src="https://picsum.photos/seed/admin/100/100" alt="Admin" />
+                <AvatarImage
+                  src="https://picsum.photos/seed/admin/100/100"
+                  alt="Admin"
+                />
                 <AvatarFallback>AD</AvatarFallback>
               </Avatar>
             </Button>
