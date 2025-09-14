@@ -15,6 +15,9 @@ import { Activity } from 'lucide-react';
 export default function DashboardPage() {
   return (
      <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
+            <div className="col-span-1 lg:col-span-4">
+                <QuickLinks />
+            </div>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
@@ -117,9 +120,6 @@ export default function DashboardPage() {
             </div>
             <div className="col-span-1 lg:col-span-2">
               <GradeOverview />
-            </div>
-            <div className="col-span-1 lg:col-span-4">
-                <QuickLinks />
             </div>
       </div>
   );
