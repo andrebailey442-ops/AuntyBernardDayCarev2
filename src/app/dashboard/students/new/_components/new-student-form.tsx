@@ -49,6 +49,7 @@ const newStudentSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   dob: z.date({ required_error: 'Date of birth is required' }),
+  age: z.number().optional(),
   parentFirstName: z.string().min(1, "Parent's first name is required"),
   parentLastName: z.string().min(1, "Parent's last name is required"),
   parentEmail: z.string().email('Invalid email address'),
@@ -72,6 +73,21 @@ export function NewStudentForm() {
   const form = useForm<NewStudentFormValues>({
     resolver: zodResolver(newStudentSchema),
   });
+
+  const dob = form.watch('dob');
+
+  React.useEffect(() => {
+    if (dob) {
+      const today = new Date();
+      const birthDate = new Date(dob);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      form.setValue('age', age);
+    }
+  }, [dob, form]);
 
   const onSubmit = (data: NewStudentFormValues) => {
     setIsLoading(true);
@@ -127,6 +143,8 @@ export function NewStudentForm() {
         addFormField(doc, 'Last Name:', y);
         y += 15;
         addFormField(doc, 'Date of Birth (YYYY-MM-DD):', y);
+        y += 15;
+        addFormField(doc, 'Age:', y);
         y += 25;
 
         doc.setFontSize(14);
@@ -209,24 +227,35 @@ export function NewStudentForm() {
                         <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input placeholder="Smith" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
-                <FormField control={form.control} name="dob" render={({ field }) => (
-                    <FormItem className="flex flex-col"><FormLabel>Date of Birth</FormLabel>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button variant={"outline"} className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                        {field.value ? (format(field.value, "PPP")) : (<span>Pick a date</span>)}
-                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus />
-                            </PopoverContent>
-                        </Popover>
-                    <FormMessage />
-                    </FormItem>
-                )} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="dob" render={({ field }) => (
+                        <FormItem className="flex flex-col"><FormLabel>Date of Birth</FormLabel>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <FormControl>
+                                        <Button variant={"outline"} className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                            {field.value ? (format(field.value, "PPP")) : (<span>Pick a date</span>)}
+                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                        </Button>
+                                    </FormControl>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus />
+                                </PopoverContent>
+                            </Popover>
+                        <FormMessage />
+                        </FormItem>
+                    )} />
+                    <FormField control={form.control} name="age" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Age</FormLabel>
+                            <FormControl>
+                                <Input type="number" placeholder="Age" {...field} disabled />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                </div>
             </div>
 
              <div className="space-y-4">
