@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -22,7 +23,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { STUDENTS, FEES, SUBJECTS } from '@/lib/data';
 import type { Student, Fee } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -37,26 +37,43 @@ import {
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InvoiceDialog from './invoice-dialog';
+import { getStudents } from '@/services/students';
+import { getFees, getFeeByStudentId, updateFee } from '@/services/fees';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function FinancialManager() {
   const router = useRouter();
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = React.useState('');
-  const [fees, setFees] = React.useState<Fee[]>(FEES);
-  const [filteredStudents, setFilteredStudents] = React.useState<Student[]>(STUDENTS);
+  const [students, setStudents] = React.useState<Student[]>([]);
+  const [fees, setFees] = React.useState<Fee[]>([]);
+  const [filteredStudents, setFilteredStudents] = React.useState<Student[]>([]);
   const [makePaymentStudentId, setMakePaymentStudentId] = React.useState('');
   const [updatePaymentStudentId, setUpdatePaymentStudentId] = React.useState('');
   const [newPaymentStatus, setNewPaymentStatus] = React.useState<'Paid' | 'Pending' | 'Overdue' | ''>('');
   const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
   const [isInvoiceDialogOpen, setIsInvoiceDialogOpen] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
 
+
+  const fetchData = React.useCallback(async () => {
+    setLoading(true);
+    const [studentList, feeList] = await Promise.all([getStudents(), getFees()]);
+    setStudents(studentList);
+    setFees(feeList);
+    setLoading(false);
+  }, []);
 
   React.useEffect(() => {
-    const results = STUDENTS.filter(student =>
+    fetchData();
+  }, [fetchData]);
+
+  React.useEffect(() => {
+    const results = students.filter(student =>
       student.name.toLowerCase().includes(searchTerm.toLowerCase()) || student.id.includes(searchTerm)
     );
     setFilteredStudents(results);
-  }, [searchTerm]);
+  }, [searchTerm, students]);
 
   const getStudentFee = (studentId: string): Fee | undefined => {
       return fees.find(fee => fee.studentId === studentId);
@@ -79,20 +96,38 @@ export default function FinancialManager() {
     setMakePaymentStudentId('');
   }
   
-  const handleUpdatePayment = () => {
-    setFees(prevFees =>
-        prevFees.map(fee =>
-            fee.studentId === updatePaymentStudentId
-            ? { ...fee, status: newPaymentStatus as 'Paid' | 'Pending' | 'Overdue' }
-            : fee
-        )
-    );
-    toast({
-      title: 'Payment Updated',
-      description: `Payment status for student ID ${updatePaymentStudentId} has been updated to ${newPaymentStatus}.`,
-    });
-    setUpdatePaymentStudentId('');
-    setNewPaymentStatus('');
+  const handleUpdatePayment = async () => {
+    if (!updatePaymentStudentId || !newPaymentStatus) return;
+    
+    try {
+        const feeToUpdate = await getFeeByStudentId(updatePaymentStudentId);
+        if (!feeToUpdate) {
+            throw new Error('Fee record not found for student.');
+        }
+        await updateFee(feeToUpdate.id, { status: newPaymentStatus as 'Paid' | 'Pending' | 'Overdue' });
+
+        setFees(prevFees =>
+            prevFees.map(fee =>
+                fee.studentId === updatePaymentStudentId
+                ? { ...fee, status: newPaymentStatus as 'Paid' | 'Pending' | 'Overdue' }
+                : fee
+            )
+        );
+
+        toast({
+        title: 'Payment Updated',
+        description: `Payment status for student ID ${updatePaymentStudentId} has been updated to ${newPaymentStatus}.`,
+        });
+        setUpdatePaymentStudentId('');
+        setNewPaymentStatus('');
+    } catch(error) {
+        console.error("Failed to update payment: ", error);
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Failed to update payment status.',
+        });
+    }
   }
   
   const handleViewInvoice = (student: Student) => {
@@ -211,7 +246,7 @@ export default function FinancialManager() {
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="update-payment-student-id" className="text-right">Student ID</Label>
-                            <Input id="update-payment-student-id" value={updatePaymentStudentId} onChange={(e) => setUpdatePaymentStudentId(e.target.value)} className="col-span-3" placeholder="SID-..." />
+                            <Input id="update-payment-student-id" value={updatePaymentStudentId} onChange={(e) => setUpdatePaymentStudentId(e.target.value)} className="col-span-3" placeholder="ID..." />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="status" className="text-right">New Status</Label>
@@ -245,7 +280,28 @@ export default function FinancialManager() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredStudents.length > 0 ? (
+            {loading ? (
+                Array.from({length: 5}).map((_, i) => (
+                    <TableRow key={i}>
+                        <TableCell>
+                            <div className="flex items-center gap-3">
+                                <Skeleton className="h-10 w-10 rounded-full" />
+                                <div>
+                                    <Skeleton className="h-4 w-[150px]" />
+                                    <Skeleton className="h-3 w-[120px] mt-1" />
+                                </div>
+                            </div>
+                        </TableCell>
+                        <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-[70px] rounded-full" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                        <TableCell className="text-right space-x-2">
+                           <Skeleton className="h-8 w-24 inline-block" />
+                           <Skeleton className="h-8 w-24 inline-block" />
+                        </TableCell>
+                    </TableRow>
+                ))
+            ) : filteredStudents.length > 0 ? (
               filteredStudents.map((student) => {
                 const fee = getStudentFee(student.id);
                 return (

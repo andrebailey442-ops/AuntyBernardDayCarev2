@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -10,11 +11,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Download } from 'lucide-react';
-import { GRADES, SUBJECTS, ATTENDANCE } from '@/lib/data';
-import type { Student, Grade } from '@/lib/types';
+import type { Student, Grade, Subject } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
+import { getGradesByStudent } from '@/services/grades';
+import { getAttendanceByStudent } from '@/services/attendance';
+import { getSubjects } from '@/services/subjects';
 
 type ReportCardDialogProps = {
   student: Student;
@@ -23,28 +26,39 @@ type ReportCardDialogProps = {
 export default function ReportCardDialog({ student }: ReportCardDialogProps) {
   const { toast } = useToast();
   const [grades, setGrades] = React.useState<Grade[]>([]);
+  const [subjects, setSubjects] = React.useState<Subject[]>([]);
   const [attendance, setAttendance] = React.useState({
     present: 0,
     absent: 0,
     tardy: 0,
   });
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const studentGrades = GRADES.filter((g) => g.studentId === student.id);
-    setGrades(studentGrades);
+    const fetchData = async () => {
+        setLoading(true);
+        const [studentGrades, studentAttendance, subjectData] = await Promise.all([
+            getGradesByStudent(student.id),
+            getAttendanceByStudent(student.id),
+            getSubjects()
+        ]);
+        
+        setGrades(studentGrades);
+        setSubjects(subjectData);
 
-    const studentAttendance = ATTENDANCE.filter(
-      (a) => a.studentId === student.id
-    );
-    const summary = { present: 0, absent: 0, tardy: 0 };
-    studentAttendance.forEach((a) => {
-      summary[a.status]++;
-    });
-    setAttendance(summary);
+        const summary = { present: 0, absent: 0, tardy: 0 };
+        studentAttendance.forEach((a) => {
+            summary[a.status]++;
+        });
+        setAttendance(summary);
+        setLoading(false);
+    };
+
+    fetchData();
   }, [student.id]);
 
   const getSubjectName = (subjectId: string) => {
-    return SUBJECTS.find((s) => s.id === subjectId)?.name || 'N/A';
+    return subjects.find((s) => s.id === subjectId)?.name || 'N/A';
   };
 
   const downloadReportCard = () => {
@@ -126,54 +140,58 @@ export default function ReportCardDialog({ student }: ReportCardDialogProps) {
         </DialogDescription>
       </DialogHeader>
       <div className="max-h-[60vh] overflow-y-auto p-1">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Grades</h3>
-            <div className="space-y-3">
-              {SUBJECTS.map((subject) => {
-                const grade = grades.find((g) => g.subject === subject.id);
-                return (
-                  <div key={subject.id} className="flex justify-between">
-                    <p className="font-medium">{subject.name}</p>
-                    <p className="font-bold text-primary">
-                      {grade?.grade || 'N/A'}
-                    </p>
-                  </div>
-                );
-              })}
-              {grades.length === 0 && (
-                <p className="text-muted-foreground">No grades recorded.</p>
-              )}
+        {loading ? <p>Loading report...</p> : (
+            <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+            <div>
+                <h3 className="text-lg font-semibold mb-4">Grades</h3>
+                <div className="space-y-3">
+                {subjects.map((subject) => {
+                    const grade = grades.find((g) => g.subject === subject.id);
+                    return (
+                    <div key={subject.id} className="flex justify-between">
+                        <p className="font-medium">{subject.name}</p>
+                        <p className="font-bold text-primary">
+                        {grade?.grade || 'N/A'}
+                        </p>
+                    </div>
+                    );
+                })}
+                {grades.length === 0 && (
+                    <p className="text-muted-foreground">No grades recorded.</p>
+                )}
+                </div>
             </div>
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Attendance Summary</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <p className="font-medium">Present</p>
-                <p className="font-bold text-green-600">{attendance.present} <span className="text-sm font-normal text-muted-foreground">days</span></p>
-              </div>
-              <div className="flex justify-between">
-                <p className="font-medium">Absent</p>
-                <p className="font-bold text-destructive">{attendance.absent} <span className="text-sm font-normal text-muted-foreground">days</span></p>
-              </div>
-              <div className="flex justify-between">
-                <p className="font-medium">Tardy</p>
-                <p className="font-bold text-yellow-500">{attendance.tardy} <span className="text-sm font-normal text-muted-foreground">days</span></p>
-              </div>
+            <div>
+                <h3 className="text-lg font-semibold mb-4">Attendance Summary</h3>
+                <div className="space-y-3">
+                <div className="flex justify-between">
+                    <p className="font-medium">Present</p>
+                    <p className="font-bold text-green-600">{attendance.present} <span className="text-sm font-normal text-muted-foreground">days</span></p>
+                </div>
+                <div className="flex justify-between">
+                    <p className="font-medium">Absent</p>
+                    <p className="font-bold text-destructive">{attendance.absent} <span className="text-sm font-normal text-muted-foreground">days</span></p>
+                </div>
+                <div className="flex justify-between">
+                    <p className="font-medium">Tardy</p>
+                    <p className="font-bold text-yellow-500">{attendance.tardy} <span className="text-sm font-normal text-muted-foreground">days</span></p>
+                </div>
+                </div>
             </div>
-          </div>
-        </div>
-        <Separator />
-        <div className="py-4">
-            <h3 className="text-lg font-semibold mb-2">Teacher's Comments</h3>
-            <p className="text-sm text-muted-foreground italic">
-                {student.name} has shown great enthusiasm this term. We encourage focusing more on number recognition skills.
-            </p>
-        </div>
+            </div>
+            <Separator />
+            <div className="py-4">
+                <h3 className="text-lg font-semibold mb-2">Teacher's Comments</h3>
+                <p className="text-sm text-muted-foreground italic">
+                    {student.name} has shown great enthusiasm this term. We encourage focusing more on number recognition skills.
+                </p>
+            </div>
+          </>
+        )}
       </div>
       <DialogFooter>
-        <Button onClick={downloadReportCard}>
+        <Button onClick={downloadReportCard} disabled={loading}>
             <Download className="mr-2 h-4 w-4" />
             Download Full Report
         </Button>

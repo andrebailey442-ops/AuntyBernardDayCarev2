@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -38,33 +39,62 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { STUDENTS, ATTENDANCE, SUBJECTS } from '@/lib/data';
 import type { AttendanceStatus, Student, Subject } from '@/lib/types';
 import { suggestAttendance } from '@/ai/flows/suggest-attendance';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import { getStudents } from '@/services/students';
+import { getSubjects } from '@/services/subjects';
+import { getAttendance } from '@/services/attendance';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type AttendanceState = Record<string, AttendanceStatus>;
 
 export default function AttendanceTracker() {
   const [date, setDate] = React.useState<Date>(new Date());
-  const [selectedSubject, setSelectedSubject] = React.useState<Subject>(SUBJECTS[0]);
+  const [students, setStudents] = React.useState<Student[]>([]);
+  const [subjects, setSubjects] = React.useState<Subject[]>([]);
+  const [allAttendance, setAllAttendance] = React.useState<any[]>([]);
+  const [selectedSubject, setSelectedSubject] = React.useState<Subject | null>(null);
   const [attendance, setAttendance] = React.useState<AttendanceState>({});
   const [loadingSuggestions, setLoadingSuggestions] = React.useState<Record<string, boolean>>({});
   const { toast } = useToast();
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
+    const fetchData = async () => {
+        setLoading(true);
+        const [studentList, subjectList, attendanceList] = await Promise.all([
+            getStudents(),
+            getSubjects(),
+            getAttendance()
+        ]);
+        setStudents(studentList);
+        setSubjects(subjectList);
+        setAllAttendance(attendanceList);
+        if (subjectList.length > 0) {
+            setSelectedSubject(subjectList[0]);
+        }
+        setLoading(false);
+    };
+    fetchData();
+  }, []);
+
+  React.useEffect(() => {
+    if (!selectedSubject || students.length === 0) return;
+
     const formattedDate = format(date, 'yyyy-MM-dd');
-    const todaysAttendance = ATTENDANCE.filter(
+    const todaysAttendance = allAttendance.filter(
       (a) => a.date === formattedDate && a.subject === selectedSubject.id
     );
+
     const initialState: AttendanceState = {};
-    STUDENTS.forEach(student => {
+    students.forEach(student => {
         const record = todaysAttendance.find(a => a.studentId === student.id);
         initialState[student.id] = record ? record.status : 'present';
     });
     setAttendance(initialState);
-  }, [date, selectedSubject]);
+  }, [date, selectedSubject, students, allAttendance]);
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     setAttendance((prev) => ({ ...prev, [studentId]: status }));
@@ -92,6 +122,7 @@ export default function AttendanceTracker() {
   };
 
   const saveAttendance = () => {
+    if (!selectedSubject) return;
     toast({
         title: 'Attendance Saved',
         description: `Attendance for ${selectedSubject.name} on ${format(date, 'PPP')} has been successfully recorded.`,
@@ -130,12 +161,12 @@ export default function AttendanceTracker() {
               />
             </PopoverContent>
           </Popover>
-          <Select onValueChange={(value) => setSelectedSubject(SUBJECTS.find(s => s.id === value)!)} defaultValue={selectedSubject.id}>
+          <Select onValueChange={(value) => setSelectedSubject(subjects.find(s => s.id === value)!)} value={selectedSubject?.id}>
               <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Select Subject" />
               </SelectTrigger>
               <SelectContent>
-                  {SUBJECTS.map(subject => (
+                  {subjects.map(subject => (
                       <SelectItem key={subject.id} value={subject.id}>{subject.name}</SelectItem>
                   ))}
               </SelectContent>
@@ -153,7 +184,26 @@ export default function AttendanceTracker() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {STUDENTS.map((student) => (
+            {loading ? (
+                Array.from({length: 5}).map((_, i) => (
+                    <TableRow key={i}>
+                        <TableCell>
+                            <div className="flex items-center gap-3">
+                                <Skeleton className="h-10 w-10 rounded-full" />
+                                <Skeleton className="h-4 w-[150px]" />
+                            </div>
+                        </TableCell>
+                        <TableCell>
+                            <div className="flex justify-center space-x-2 md:space-x-4">
+                                <Skeleton className="h-4 w-[70px]" />
+                                <Skeleton className="h-4 w-[70px]" />
+                                <Skeleton className="h-4 w-[70px]" />
+                            </div>
+                        </TableCell>
+                        <TableCell className="text-right"><Skeleton className="h-8 w-[100px]" /></TableCell>
+                    </TableRow>
+                ))
+            ) : students.map((student) => (
               <TableRow key={student.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">

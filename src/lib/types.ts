@@ -1,9 +1,11 @@
+
 import type { LucideIcon } from 'lucide-react';
 
 export type Student = {
   id: string;
   name: string;
   age: number;
+  dob?: string;
   parentContact: string;
   avatarUrl: string;
   imageHint: string;

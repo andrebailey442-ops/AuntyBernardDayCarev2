@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -22,7 +23,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { STUDENTS } from '@/lib/data';
 import type { Student } from '@/lib/types';
 import {
   DropdownMenu,
@@ -47,6 +47,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
+import { getStudents, deleteStudent } from '@/services/students';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 export default function StudentManager() {
@@ -54,9 +56,21 @@ export default function StudentManager() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = React.useState('');
   const [allStudents, setAllStudents] = React.useState<Student[]>([]);
-  const [filteredStudents, setFilteredStudents] = React.useState<Student[]>(allStudents);
+  const [filteredStudents, setFilteredStudents] = React.useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
   const [dialogContent, setDialogContent] = React.useState<'report' | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  const fetchStudents = React.useCallback(async () => {
+    setLoading(true);
+    const studentList = await getStudents();
+    setAllStudents(studentList);
+    setLoading(false);
+  }, []);
+
+  React.useEffect(() => {
+    fetchStudents();
+  }, [fetchStudents]);
 
   React.useEffect(() => {
     const results = allStudents.filter(student =>
@@ -77,16 +91,25 @@ export default function StudentManager() {
     router.push(`/dashboard/reports/${studentId}`);
   };
 
-  const handleRemoveStudent = (studentId: string) => {
+  const handleRemoveStudent = async (studentId: string) => {
     const studentToRemove = allStudents.find(s => s.id === studentId);
     if (!studentToRemove) return;
 
-    setAllStudents(prevStudents => prevStudents.filter(s => s.id !== studentId));
-    
-    toast({
-        title: 'Student Removed',
-        description: `${studentToRemove.name} has been removed from the system.`,
-    });
+    try {
+      await deleteStudent(studentId);
+      setAllStudents(prevStudents => prevStudents.filter(s => s.id !== studentId));
+      toast({
+          title: 'Student Removed',
+          description: `${studentToRemove.name} has been removed from the system.`,
+      });
+    } catch (error) {
+      console.error("Failed to remove student: ", error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to remove student.',
+      });
+    }
   };
 
   const openDialog = (student: Student, content: 'report') => {
@@ -126,7 +149,23 @@ export default function StudentManager() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredStudents.length > 0 ? (
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                            <Skeleton className="h-10 w-10 rounded-full" />
+                            <div>
+                                <Skeleton className="h-4 w-[150px]" />
+                                <Skeleton className="h-3 w-[120px] mt-1" />
+                            </div>
+                        </div>
+                      </TableCell>
+                      <TableCell><Skeleton className="h-4 w-[50px]" /></TableCell>
+                      <TableCell className="text-right"><Skeleton className="h-8 w-8" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : filteredStudents.length > 0 ? (
                   filteredStudents.map((student) => (
                     <TableRow key={student.id}>
                       <TableCell>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -29,17 +30,17 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ArrowLeft, CalendarIcon } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 import { ScholarStartLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
-import { STUDENTS } from '@/lib/data';
 import type { Student } from '@/lib/types';
+import { getStudent, updateStudent } from '@/services/students';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const editStudentSchema = z.object({
-    studentId: z.string(),
     firstName: z.string().min(1, 'First name is required'),
     lastName: z.string().min(1, 'Last name is required'),
     dob: z.date({ required_error: 'Date of birth is required' }),
@@ -67,6 +68,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
   const { toast } = useToast();
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isFetching, setIsFetching] = React.useState(true);
   const [student, setStudent] = React.useState<Student | null>(null);
 
   const form = useForm<EditStudentFormValues>({
@@ -74,34 +76,39 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
   });
 
   React.useEffect(() => {
-    const studentData = STUDENTS.find(s => s.id === studentId);
-    if (studentData) {
-        setStudent(studentData);
-        const [firstName, ...lastName] = studentData.name.split(' ');
-        
-        // This is mock data, so we'll invent some parent and address details
-        form.reset({
-            studentId: studentData.id,
-            firstName: firstName,
-            lastName: lastName.join(' '),
-            dob: new Date(new Date().setFullYear(new Date().getFullYear() - studentData.age)), // Approximate DOB
-            age: studentData.age,
-            parentFirstName: 'John',
-            parentLastName: 'Doe',
-            parentEmail: studentData.parentContact,
-            parentPhone: '(555) 123-4567',
-            address: '123 Main St',
-            city: 'Anytown',
-            state: 'CA',
-            zip: '12345',
-            emergencyContactName: 'Jane Doe',
-            emergencyContactPhone: '(555) 765-4321',
-            medicalConditions: 'None'
-        });
-    } else {
-        router.push('/dashboard');
+    const fetchStudent = async () => {
+        setIsFetching(true);
+        const studentData = await getStudent(studentId);
+        if (studentData) {
+            setStudent(studentData);
+            const [firstName, ...lastName] = studentData.name.split(' ');
+            
+            // This is mock data, so we'll invent some parent and address details
+            form.reset({
+                firstName: firstName,
+                lastName: lastName.join(' '),
+                dob: studentData.dob ? new Date(studentData.dob) : new Date(new Date().setFullYear(new Date().getFullYear() - studentData.age)), // Approximate DOB
+                age: studentData.age,
+                parentFirstName: 'John',
+                parentLastName: 'Doe',
+                parentEmail: studentData.parentContact,
+                parentPhone: '(555) 123-4567',
+                address: '123 Main St',
+                city: 'Anytown',
+                state: 'CA',
+                zip: '12345',
+                emergencyContactName: 'Jane Doe',
+                emergencyContactPhone: '(555) 765-4321',
+                medicalConditions: 'None'
+            });
+        } else {
+            toast({ variant: 'destructive', title: 'Error', description: 'Student not found.' });
+            router.push('/dashboard');
+        }
+        setIsFetching(false);
     }
-  }, [studentId, form, router]);
+    fetchStudent();
+  }, [studentId, form, router, toast]);
 
   const dob = form.watch('dob');
 
@@ -118,20 +125,56 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     }
   }, [dob, form]);
 
-  const onSubmit = (data: EditStudentFormValues) => {
+  const onSubmit = async (data: EditStudentFormValues) => {
     setIsLoading(true);
-    console.log(data);
-    toast({
-      title: 'Student Updated',
-      description: `The details for ${data.firstName} ${data.lastName} have been successfully updated.`,
-    });
-    setTimeout(() => {
-        router.push('/dashboard');
-    }, 1500)
+    try {
+        const updatedData = {
+            name: `${data.firstName} ${data.lastName}`,
+            age: data.age,
+            dob: data.dob.toISOString(),
+            parentContact: data.parentEmail,
+            // You would also save other fields here
+        };
+        await updateStudent(studentId, updatedData);
+
+        toast({
+        title: 'Student Updated',
+        description: `The details for ${data.firstName} ${data.lastName} have been successfully updated.`,
+        });
+        router.push(`/dashboard/students/${studentId}`);
+    } catch (error) {
+        console.error("Failed to update student: ", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to update student.' });
+    } finally {
+        setIsLoading(false);
+    }
   };
 
-  if (!student) {
-      return <div>Loading...</div>
+  if (isFetching || !student) {
+      return (
+        <div>
+            <div className="mb-4">
+                <Skeleton className="h-10 w-36" />
+            </div>
+            <Card className="max-w-4xl mx-auto">
+                <CardHeader className="text-center">
+                    <div className="flex items-center justify-center gap-4 mb-4">
+                       <Skeleton className="h-12 w-12" />
+                        <Skeleton className="h-8 w-64" />
+                    </div>
+                    <Skeleton className="h-4 w-48 mx-auto" />
+                    <div className="pt-4">
+                        <Skeleton className="h-4 w-32 mx-auto" />
+                        <Skeleton className="h-6 w-40 mx-auto mt-1" />
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                    <Skeleton className="h-64 w-full" />
+                    <Skeleton className="h-64 w-full" />
+                </CardContent>
+            </Card>
+        </div>
+      );
   }
 
   return (

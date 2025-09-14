@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -21,21 +22,35 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { STUDENTS } from '@/lib/data';
 import type { Student } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
+import { getStudents } from '@/services/students';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ReportManager() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = React.useState('');
-  const [filteredStudents, setFilteredStudents] = React.useState<Student[]>(STUDENTS);
+  const [students, setStudents] = React.useState<Student[]>([]);
+  const [filteredStudents, setFilteredStudents] = React.useState<Student[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const results = STUDENTS.filter(student =>
+    const fetchStudents = async () => {
+        setLoading(true);
+        const studentList = await getStudents();
+        setStudents(studentList);
+        setFilteredStudents(studentList);
+        setLoading(false);
+    };
+    fetchStudents();
+  }, []);
+
+  React.useEffect(() => {
+    const results = students.filter(student =>
       student.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredStudents(results);
-  }, [searchTerm]);
+  }, [searchTerm, students]);
 
   const handleViewReport = (studentId: string) => {
     router.push(`/dashboard/reports/${studentId}`);
@@ -71,7 +86,20 @@ export default function ReportManager() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredStudents.length > 0 ? (
+            {loading ? (
+                Array.from({length: 5}).map((_, i) => (
+                    <TableRow key={i}>
+                        <TableCell>
+                            <div className="flex items-center gap-3">
+                                <Skeleton className="h-10 w-10 rounded-full" />
+                                <Skeleton className="h-4 w-[150px]" />
+                            </div>
+                        </TableCell>
+                        <TableCell><Skeleton className="h-4 w-[50px]" /></TableCell>
+                        <TableCell className="text-right"><Skeleton className="h-8 w-24" /></TableCell>
+                    </TableRow>
+                ))
+            ) : filteredStudents.length > 0 ? (
               filteredStudents.map((student) => (
                 <TableRow key={student.id}>
                   <TableCell>

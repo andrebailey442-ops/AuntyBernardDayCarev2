@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -14,12 +15,15 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Download, ArrowLeft } from 'lucide-react';
-import { STUDENTS, GRADES, SUBJECTS, ATTENDANCE } from '@/lib/data';
-import type { Student, Grade, Subject as SubjectType, Attendance as AttendanceType } from '@/lib/types';
+import type { Student, Grade, Subject as SubjectType } from '@/lib/types';
 import { ScholarStartLogo } from '@/components/icons';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { getStudent } from '@/services/students';
+import { getGradesByStudent } from '@/services/grades';
+import { getAttendanceByStudent } from '@/services/attendance';
+import { getSubjects } from '@/services/subjects';
 
 type ReportCardProps = {
   studentId: string;
@@ -30,30 +34,41 @@ export default function ReportCard({ studentId }: ReportCardProps) {
   const { toast } = useToast();
   const [student, setStudent] = React.useState<Student | null>(null);
   const [grades, setGrades] = React.useState<Grade[]>([]);
+  const [subjects, setSubjects] = React.useState<SubjectType[]>([]);
   const [attendance, setAttendance] = React.useState<{ present: number; absent: number; tardy: number }>({ present: 0, absent: 0, tardy: 0 });
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const studentData = STUDENTS.find((s) => s.id === studentId);
-    if (studentData) {
-      setStudent(studentData);
-      const studentGrades = GRADES.filter((g) => g.studentId === studentId);
-      setGrades(studentGrades);
-      
-      const studentAttendance = ATTENDANCE.filter(a => a.studentId === studentId);
-      const summary = { present: 0, absent: 0, tardy: 0 };
-      studentAttendance.forEach(a => {
-        summary[a.status]++;
-      });
-      setAttendance(summary);
+    const fetchData = async () => {
+      setLoading(true);
+      const studentData = await getStudent(studentId);
+      if (studentData) {
+        setStudent(studentData);
+        const [studentGrades, studentAttendance, subjectData] = await Promise.all([
+          getGradesByStudent(studentId),
+          getAttendanceByStudent(studentId),
+          getSubjects(),
+        ]);
+        setGrades(studentGrades);
+        setSubjects(subjectData);
+        
+        const summary = { present: 0, absent: 0, tardy: 0 };
+        studentAttendance.forEach(a => {
+          summary[a.status]++;
+        });
+        setAttendance(summary);
 
-    } else {
-      // Handle student not found, maybe redirect or show an error
-      router.push('/dashboard/reports');
+      } else {
+        toast({ variant: 'destructive', title: 'Error', description: 'Student not found.' });
+        router.push('/dashboard/reports');
+      }
+      setLoading(false);
     }
-  }, [studentId, router]);
+    fetchData();
+  }, [studentId, router, toast]);
   
   const getSubjectName = (subjectId: string) => {
-    return SUBJECTS.find(s => s.id === subjectId)?.name || 'N/A';
+    return subjects.find(s => s.id === subjectId)?.name || 'N/A';
   }
 
   const addLogoAndHeader = (doc: jsPDF, title: string) => {
@@ -156,7 +171,7 @@ export default function ReportCard({ studentId }: ReportCardProps) {
   }
 
 
-  if (!student) {
+  if (loading || !student) {
     return <div>Loading report card...</div>;
   }
 
@@ -198,7 +213,7 @@ export default function ReportCard({ studentId }: ReportCardProps) {
             <div>
                 <h3 className="text-xl font-semibold mb-4">Grades</h3>
                 <div className="space-y-4">
-                {SUBJECTS.map(subject => {
+                {subjects.map(subject => {
                     const grade = grades.find(g => g.subject === subject.id);
                     return (
                         <div key={subject.id}>
@@ -250,5 +265,3 @@ export default function ReportCard({ studentId }: ReportCardProps) {
     </>
   );
 }
-
-    

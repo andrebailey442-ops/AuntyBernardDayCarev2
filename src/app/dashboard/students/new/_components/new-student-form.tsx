@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -48,10 +49,10 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
   } from "@/components/ui/alert-dialog"
+import { addStudent } from '@/services/students';
 
 
 const newStudentSchema = z.object({
-  studentId: z.string(),
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   dob: z.date({ required_error: 'Date of birth is required' }),
@@ -77,8 +78,8 @@ export function NewStudentForm() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [studentId, setStudentId] = React.useState('');
 
-  const form = useForm<NewStudentFormValues>({
-    resolver: zodResolver(newStudentSchema),
+  const form = useForm<NewStudentFormValues & { studentId: string }>({
+    resolver: zodResolver(newStudentSchema.extend({ studentId: z.string() })),
     defaultValues: {
         studentId: '',
     }
@@ -105,16 +106,34 @@ export function NewStudentForm() {
     }
   }, [dob, form]);
 
-  const onSubmit = (data: NewStudentFormValues) => {
+  const onSubmit = async (data: NewStudentFormValues) => {
     setIsLoading(true);
-    console.log(data);
-    toast({
-      title: 'Registration Submitted',
-      description: `The registration form for ${data.firstName} ${data.lastName} has been submitted for review.`,
-    });
-    setTimeout(() => {
+    try {
+        const studentData = {
+            name: `${data.firstName} ${data.lastName}`,
+            age: data.age || 0,
+            parentContact: data.parentEmail,
+            avatarUrl: `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/100/100`,
+            imageHint: 'child portrait',
+            dob: data.dob.toISOString(),
+        };
+        await addStudent(studentData);
+
+        toast({
+        title: 'Registration Submitted',
+        description: `The registration form for ${data.firstName} ${data.lastName} has been submitted.`,
+        });
         router.push('/dashboard');
-    }, 1500)
+    } catch (error) {
+        console.error('Failed to add student:', error);
+        toast({
+            variant: 'destructive',
+            title: 'Submission Failed',
+            description: 'Could not submit the registration form.',
+        });
+    } finally {
+        setIsLoading(false);
+    }
   };
 
   const addLogoAndHeader = (doc: jsPDF, title: string) => {
@@ -237,7 +256,7 @@ export function NewStudentForm() {
         </CardDescription>
         {studentId && (
             <div className="pt-4">
-                <p className="text-sm font-semibold text-muted-foreground">Student ID</p>
+                <p className="text-sm font-semibold text-muted-foreground">Generated Student ID</p>
                 <p className="text-lg font-mono text-primary">{studentId}</p>
             </div>
         )}

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -11,11 +12,13 @@ import {
 } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { STUDENTS, FEES } from '@/lib/data';
 import type { Student, Fee } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { getStudent } from '@/services/students';
+import { getFeeByStudentId } from '@/services/fees';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type StudentProfileProps = {
     studentId: string;
@@ -25,22 +28,50 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
   const router = useRouter();
   const [student, setStudent] = React.useState<Student | null>(null);
   const [fee, setFee] = React.useState<Fee | null>(null);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const studentData = STUDENTS.find(s => s.id === studentId);
-    if (studentData) {
-        setStudent(studentData);
-        const feeData = FEES.find(f => f.studentId === studentId);
-        if (feeData) {
-          setFee(feeData);
+    const fetchData = async () => {
+        setLoading(true);
+        const studentData = await getStudent(studentId);
+        if (studentData) {
+            setStudent(studentData);
+            const feeData = await getFeeByStudentId(studentId);
+            if (feeData) {
+            setFee(feeData);
+            }
+        } else {
+            router.push('/dashboard');
         }
-    } else {
-        router.push('/dashboard');
+        setLoading(false);
     }
+    fetchData();
   }, [studentId, router]);
 
-  if (!student) {
-      return <div>Loading...</div>
+  if (loading || !student) {
+      return (
+        <div>
+            <div className="mb-4">
+                <Button variant="outline" onClick={() => router.back()}>
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back
+                </Button>
+            </div>
+            <Card className="max-w-4xl mx-auto">
+                <CardHeader className="text-center">
+                    <div className="flex flex-col items-center gap-4 mb-4">
+                        <Skeleton className="h-24 w-24 rounded-full" />
+                        <Skeleton className="h-8 w-48" />
+                    </div>
+                    <Skeleton className="h-4 w-64 mx-auto" />
+                </CardHeader>
+                <CardContent className="p-6 space-y-8">
+                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-48 w-full" />
+                </CardContent>
+            </Card>
+        </div>
+      );
   }
 
   // Mock data for display, similar to edit form
