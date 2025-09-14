@@ -42,11 +42,6 @@ const links = [
     label: 'Take Attendance',
     icon: ClipboardCheck,
   },
-  {
-    href: '/dashboard/aftercare',
-    label: 'After Care',
-    icon: Sunset,
-  }
 ];
 
 export default function QuickLinks() {
@@ -56,7 +51,7 @@ export default function QuickLinks() {
         <CardTitle>Actions</CardTitle>
         <CardDescription>Fast access to common tasks.</CardDescription>
       </CardHeader>
-      <CardContent className="grid grid-cols-2 md:grid-cols-7 gap-4">
+      <CardContent className="grid grid-cols-2 md:grid-cols-6 gap-4">
           {links.map((link) => (
             <Link key={link.label} href={link.href} className="flex">
               <Button variant="outline" className="flex flex-col h-28 w-full justify-center gap-2">
