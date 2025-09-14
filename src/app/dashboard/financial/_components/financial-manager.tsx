@@ -44,6 +44,7 @@ export default function FinancialManager() {
   const [filteredStudents, setFilteredStudents] = React.useState<Student[]>(STUDENTS);
   const [makePaymentStudentId, setMakePaymentStudentId] = React.useState('');
   const [updatePaymentStudentId, setUpdatePaymentStudentId] = React.useState('');
+  const [newPaymentStatus, setNewPaymentStatus] = React.useState<'Paid' | 'Pending' | 'Overdue' | ''>('');
 
   React.useEffect(() => {
     const results = STUDENTS.filter(student =>
@@ -76,9 +77,10 @@ export default function FinancialManager() {
   const handleUpdatePayment = () => {
     toast({
       title: 'Payment Updated',
-      description: `Payment status for student ID ${updatePaymentStudentId} has been updated.`,
+      description: `Payment status for student ID ${updatePaymentStudentId} has been updated to ${newPaymentStatus}.`,
     });
     setUpdatePaymentStudentId('');
+    setNewPaymentStatus('');
   }
 
   return (
@@ -196,20 +198,20 @@ export default function FinancialManager() {
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="status" className="text-right">New Status</Label>
-                             <Select>
+                             <Select onValueChange={(value) => setNewPaymentStatus(value as 'Paid' | 'Pending' | 'Overdue')} value={newPaymentStatus}>
                                 <SelectTrigger className="col-span-3">
                                     <SelectValue placeholder="Select a status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="paid">Paid</SelectItem>
-                                    <SelectItem value="pending">Pending</SelectItem>
-                                    <SelectItem value="overdue">Overdue</SelectItem>
+                                    <SelectItem value="Paid">Paid</SelectItem>
+                                    <SelectItem value="Pending">Pending</SelectItem>
+                                    <SelectItem value="Overdue">Overdue</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button onClick={handleUpdatePayment} disabled={!updatePaymentStudentId}>Update Status</Button>
+                        <Button onClick={handleUpdatePayment} disabled={!updatePaymentStudentId || !newPaymentStatus}>Update Status</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
