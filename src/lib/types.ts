@@ -21,7 +21,7 @@ export type Grade = {
   studentId: string;
   category: GradeCategory;
   subject: string;
-  grade: 'A' | 'B' | 'C' | 'D' | 'F' | 'Incomplete';
+  grade: 'A' | 'B' | 'C' | 'D' | 'F' | 'Incomplete' | '';
   date: string;
   notes?: string;
 };

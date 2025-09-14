@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { MoreHorizontal } from 'lucide-react';
 import {
   Card,
@@ -26,17 +27,18 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
 import { STUDENTS } from '@/lib/data';
 
 export default function StudentList() {
-  const { toast } = useToast();
+  const router = useRouter();
 
-  const handleGenerateReport = (studentName: string) => {
-    toast({
-      title: 'Report Card Generated',
-      description: `A new report card has been created for ${studentName}.`,
-    });
+  const handleViewProfile = (studentId: string) => {
+    // In a real app, you'd navigate to a detailed student profile page
+    console.log(`Viewing profile for student ${studentId}`);
+  };
+
+  const handleGenerateReport = (studentId: string) => {
+    router.push(`/dashboard/reports/${studentId}`);
   };
 
   return (
@@ -92,9 +94,9 @@ export default function StudentList() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>View Profile</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleViewProfile(student.id)}>View Profile</DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => handleGenerateReport(student.name)}
+                        onClick={() => handleGenerateReport(student.id)}
                       >
                         Generate Report Card
                       </DropdownMenuItem>
