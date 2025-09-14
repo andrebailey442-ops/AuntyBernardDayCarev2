@@ -1,102 +1,6 @@
 import type { Student, Subject, Grade, Attendance, Fee } from './types';
 
-export const STUDENTS: Student[] = [
-  {
-    id: 'SID-1698773832041',
-    name: 'Liam Smith',
-    age: 5,
-    dob: '2019-01-15',
-    parentContact: 'noah.smith@example.com',
-    avatarUrl: 'https://picsum.photos/seed/101/100/100',
-    imageHint: 'child portrait',
-    parentFirstName: 'Noah',
-    parentLastName: 'Smith',
-    parentPhone: '111-222-3333',
-    address: '123 Oak Avenue',
-    city: 'Springfield',
-    state: 'IL',
-    zip: '62704',
-    emergencyContactName: 'Emily Smith',
-    emergencyContactPhone: '111-222-3334',
-    medicalConditions: 'Peanut allergy',
-  },
-  {
-    id: 'SID-1698773832042',
-    name: 'Olivia Brown',
-    age: 4,
-    dob: '2020-03-22',
-    parentContact: 'ava.brown@example.com',
-    avatarUrl: 'https://picsum.photos/seed/102/100/100',
-    imageHint: 'child smiling',
-    parentFirstName: 'Ava',
-    parentLastName: 'Brown',
-    parentPhone: '222-333-4444',
-    address: '456 Maple Drive',
-    city: 'Springfield',
-    state: 'IL',
-    zip: '62704',
-    emergencyContactName: 'Michael Brown',
-    emergencyContactPhone: '222-333-4445',
-    medicalConditions: 'None',
-  },
-  {
-    id: 'SID-1698773832043',
-    name: 'Noah Jones',
-    age: 5,
-    dob: '2019-05-30',
-    parentContact: 'liam.jones@example.com',
-    avatarUrl: 'https://picsum.photos/seed/103/100/100',
-    imageHint: 'kid playing',
-    parentFirstName: 'Liam',
-    parentLastName: 'Jones',
-    parentPhone: '333-444-5555',
-    address: '789 Pine Street',
-    city: 'Springfield',
-    state: 'IL',
-    zip: '62704',
-    emergencyContactName: 'Sophia Jones',
-    emergencyContactPhone: '333-444-5556',
-    medicalConditions: 'Asthma',
-  },
-  {
-    id: 'SID-1698773832044',
-    name: 'Emma Garcia',
-    age: 4,
-    dob: '2020-08-12',
-    parentContact: 'oliver.garcia@example.com',
-    avatarUrl: 'https://picsum.photos/seed/104/100/100',
-    imageHint: 'girl laughing',
-    parentFirstName: 'Oliver',
-    parentLastName: 'Garcia',
-    parentPhone: '444-555-6666',
-    address: '101 Birch Lane',
-    city: 'Springfield',
-    state: 'IL',
-    zip: '62704',
-    emergencyContactName: 'Isabella Garcia',
-    emergencyContactPhone: '444-555-6667',
-    medicalConditions: 'None',
-  },
-  {
-    id: 'SID-1698773832045',
-    name: 'Lucas Miller',
-    age: 5,
-    dob: '2019-11-05',
-    parentContact: 'sophia.miller@example.com',
-    avatarUrl: 'https://picsum.photos/seed/105/100/100',
-    imageHint: 'boy reading',
-    parentFirstName: 'Sophia',
-    parentLastName: 'Miller',
-    parentPhone: '555-666-7777',
-    address: '212 Cedar Court',
-    city: 'Springfield',
-    state: 'IL',
-    zip: '62704',
-    emergencyContactName: 'James Miller',
-    emergencyContactPhone: '555-666-7778',
-    medicalConditions: 'None',
-  },
-];
+export const STUDENTS: Student[] = [];
 
 export const SUBJECTS: Subject[] = [
   { id: 'math', name: 'Math' },
@@ -106,26 +10,8 @@ export const SUBJECTS: Subject[] = [
   { id: 'music', name: 'Music' },
 ];
 
-export const GRADES: Grade[] = [
-    { id: 'g1', studentId: 'SID-1698773832041', category: 'daily', subject: 'math', grade: 'A', date: '2023-10-20' },
-    { id: 'g2', studentId: 'SID-1698773832042', category: 'daily', subject: 'math', grade: 'B', date: '2023-10-20' },
-    { id: 'g3', studentId: 'SID-1698773832043', category: 'daily', subject: 'math', grade: 'A', date: '2023-10-20' },
-    { id: 'g4', studentId: 'SID-1698773832041', category: 'daily', subject: 'science', grade: 'A', date: '2023-10-21', notes: 'Excellent participation.' },
-    { id: 'g5', studentId: 'SID-1698773832042', category: 'daily', subject: 'reading', grade: 'C', date: '2023-10-22', notes: 'Needs to read more slowly.' },
-];
+export const GRADES: Grade[] = [];
 
-export const ATTENDANCE: Attendance[] = [
-    { id: 'a1', studentId: 'SID-1698773832041', date: '2023-10-20', status: 'present', subject: 'math' },
-    { id: 'a2', studentId: 'SID-1698773832042', date: '2023-10-20', status: 'present', subject: 'math' },
-    { id: 'a3', studentId: 'SID-1698773832043', date: '2023-10-20', status: 'absent', subject: 'math' },
-    { id: 'a4', studentId: 'SID-1698773832044', date: '2023-10-20', status: 'tardy', subject: 'reading' },
-];
+export const ATTENDANCE: Attendance[] = [];
 
-
-export const FEES: Fee[] = [
-    { id: 'fee1', studentId: 'SID-1698773832041', amount: 2500, status: 'Paid', plan: 'Full Payment' },
-    { id: 'fee2', studentId: 'SID-1698773832042', amount: 2500, status: 'Pending', plan: 'Two Installments' },
-    { id: 'fee3', studentId: 'SID-1698773832043', amount: 2500, status: 'Overdue', plan: 'Monthly Plan' },
-    { id: 'fee4', studentId: 'SID-1698773832044', amount: 2375, status: 'Paid', plan: 'Full Payment' },
-    { id: 'fee5', studentId: 'SID-1698773832045', amount: 2500, status: 'Pending', plan: 'Monthly Plan' },
-];
+export const FEES: Fee[] = [];
