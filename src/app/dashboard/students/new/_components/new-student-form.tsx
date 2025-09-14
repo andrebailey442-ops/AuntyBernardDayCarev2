@@ -84,6 +84,8 @@ const newStudentSchema = z.object({
 
 type NewStudentFormValues = z.infer<typeof newStudentSchema>;
 
+const AFTER_CARE_FEE = 500;
+
 export function NewStudentForm() {
   const { toast } = useToast();
   const router = useRouter();
@@ -155,8 +157,7 @@ export function NewStudentForm() {
             zip: data.zip,
             afterCare: data.afterCare,
             emergencyContactName: data.emergencyContactName,
-            emergencyContactPhone: data.emergencyContactPhone,
-            medicalConditions: data.medicalConditions,
+            emergencyContactPhone: data.medicalConditions,
         };
         await addStudent(data.studentId, studentData);
         
@@ -164,6 +165,10 @@ export function NewStudentForm() {
         if (data.paymentPlan === 'Full Payment') amount = 2375;
         if (data.paymentPlan === 'Two Installments') amount = 2500;
         if (data.paymentPlan === 'Monthly Plan') amount = 2500;
+
+        if (data.afterCare) {
+            amount += AFTER_CARE_FEE;
+        }
 
         const feeData = {
             studentId: data.studentId,
@@ -443,7 +448,7 @@ export function NewStudentForm() {
                             After-Care Program
                             </FormLabel>
                             <FormDescription>
-                            Enroll this student in the after-care program.
+                            Enroll this student in the after-care program for an additional $500 per semester.
                             </FormDescription>
                         </div>
                         <FormControl>

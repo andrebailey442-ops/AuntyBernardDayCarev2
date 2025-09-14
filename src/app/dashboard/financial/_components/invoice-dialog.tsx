@@ -1,3 +1,4 @@
+
 'use client';
 
 import { jsPDF } from 'jspdf';
@@ -16,6 +17,9 @@ type InvoiceDetailsProps = {
     student: Student;
     fee: Fee | undefined;
 }
+
+const TUITION_FEE = 2500;
+const AFTER_CARE_FEE = 500;
 
 export default function InvoiceDialog({ student, fee }: InvoiceDetailsProps) {
     const { toast } = useToast();
@@ -64,9 +68,22 @@ export default function InvoiceDialog({ student, fee }: InvoiceDetailsProps) {
             doc.line(20, y, 190, y);
             y += 10;
             doc.setFont('helvetica', 'normal');
+
+            let tuitionAmount = TUITION_FEE;
+            if (fee.plan === 'Full Payment') {
+                tuitionAmount *= 0.95;
+            }
             doc.text(`Tuition Fee - ${fee.plan}`, 20, y);
-            doc.text(`$${fee.amount.toFixed(2)}`, 170, y, { align: 'right' });
-            y += 15;
+            doc.text(`$${tuitionAmount.toFixed(2)}`, 170, y, { align: 'right' });
+            y+=10;
+
+            if (student.afterCare) {
+                doc.text(`After-Care Fee`, 20, y);
+                doc.text(`$${AFTER_CARE_FEE.toFixed(2)}`, 170, y, { align: 'right' });
+                y += 10;
+            }
+            
+            y += 5;
             doc.line(20, y, 190, y);
             y += 10;
             
@@ -113,6 +130,12 @@ export default function InvoiceDialog({ student, fee }: InvoiceDetailsProps) {
                             <span className="text-muted-foreground">Payment Plan</span>
                             <span className="col-span-2 font-semibold">{fee.plan}</span>
                         </div>
+                        {student.afterCare && (
+                            <div className="grid grid-cols-3 items-center gap-4">
+                                <span className="text-muted-foreground">After Care</span>
+                                <span className="col-span-2 font-semibold">${AFTER_CARE_FEE.toFixed(2)}</span>
+                            </div>
+                        )}
                         <div className="grid grid-cols-3 items-center gap-4">
                             <span className="text-muted-foreground">Amount Due</span>
                             <span className="col-span-2 font-semibold">${fee.amount.toFixed(2)}</span>

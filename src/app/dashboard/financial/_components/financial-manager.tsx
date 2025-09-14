@@ -203,29 +203,28 @@ export default function FinancialManager() {
             </CardHeader>
             <CardContent>
                 <p className="text-3xl font-bold">$2,500</p>
-                <p className="text-sm text-muted-foreground">Per student for the Fall semester.</p>
+                <p className="text-sm text-muted-foreground">Base tuition for the Fall semester.</p>
             </CardContent>
         </Card>
-        <Card className="md:col-span-2">
+         <Card>
+            <CardHeader>
+                <CardTitle>After-Care Program</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p className="text-3xl font-bold">$500</p>
+                <p className="text-sm text-muted-foreground">Additional fee per semester.</p>
+            </CardContent>
+        </Card>
+        <Card>
             <CardHeader>
                 <CardTitle>Payment Plans</CardTitle>
-                <CardDescription>Flexible options to fit your budget.</CardDescription>
+                 <CardDescription>Flexible options for base tuition.</CardDescription>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <h4 className="font-semibold">Full Payment</h4>
-                    <p className="text-sm text-muted-foreground">Pay upfront and receive a 5% discount.</p>
-                    <p className="text-lg font-bold mt-2">$2,375</p>
-                </div>
-                <div>
-                    <h4 className="font-semibold">Two Installments</h4>
-                    <p className="text-sm text-muted-foreground">$1,250 at the beginning and mid-point of the semester.</p>
-                     <p className="text-lg font-bold mt-2">$1,250 x 2</p>
-                </div>
-                <div>
-                    <h4 className="font-semibold">Monthly Plan</h4>
-                    <p className="text-sm text-muted-foreground">Four monthly installments of $625.</p>
-                     <p className="text-lg font-bold mt-2">$625 x 4</p>
+            <CardContent>
+                 <div>
+                    <h4 className="font-semibold">Full Payment Discount</h4>
+                    <p className="text-sm text-muted-foreground">Pay tuition upfront and receive a 5% discount.</p>
+                    <p className="text-lg font-bold mt-1">$2,375</p>
                 </div>
             </CardContent>
         </Card>
