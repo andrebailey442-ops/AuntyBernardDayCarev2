@@ -73,6 +73,21 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
 
   const form = useForm<EditStudentFormValues>({
     resolver: zodResolver(editStudentSchema),
+    defaultValues: {
+        firstName: '',
+        lastName: '',
+        parentFirstName: '',
+        parentLastName: '',
+        parentEmail: '',
+        parentPhone: '',
+        address: '',
+        city: '',
+        state: '',
+        zip: '',
+        emergencyContactName: '',
+        emergencyContactPhone: '',
+        medicalConditions: '',
+    }
   });
 
   React.useEffect(() => {

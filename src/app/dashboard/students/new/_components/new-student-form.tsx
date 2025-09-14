@@ -93,6 +93,19 @@ export function NewStudentForm() {
     resolver: zodResolver(newStudentSchema.extend({ studentId: z.string() })),
     defaultValues: {
         studentId: '',
+        firstName: '',
+        lastName: '',
+        parentFirstName: '',
+        parentLastName: '',
+        parentEmail: '',
+        parentPhone: '',
+        address: '',
+        city: '',
+        state: '',
+        zip: '',
+        emergencyContactName: '',
+        emergencyContactPhone: '',
+        medicalConditions: '',
     }
   });
 
@@ -439,15 +452,15 @@ export function NewStudentForm() {
             </div>
             <AlertDialog>
                 <div className="flex gap-4">
+                    <Button type="button" onClick={form.handleSubmit(onSubmit)} className="w-full" disabled={isLoading}>
+                        {isLoading ? 'Submitting...' : 'Submit Registration'}
+                    </Button>
                     <AlertDialogTrigger asChild>
-                        <Button type="button" className="w-full">
-                            Submit Registration
+                         <Button type="button" variant="outline" className="w-full" onClick={downloadNewStudentApplication} disabled={true}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Download PDF
                         </Button>
                     </AlertDialogTrigger>
-                    <Button type="button" variant="outline" className="w-full" onClick={downloadNewStudentApplication} disabled={isLoading}>
-                        <Download className="mr-2 h-4 w-4" />
-                        Download PDF
-                    </Button>
                 </div>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -458,7 +471,7 @@ export function NewStudentForm() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={form.handleSubmit(onSubmit)} disabled={isLoading}>
+                        <AlertDialogAction onClick={() => { /* This is now handled by the main button */ }}>
                             {isLoading ? 'Submitting...' : 'Confirm'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -470,5 +483,3 @@ export function NewStudentForm() {
     </Card>
   );
 }
-
-    
