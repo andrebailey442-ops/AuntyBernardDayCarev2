@@ -35,13 +35,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 import { ScholarStartLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { jsPDF } from 'jspdf';
+
 
 const newStudentSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -82,6 +84,106 @@ export function NewStudentForm() {
         router.push('/dashboard');
     }, 1500)
   };
+
+  const addLogoAndHeader = (doc: jsPDF, title: string) => {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(24);
+    doc.text('ScholarStart', 20, 22);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(18);
+    doc.text(title, 20, 35);
+    doc.setLineWidth(0.5);
+    doc.line(20, 40, 190, 40);
+  };
+
+  const addFormField = (doc: jsPDF, label: string, y: number) => {
+    doc.setFontSize(12);
+    doc.text(label, 20, y);
+    doc.setLineWidth(0.2);
+    doc.line(20, y + 2, 190, y + 2);
+  };
+
+  const addSignatureLine = (doc: jsPDF, y: number) => {
+      doc.setFontSize(12);
+      doc.text('Signature:', 20, y);
+      doc.line(40, y, 110, y);
+      doc.text('Date:', 120, y);
+      doc.line(132, y, 190, y);
+  }
+
+  const downloadNewStudentApplication = () => {
+    try {
+        const doc = new jsPDF();
+        addLogoAndHeader(doc, 'Student Registration Form');
+        let y = 60;
+
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Student Information', 20, y);
+        y += 15;
+        addFormField(doc, 'First Name:', y);
+        y += 15;
+        addFormField(doc, 'Last Name:', y);
+        y += 15;
+        addFormField(doc, 'Date of Birth (YYYY-MM-DD):', y);
+        y += 25;
+
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Parent/Guardian Information', 20, y);
+        y += 15;
+        addFormField(doc, "Parent's First Name:", y);
+        y += 15;
+        addFormField(doc, "Parent's Last Name:", y);
+        y += 15;
+        addFormField(doc, 'Email Address:', y);
+        y += 15;
+        addFormField(doc, 'Phone Number:', y);
+        y += 15;
+        addFormField(doc, 'Home Address:', y);
+        y += 15;
+        addFormField(doc, 'City:', y);
+        y += 15;
+        addFormField(doc, 'State:', y);
+        y += 15;
+        addFormField(doc, 'ZIP Code:', y);
+        y += 25;
+        
+        doc.addPage();
+        y = 30;
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Emergency and Health Information', 20, y);
+        y += 15;
+        addFormField(doc, 'Emergency Contact Name:', y);
+        y += 15;
+        addFormField(doc, 'Emergency Contact Phone:', y);
+        y += 15;
+        doc.setFontSize(12);
+        doc.text('Allergies or Medical Conditions (Please describe):', 20, y);
+        y += 5;
+        doc.setLineWidth(0.2);
+        doc.rect(20, y, 170, 40); // Text area
+        y += 60;
+
+        addSignatureLine(doc, y);
+        
+        doc.save('New-Student-Application.pdf');
+
+        toast({
+            title: "Download Started",
+            description: `New Student Application is being downloaded.`
+        });
+    } catch (error) {
+        console.error(error);
+        toast({
+            variant: 'destructive',
+            title: "Download Failed",
+            description: `Could not generate PDF for the form.`
+        });
+    }
+  }
 
   return (
     <Card className="max-w-4xl mx-auto">
@@ -185,9 +287,15 @@ export function NewStudentForm() {
                  )} />
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Submitting...' : 'Submit Registration'}
-            </Button>
+            <div className="flex gap-4">
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? 'Submitting...' : 'Submit Registration'}
+                </Button>
+                <Button type="button" variant="outline" className="w-full" onClick={downloadNewStudentApplication} disabled={isLoading}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download PDF
+                </Button>
+            </div>
           </form>
         </Form>
       </CardContent>
