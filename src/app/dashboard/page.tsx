@@ -92,7 +92,7 @@ export default function DashboardPage() {
               </svg>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">2</div>
+              <div className="text-2xl font-bold">3</div>
               <p className="text-xs text-muted-foreground">
                 Total available forms
               </p>

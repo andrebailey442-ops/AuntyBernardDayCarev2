@@ -43,6 +43,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { jsPDF } from 'jspdf';
+import { Separator } from '@/components/ui/separator';
 
 
 const newStudentSchema = z.object({
@@ -317,6 +318,33 @@ export function NewStudentForm() {
                 </div>
             </div>
 
+            <Separator />
+            
+            <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Payment Plans</h3>
+                 <Card className="md:col-span-2">
+                    <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
+                        <div>
+                            <h4 className="font-semibold">Full Payment</h4>
+                            <p className="text-sm text-muted-foreground">Pay upfront and receive a 5% discount.</p>
+                            <p className="text-lg font-bold mt-2">$2,375</p>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold">Two Installments</h4>
+                            <p className="text-sm text-muted-foreground">$1,250 at the beginning and mid-point of the semester.</p>
+                            <p className="text-lg font-bold mt-2">$1,250 x 2</p>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold">Monthly Plan</h4>
+                            <p className="text-sm text-muted-foreground">Four monthly installments of $625.</p>
+                            <p className="text-lg font-bold mt-2">$625 x 4</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <Separator />
+
             <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Emergency and Health Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -354,5 +382,3 @@ export function NewStudentForm() {
     </Card>
   );
 }
-
-    

@@ -8,6 +8,7 @@ import {
   GraduationCap,
   FileText,
   Users,
+  DollarSign,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -23,6 +24,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard/student-management', label: 'Student Management', icon: Users },
   { href: '/dashboard/attendance', label: 'Attendance', icon: ClipboardCheck },
   { href: '/dashboard/grades', label: 'Grades', icon: GraduationCap },
+  { href: '/dashboard/financial', label: 'Financial', icon: DollarSign },
   { href: '/dashboard/forms', label: 'Forms', icon: FileText },
 ];
 

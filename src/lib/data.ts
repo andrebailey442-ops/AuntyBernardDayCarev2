@@ -48,6 +48,7 @@ export const ATTENDANCE: Attendance[] = [
 export const FORMS: FormDocument[] = [
     { id: 'f1', title: 'New Student Application', description: 'Complete this form to enroll a new student.', icon: 'FileText' },
     { id: 'f2', title: 'Medical & Consent Form', description: 'Provide health details and give consent for school activities.', icon: 'HeartPulse' },
+    { id: 'f3', title: 'Fee Payment Form', description: 'Submit this form along with your tuition payment.', icon: 'DollarSign' },
 ];
 
 export const FEES: Fee[] = [
