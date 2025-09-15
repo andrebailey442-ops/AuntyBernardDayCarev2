@@ -1,32 +1,28 @@
+
+'use server';
+
 import type { Subject } from '@/lib/types';
 import { SUBJECTS } from '@/lib/data';
+import { db } from '@/lib/firebase';
 
 const COLLECTION_NAME = 'subjects';
 
-const getSubjectsFromStorage = (): Subject[] => {
-    if (typeof window === 'undefined') return [];
-    const data = localStorage.getItem(COLLECTION_NAME);
-    return data ? JSON.parse(data) : [];
-};
-
-const saveSubjectsToStorage = (data: Subject[]) => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(COLLECTION_NAME, JSON.stringify(data));
-};
-
-export const initializeSubjectsData = (initialData: Subject[]) => {
-    if (typeof window === 'undefined') return;
-    if (!localStorage.getItem(COLLECTION_NAME)) {
-        saveSubjectsToStorage(initialData);
-    }
-};
-
-
 export const getSubjects = async (): Promise<Subject[]> => {
-    let subjects = getSubjectsFromStorage();
-    if (subjects.length === 0) {
-        initializeSubjectsData(SUBJECTS);
-        subjects = SUBJECTS;
+    const snapshot = await db.collection(COLLECTION_NAME).get();
+    if (snapshot.empty) {
+        return [];
     }
-    return subjects;
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Subject));
+};
+
+export const initializeSubjectsData = async () => {
+    const snapshot = await db.collection(COLLECTION_NAME).limit(1).get();
+    if (snapshot.empty) {
+        console.log('Initializing subjects collection...');
+        const batch = db.batch();
+        SUBJECTS.forEach(subject => {
+            batch.set(db.collection(COLLECTION_NAME).doc(subject.id), { name: subject.name });
+        });
+        await batch.commit();
+    }
 };

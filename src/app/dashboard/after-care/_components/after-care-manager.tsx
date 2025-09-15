@@ -31,13 +31,15 @@ type AfterCareStatus = 'Checked-In' | 'Checked-Out';
 
 type AfterCareRecord = {
   status: AfterCareStatus;
-  checkInTime?: Date;
-  checkOutTime?: Date;
+  checkInTime?: string; // Storing as ISO string
+  checkOutTime?: string; // Storing as ISO string
 };
 
 type StudentStatus = {
   [studentId: string]: AfterCareRecord;
 };
+
+const AFTER_CARE_STORAGE_KEY = 'afterCareStatuses';
 
 export default function AfterCareManager() {
   const { toast } = useToast();
@@ -52,10 +54,16 @@ export default function AfterCareManager() {
       const afterCareStudents = allStudents.filter(student => student.afterCare);
       setStudents(afterCareStudents);
       
-      const initialStatuses: StudentStatus = {};
-      afterCareStudents.forEach(student => {
-        initialStatuses[student.id] = { status: 'Checked-Out' };
-      });
+      // Load statuses from localStorage
+      const savedStatuses = localStorage.getItem(AFTER_CARE_STORAGE_KEY);
+      let initialStatuses: StudentStatus = {};
+      if (savedStatuses) {
+        initialStatuses = JSON.parse(savedStatuses);
+      } else {
+        afterCareStudents.forEach(student => {
+          initialStatuses[student.id] = { status: 'Checked-Out' };
+        });
+      }
       setStudentStatuses(initialStatuses);
 
       setLoading(false);
@@ -68,22 +76,29 @@ export default function AfterCareManager() {
     const now = new Date();
     
     let newRecord: AfterCareRecord;
+    const studentName = students.find(s => s.id === studentId)?.name || 'Student';
 
     if (currentRecord.status === 'Checked-In') {
-        newRecord = { ...currentRecord, status: 'Checked-Out', checkOutTime: now };
+        newRecord = { ...currentRecord, status: 'Checked-Out', checkOutTime: now.toISOString() };
+        toast({
+          title: `Student Checked Out`,
+          description: `${studentName} has been checked out at ${format(now, 'p')}.`,
+        });
     } else {
-        newRecord = { status: 'Checked-In', checkInTime: now, checkOutTime: undefined }; // Reset checkout time
+        newRecord = { status: 'Checked-In', checkInTime: now.toISOString(), checkOutTime: undefined }; // Reset checkout time
+        toast({
+          title: `Student Checked In`,
+          description: `${studentName} has been checked in at ${format(now, 'p')}.`,
+        });
     }
     
-    setStudentStatuses(prev => ({
-      ...prev,
+    const updatedStatuses = {
+      ...studentStatuses,
       [studentId]: newRecord,
-    }));
+    };
 
-    toast({
-      title: `Student ${newRecord.status}`,
-      description: `${students.find(s => s.id === studentId)?.name} has been ${newRecord.status.toLowerCase()} at ${format(now, 'p')}.`,
-    });
+    setStudentStatuses(updatedStatuses);
+    localStorage.setItem(AFTER_CARE_STORAGE_KEY, JSON.stringify(updatedStatuses));
   };
   
   const getStatusVariant = (status: AfterCareStatus) => {
@@ -153,7 +168,7 @@ export default function AfterCareManager() {
             </TableHeader>
             <TableBody>
                 {loading ? (
-                    Array.from({length: 5}).map((_, i) => (
+                    Array.from({length: 3}).map((_, i) => (
                         <TableRow key={i}>
                             <TableCell>
                                 <div className="flex items-center gap-3">
@@ -170,6 +185,7 @@ export default function AfterCareManager() {
                 ) : students.length > 0 ? (
                 students.map((student) => {
                     const record = studentStatuses[student.id];
+                    if (!record) return null;
                     return (
                     <TableRow key={student.id}>
                     <TableCell>
@@ -191,10 +207,10 @@ export default function AfterCareManager() {
                         </Badge>
                     </TableCell>
                     <TableCell>
-                        {record.checkInTime ? format(record.checkInTime, 'p') : 'N/A'}
+                        {record.checkInTime ? format(new Date(record.checkInTime), 'p') : 'N/A'}
                     </TableCell>
                     <TableCell>
-                        {record.checkOutTime ? format(record.checkOutTime, 'p') : 'N/A'}
+                        {record.checkOutTime ? format(new Date(record.checkOutTime), 'p') : 'N/A'}
                     </TableCell>
                     <TableCell className="text-right">
                         <Button

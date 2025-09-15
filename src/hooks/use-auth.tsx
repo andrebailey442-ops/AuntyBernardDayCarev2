@@ -3,7 +3,8 @@
 
 import * as React from 'react';
 import type { User } from '@/lib/types';
-import { authenticateUser, initializeLocalStorageData } from '@/services/users';
+import { authenticateUser } from '@/services/users';
+import { initializeData } from '@/services/initialize';
 
 type AuthContextType = {
   user: User | null;
@@ -21,14 +22,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   React.useEffect(() => {
     const initialize = async () => {
-      await initializeLocalStorageData();
+      // Check if data is initialized in Firestore, if not, do it.
+      await initializeData();
       try {
-        const storedUser = localStorage.getItem(AUTH_STORAGE_KEY);
+        const storedUser = sessionStorage.getItem(AUTH_STORAGE_KEY);
         if (storedUser) {
           setUser(JSON.parse(storedUser));
         }
       } catch (error) {
-        console.error("Failed to retrieve user from localStorage", error);
+        console.error("Failed to retrieve user from sessionStorage", error);
       } finally {
         setLoading(false);
       }
@@ -42,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const authenticatedUser = await authenticateUser(username, password);
       if (authenticatedUser) {
         setUser(authenticatedUser);
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authenticatedUser));
+        sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authenticatedUser));
         return authenticatedUser;
       }
       return null;
@@ -56,7 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem(AUTH_STORAGE_KEY);
+    sessionStorage.removeItem(AUTH_STORAGE_KEY);
   };
 
   const value = { user, loading, login, logout };

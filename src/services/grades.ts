@@ -1,60 +1,64 @@
+
+'use server';
+
 import type { Grade } from '@/lib/types';
+import { db } from '@/lib/firebase';
 import { format } from 'date-fns';
 
 const COLLECTION_NAME = 'grades';
 
-const getGradesFromStorage = (): Grade[] => {
-    if (typeof window === 'undefined') return [];
-    const data = localStorage.getItem(COLLECTION_NAME);
-    return data ? JSON.parse(data) : [];
-};
-
-const saveGradesToStorage = (data: Grade[]) => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(COLLECTION_NAME, JSON.stringify(data));
-};
-
-export const initializeGradesData = (initialData: Grade[]) => {
-    if (typeof window === 'undefined') return;
-    if (!localStorage.getItem(COLLECTION_NAME)) {
-        saveGradesToStorage(initialData);
-    }
-};
-
 export const getGrades = async (): Promise<Grade[]> => {
-    return getGradesFromStorage();
+    const snapshot = await db.collection(COLLECTION_NAME).get();
+    if (snapshot.empty) {
+        return [];
+    }
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Grade));
 };
 
 export const getGradesByStudent = async (studentId: string): Promise<Grade[]> => {
-    const allGrades = getGradesFromStorage();
-    return allGrades.filter(g => g.studentId === studentId);
+    const snapshot = await db.collection(COLLECTION_NAME).where('studentId', '==', studentId).get();
+    if (snapshot.empty) {
+        return [];
+    }
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Grade));
 };
 
 export const upsertGrade = async (studentId: string, subject: string, grade: string) => {
-    const allGrades = getGradesFromStorage();
     const gradeId = `${studentId}_${subject}`;
     
-    const existingIndex = allGrades.findIndex(g => g.id === gradeId);
-
-    const gradeData: Grade = {
-        id: gradeId,
+    const gradeData: Omit<Grade, 'id'> = {
         studentId,
         subject,
         grade: grade as Grade['grade'],
-        category: 'daily', // Defaulting category
+        category: 'daily',
         date: format(new Date(), 'yyyy-MM-dd'),
     };
     
-    if (existingIndex > -1) {
-        allGrades[existingIndex] = gradeData;
-    } else {
-        allGrades.push(gradeData);
-    }
-    saveGradesToStorage(allGrades);
+    await db.collection(COLLECTION_NAME).doc(gradeId).set(gradeData, { merge: true });
 };
 
 export const deleteGradesByStudentId = async (studentId: string) => {
-    let allGrades = getGradesFromStorage();
-    const updatedGrades = allGrades.filter(g => g.studentId !== studentId);
-    saveGradesToStorage(updatedGrades);
+    const snapshot = await db.collection(COLLECTION_NAME).where('studentId', '==', studentId).get();
+    if (snapshot.empty) {
+        return;
+    }
+
+    const batch = db.batch();
+    snapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+    });
+    await batch.commit();
+};
+
+export const initializeGradesData = async (initialData: Grade[]) => {
+    const snapshot = await db.collection(COLLECTION_NAME).limit(1).get();
+    if (snapshot.empty && initialData.length > 0) {
+        console.log('Initializing grades collection...');
+        const batch = db.batch();
+        initialData.forEach(grade => {
+            const { id, ...gradeData } = grade;
+            batch.set(db.collection(COLLECTION_NAME).doc(id), gradeData);
+        });
+        await batch.commit();
+    }
 };
