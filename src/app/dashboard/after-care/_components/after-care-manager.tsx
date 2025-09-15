@@ -25,10 +25,18 @@ import { useToast } from '@/hooks/use-toast';
 import { getStudents } from '@/services/students';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LogIn, LogOut, Users } from 'lucide-react';
+import { format } from 'date-fns';
 
 type AfterCareStatus = 'Checked-In' | 'Checked-Out';
+
+type AfterCareRecord = {
+  status: AfterCareStatus;
+  checkInTime?: Date;
+  checkOutTime?: Date;
+};
+
 type StudentStatus = {
-  [studentId: string]: AfterCareStatus;
+  [studentId: string]: AfterCareRecord;
 };
 
 export default function AfterCareManager() {
@@ -44,10 +52,9 @@ export default function AfterCareManager() {
       const afterCareStudents = allStudents.filter(student => student.afterCare);
       setStudents(afterCareStudents);
       
-      // Initialize all students to 'Checked-Out'
       const initialStatuses: StudentStatus = {};
       afterCareStudents.forEach(student => {
-        initialStatuses[student.id] = 'Checked-Out';
+        initialStatuses[student.id] = { status: 'Checked-Out' };
       });
       setStudentStatuses(initialStatuses);
 
@@ -57,17 +64,25 @@ export default function AfterCareManager() {
   }, []);
 
   const handleToggleStatus = (studentId: string) => {
-    const currentStatus = studentStatuses[studentId];
-    const newStatus: AfterCareStatus = currentStatus === 'Checked-In' ? 'Checked-Out' : 'Checked-In';
+    const currentRecord = studentStatuses[studentId];
+    const now = new Date();
+    
+    let newRecord: AfterCareRecord;
+
+    if (currentRecord.status === 'Checked-In') {
+        newRecord = { ...currentRecord, status: 'Checked-Out', checkOutTime: now };
+    } else {
+        newRecord = { status: 'Checked-In', checkInTime: now, checkOutTime: undefined }; // Reset checkout time
+    }
     
     setStudentStatuses(prev => ({
       ...prev,
-      [studentId]: newStatus,
+      [studentId]: newRecord,
     }));
 
     toast({
-      title: `Student ${newStatus}`,
-      description: `${students.find(s => s.id === studentId)?.name} has been ${newStatus.toLowerCase()}.`,
+      title: `Student ${newRecord.status}`,
+      description: `${students.find(s => s.id === studentId)?.name} has been ${newRecord.status.toLowerCase()} at ${format(now, 'p')}.`,
     });
   };
   
@@ -75,7 +90,7 @@ export default function AfterCareManager() {
     return status === 'Checked-In' ? 'default' : 'secondary';
   };
 
-  const checkedInCount = Object.values(studentStatuses).filter(s => s === 'Checked-In').length;
+  const checkedInCount = Object.values(studentStatuses).filter(s => s.status === 'Checked-In').length;
   const checkedOutCount = students.length - checkedInCount;
 
   return (
@@ -131,6 +146,8 @@ export default function AfterCareManager() {
                 <TableRow>
                 <TableHead>Student</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Check-in Time</TableHead>
+                <TableHead>Check-out Time</TableHead>
                 <TableHead className="text-right">Action</TableHead>
                 </TableRow>
             </TableHeader>
@@ -145,11 +162,15 @@ export default function AfterCareManager() {
                                 </div>
                             </TableCell>
                             <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
                             <TableCell className="text-right"><Skeleton className="h-10 w-28" /></TableCell>
                         </TableRow>
                     ))
                 ) : students.length > 0 ? (
-                students.map((student) => (
+                students.map((student) => {
+                    const record = studentStatuses[student.id];
+                    return (
                     <TableRow key={student.id}>
                     <TableCell>
                         <div className="flex items-center gap-3">
@@ -165,28 +186,34 @@ export default function AfterCareManager() {
                         </div>
                     </TableCell>
                     <TableCell>
-                        <Badge variant={getStatusVariant(studentStatuses[student.id])}>
-                        {studentStatuses[student.id]}
+                        <Badge variant={getStatusVariant(record.status)}>
+                            {record.status}
                         </Badge>
+                    </TableCell>
+                    <TableCell>
+                        {record.checkInTime ? format(record.checkInTime, 'p') : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                        {record.checkOutTime ? format(record.checkOutTime, 'p') : 'N/A'}
                     </TableCell>
                     <TableCell className="text-right">
                         <Button
-                            variant={studentStatuses[student.id] === 'Checked-In' ? 'destructive' : 'default'}
+                            variant={record.status === 'Checked-In' ? 'destructive' : 'default'}
                             onClick={() => handleToggleStatus(student.id)}
                             size="sm"
                         >
-                        {studentStatuses[student.id] === 'Checked-In' ? 
+                        {record.status === 'Checked-In' ? 
                             <><LogOut className="mr-2 h-4 w-4" />Check Out</> : 
                             <><LogIn className="mr-2 h-4 w-4" />Check In</>
                         }
                         </Button>
                     </TableCell>
                     </TableRow>
-                ))
+                )})
                 ) : (
                 <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center">
-                    No students enrolled in after care.
+                    <TableCell colSpan={5} className="h-24 text-center">
+                        No students enrolled in after care.
                     </TableCell>
                 </TableRow>
                 )}
