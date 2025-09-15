@@ -1,61 +1,76 @@
 
 'use server';
 
-import { db } from '@/lib/firebase';
 import type { User, UserRole } from '@/lib/types';
-import { USERS } from '@/lib/data';
+import { USERS, STUDENTS, GRADES, ATTENDANCE, FEES, SUBJECTS } from '@/lib/data';
+import { initializeStudentsData } from './students';
+import { initializeGradesData } from './grades';
+import { initializeAttendanceData } from './attendance';
+import { initializeFeesData } from './fees';
+import { initializeSubjectsData } from './subjects';
 
 const COLLECTION_NAME = 'users';
 
-export const initializeUserData = async () => {
-    const snapshot = await db.collection(COLLECTION_NAME).limit(1).get();
-    if (snapshot.empty) {
-        const batch = db.batch();
-        USERS.forEach(item => {
-            const docRef = db.collection(COLLECTION_NAME).doc(item.id);
-            batch.set(docRef, item);
-        });
-        await batch.commit();
+const getUsersFromStorage = (): User[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem(COLLECTION_NAME);
+    return data ? JSON.parse(data) : [];
+};
+
+const saveUsersToStorage = (data: User[]) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(COLLECTION_NAME, JSON.stringify(data));
+};
+
+export const initializeLocalStorageData = async () => {
+    if (typeof window === 'undefined') return;
+    // Check if users are initialized, if so, assume all data is initialized
+    if (!localStorage.getItem(COLLECTION_NAME)) {
+        saveUsersToStorage(USERS);
+        initializeStudentsData(STUDENTS);
+        initializeGradesData(GRADES);
+        initializeAttendanceData(ATTENDANCE);
+        initializeFeesData(FEES);
+        initializeSubjectsData(SUBJECTS);
     }
 }
 
 export const getUsers = async (): Promise<User[]> => {
-    await initializeUserData();
-    const snapshot = await db.collection(COLLECTION_NAME).get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as User));
+    return getUsersFromStorage();
 };
 
 export const addUser = async (username: string, role: UserRole, password?: string): Promise<User> => {
-    const newUser: Omit<User, 'id'> = {
+    const allUsers = getUsersFromStorage();
+    const newUser: User = {
+        id: `user-${Date.now()}`,
         username,
         role,
         password,
         avatarUrl: `https://picsum.photos/seed/${username}/100/100`,
         imageHint: 'person avatar'
     };
-    const docRef = await db.collection(COLLECTION_NAME).add(newUser);
-    return { id: docRef.id, ...newUser };
+    allUsers.push(newUser);
+    saveUsersToStorage(allUsers);
+    return newUser;
 };
 
 export const removeUser = async (userId: string): Promise<void> => {
-    await db.collection(COLLECTION_NAME).doc(userId).delete();
+    let allUsers = getUsersFromStorage();
+    const updatedUsers = allUsers.filter(u => u.id !== userId);
+    saveUsersToStorage(updatedUsers);
 };
 
 export const resetPassword = async (userId: string, newPassword?: string): Promise<void> => {
-    const docRef = db.collection(COLLECTION_NAME).doc(userId);
-    await docRef.update({ password: newPassword });
+    let allUsers = getUsersFromStorage();
+    const userIndex = allUsers.findIndex(u => u.id === userId);
+    if (userIndex > -1) {
+        allUsers[userIndex].password = newPassword;
+        saveUsersToStorage(allUsers);
+    }
 };
 
 export const authenticateUser = async (username: string, password?: string): Promise<User | null> => {
-    await initializeUserData();
-    const snapshot = await db.collection(COLLECTION_NAME)
-        .where('username', '==', username)
-        .where('password', '==', password)
-        .get();
-
-    if (snapshot.empty) {
-        return null;
-    }
-    const userDoc = snapshot.docs[0];
-    return { id: userDoc.id, ...userDoc.data() } as User;
+    const allUsers = getUsersFromStorage();
+    const user = allUsers.find(u => u.username === username && u.password === password);
+    return user || null;
 }

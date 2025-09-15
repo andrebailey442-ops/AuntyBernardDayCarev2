@@ -1,24 +1,22 @@
 
 'use server';
 
-import { db } from '@/lib/firebase';
 import { DEFAULT_TEACHER_PERMISSIONS } from '@/lib/data';
 
-const DOC_ID = 'teacher_permissions';
-const COLLECTION_NAME = 'settings';
+const STORAGE_KEY = 'teacher_permissions';
 
 export const getTeacherPermissions = async (): Promise<string[]> => {
-    const docRef = db.collection(COLLECTION_NAME).doc(DOC_ID);
-    const docSnap = await docRef.get();
-    if (docSnap.exists) {
-        return (docSnap.data() as { permissions: string[] }).permissions;
+    if (typeof window === 'undefined') return DEFAULT_TEACHER_PERMISSIONS;
+    const data = localStorage.getItem(STORAGE_KEY);
+    if (data) {
+        return JSON.parse(data);
     }
     // If not set, initialize and return default.
-    await docRef.set({ permissions: DEFAULT_TEACHER_PERMISSIONS });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_TEACHER_PERMISSIONS));
     return DEFAULT_TEACHER_PERMISSIONS;
 };
 
 export const saveTeacherPermissions = async (permissions: string[]) => {
-    const docRef = db.collection(COLLECTION_NAME).doc(DOC_ID);
-    await docRef.set({ permissions });
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(permissions));
 };

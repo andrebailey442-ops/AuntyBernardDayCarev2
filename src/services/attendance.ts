@@ -1,27 +1,44 @@
 
 'use server';
 
-import { db } from '@/lib/firebase';
 import type { Attendance, AttendanceStatus } from '@/lib/types';
 import { format } from 'date-fns';
 
 const COLLECTION_NAME = 'attendance';
 
+const getAttendanceFromStorage = (): Attendance[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem(COLLECTION_NAME);
+    return data ? JSON.parse(data) : [];
+};
+
+const saveAttendanceToStorage = (data: Attendance[]) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(COLLECTION_NAME, JSON.stringify(data));
+};
+
+export const initializeAttendanceData = (initialData: Attendance[]) => {
+    if (typeof window === 'undefined') return;
+    if (!localStorage.getItem(COLLECTION_NAME)) {
+        saveAttendanceToStorage(initialData);
+    }
+};
+
 export const getAttendance = async (): Promise<Attendance[]> => {
-    const snapshot = await db.collection(COLLECTION_NAME).get();
-    return snapshot.docs.map(doc => doc.data() as Attendance);
+    return getAttendanceFromStorage();
 };
 
 export const getAttendanceByStudent = async (studentId: string): Promise<Attendance[]> => {
-    const snapshot = await db.collection(COLLECTION_NAME).where('studentId', '==', studentId).get();
-    return snapshot.docs.map(doc => doc.data() as Attendance);
+    const allAttendance = getAttendanceFromStorage();
+    return allAttendance.filter(a => a.studentId === studentId);
 }
 
 export const upsertAttendance = async (studentId: string, subject: string, date: Date, status: AttendanceStatus) => {
+    const allAttendance = getAttendanceFromStorage();
     const formattedDate = format(date, 'yyyy-MM-dd');
     const attendanceId = `${studentId}_${subject}_${formattedDate}`;
     
-    const attendanceDocRef = db.collection(COLLECTION_NAME).doc(attendanceId);
+    const existingIndex = allAttendance.findIndex(a => a.id === attendanceId);
 
     const newRecord: Attendance = {
         id: attendanceId,
@@ -31,5 +48,10 @@ export const upsertAttendance = async (studentId: string, subject: string, date:
         status
     };
 
-    await attendanceDocRef.set(newRecord, { merge: true });
+    if (existingIndex > -1) {
+        allAttendance[existingIndex] = newRecord;
+    } else {
+        allAttendance.push(newRecord);
+    }
+    saveAttendanceToStorage(allAttendance);
 }

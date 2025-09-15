@@ -1,40 +1,57 @@
 
 'use server';
 
-import { db } from '@/lib/firebase';
 import type { Fee } from '@/lib/types';
 
 const COLLECTION_NAME = 'fees';
 
+const getFeesFromStorage = (): Fee[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem(COLLECTION_NAME);
+    return data ? JSON.parse(data) : [];
+};
+
+const saveFeesToStorage = (data: Fee[]) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(COLLECTION_NAME, JSON.stringify(data));
+};
+
+export const initializeFeesData = (initialData: Fee[]) => {
+    if (typeof window === 'undefined') return;
+    if (!localStorage.getItem(COLLECTION_NAME)) {
+        saveFeesToStorage(initialData);
+    }
+};
+
+
 export const getFees = async (): Promise<Fee[]> => {
-    const snapshot = await db.collection(COLLECTION_NAME).get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Fee));
+    return getFeesFromStorage();
 };
 
 export const getFeeByStudentId = async (studentId: string): Promise<Fee | null> => {
-    const snapshot = await db.collection(COLLECTION_NAME).where('studentId', '==', studentId).get();
-    if (snapshot.empty) {
-        return null;
-    }
-    const doc = snapshot.docs[0];
-    return { id: doc.id, ...doc.data() } as Fee;
+    const allFees = getFeesFromStorage();
+    return allFees.find(fee => fee.studentId === studentId) || null;
 }
 
 export const addFee = async (fee: Omit<Fee, 'id'>) => {
-    const docRef = await db.collection(COLLECTION_NAME).add(fee);
-    return docRef.id;
+    const allFees = getFeesFromStorage();
+    const newFee = { id: `fee-${Date.now()}`, ...fee } as Fee;
+    allFees.push(newFee);
+    saveFeesToStorage(allFees);
+    return newFee.id;
 }
 
 export const updateFee = async (id: string, feeUpdate: Partial<Fee>) => {
-    const docRef = db.collection(COLLECTION_NAME).doc(id);
-    await docRef.update(feeUpdate);
+    let allFees = getFeesFromStorage();
+    const feeIndex = allFees.findIndex(f => f.id === id);
+    if (feeIndex > -1) {
+        allFees[feeIndex] = { ...allFees[feeIndex], ...feeUpdate };
+        saveFeesToStorage(allFees);
+    }
 };
 
 export const deleteFeeByStudentId = async (studentId: string) => {
-    const snapshot = await db.collection(COLLECTION_NAME).where('studentId', '==', studentId).get();
-    const batch = db.batch();
-    snapshot.docs.forEach(doc => {
-        batch.delete(doc.ref);
-    });
-    await batch.commit();
+    let allFees = getFeesFromStorage();
+    const updatedFees = allFees.filter(fee => fee.studentId !== studentId);
+    saveFeesToStorage(updatedFees);
 };

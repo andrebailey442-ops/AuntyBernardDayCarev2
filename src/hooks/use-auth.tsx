@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import type { User } from '@/lib/types';
-import { authenticateUser, initializeUserData } from '@/services/users';
+import { authenticateUser, initializeLocalStorageData } from '@/services/users';
 
 type AuthContextType = {
   user: User | null;
@@ -21,7 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   React.useEffect(() => {
     const initialize = async () => {
-      await initializeUserData();
+      await initializeLocalStorageData();
       try {
         const storedUser = localStorage.getItem(AUTH_STORAGE_KEY);
         if (storedUser) {
