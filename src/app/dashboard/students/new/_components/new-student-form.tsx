@@ -177,7 +177,7 @@ export function NewStudentForm() {
         description: `The registration form for ${data.firstName} ${data.lastName} has been submitted.`,
         });
         setIsDialogOpen(false);
-        router.push('/dashboard');
+        router.push('/dashboard/student-management');
     } catch (error) {
         console.error('Failed to add student:', error);
         toast({
