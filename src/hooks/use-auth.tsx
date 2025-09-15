@@ -3,8 +3,6 @@
 
 import * as React from 'react';
 import type { User } from '@/lib/types';
-import { authenticateUser } from '@/services/users';
-import { initializeData } from '@/services/initialize';
 
 type AuthContextType = {
   user: User | null;
@@ -18,33 +16,40 @@ const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<User | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const AUTH_STORAGE_KEY = 'currentUser';
 
   React.useEffect(() => {
-    const initialize = async () => {
-      // Check if data is initialized in Firestore, if not, do it.
-      await initializeData();
+    const fetchSession = async () => {
+      setLoading(true);
       try {
-        const storedUser = sessionStorage.getItem(AUTH_STORAGE_KEY);
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
+        const res = await fetch('/api/auth/session');
+        if (res.ok) {
+          const userSession = await res.json();
+          setUser(userSession);
+        } else {
+          setUser(null);
         }
       } catch (error) {
-        console.error("Failed to retrieve user from sessionStorage", error);
+        console.error("Failed to fetch session", error);
+        setUser(null);
       } finally {
         setLoading(false);
       }
-    }
-    initialize();
+    };
+    fetchSession();
   }, []);
 
   const login = async (username: string, password?: string) => {
     setLoading(true);
     try {
-      const authenticatedUser = await authenticateUser(username, password);
-      if (authenticatedUser) {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      if (res.ok) {
+        const authenticatedUser = await res.json();
         setUser(authenticatedUser);
-        sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authenticatedUser));
         return authenticatedUser;
       }
       return null;
@@ -56,9 +61,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
     setUser(null);
-    sessionStorage.removeItem(AUTH_STORAGE_KEY);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
   };
 
   const value = { user, loading, login, logout };
