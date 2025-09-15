@@ -105,6 +105,11 @@ export default function AfterCareManager() {
     return status === 'Checked-In' ? 'default' : 'secondary';
   };
 
+  const checkedInStudents = students.filter(student => studentStatuses[student.id]?.status === 'Checked-In');
+  const checkedOutStudents = students.filter(student => studentStatuses[student.id]?.status === 'Checked-Out' && studentStatuses[student.id]?.checkOutTime);
+  const notCheckedInStudents = students.filter(student => !studentStatuses[student.id] || (studentStatuses[student.id]?.status === 'Checked-Out' && !studentStatuses[student.id]?.checkOutTime));
+
+
   const checkedInCount = Object.values(studentStatuses).filter(s => s.status === 'Checked-In').length;
   const checkedOutCount = students.length - checkedInCount;
 
@@ -141,7 +146,7 @@ export default function AfterCareManager() {
                     <LogOut className="h-4 w-4 text-red-500" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">{checkedOutCount}</div>
+                    <div className="text-2xl font-bold">{checkedOutStudents.length}</div>
                     <p className="text-xs text-muted-foreground">
                         Have departed for the day
                     </p>
@@ -162,7 +167,6 @@ export default function AfterCareManager() {
                 <TableHead>Student</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Check-in Time</TableHead>
-                <TableHead>Check-out Time</TableHead>
                 <TableHead className="text-right">Action</TableHead>
                 </TableRow>
             </TableHeader>
@@ -178,14 +182,12 @@ export default function AfterCareManager() {
                             </TableCell>
                             <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
                             <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
-                            <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
                             <TableCell className="text-right"><Skeleton className="h-10 w-28" /></TableCell>
                         </TableRow>
                     ))
-                ) : students.length > 0 ? (
-                students.map((student) => {
-                    const record = studentStatuses[student.id];
-                    if (!record) return null;
+                ) : [...notCheckedInStudents, ...checkedInStudents].length > 0 ? (
+                [...notCheckedInStudents, ...checkedInStudents].map((student) => {
+                    const record = studentStatuses[student.id] || { status: 'Checked-Out' };
                     return (
                     <TableRow key={student.id}>
                     <TableCell>
@@ -209,9 +211,6 @@ export default function AfterCareManager() {
                     <TableCell>
                         {record.checkInTime ? format(new Date(record.checkInTime), 'p') : 'N/A'}
                     </TableCell>
-                    <TableCell>
-                        {record.checkOutTime ? format(new Date(record.checkOutTime), 'p') : 'N/A'}
-                    </TableCell>
                     <TableCell className="text-right">
                         <Button
                             variant={record.status === 'Checked-In' ? 'destructive' : 'default'}
@@ -229,13 +228,71 @@ export default function AfterCareManager() {
                 ) : (
                 <TableRow>
                     <TableCell colSpan={5} className="h-24 text-center">
-                        No students enrolled in after care.
+                        All students have been checked out for the day.
                     </TableCell>
                 </TableRow>
                 )}
             </TableBody>
             </Table>
         </CardContent>
+        </Card>
+        
+        <Card>
+            <CardHeader>
+                <CardTitle>Today's Checked-Out Log</CardTitle>
+                <CardDescription>
+                Record of all students who have been checked out today.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                        <TableHead>Student ID</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Check-in Time</TableHead>
+                        <TableHead>Check-out Time</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {loading ? (
+                             <TableRow>
+                                <TableCell colSpan={4} className="h-24 text-center">Loading Log...</TableCell>
+                            </TableRow>
+                        ) : checkedOutStudents.length > 0 ? (
+                            checkedOutStudents.map(student => {
+                                const record = studentStatuses[student.id];
+                                return (
+                                    <TableRow key={student.id}>
+                                        <TableCell className="font-mono">{student.id}</TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <Image
+                                                    alt="Student avatar"
+                                                    className="aspect-square rounded-full object-cover"
+                                                    height="32"
+                                                    src={student.avatarUrl}
+                                                    width="32"
+                                                    data-ai-hint={student.imageHint}
+                                                />
+                                                <div className="font-medium">{student.name}</div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>{record?.checkInTime ? format(new Date(record.checkInTime), 'p') : 'N/A'}</TableCell>
+                                        <TableCell>{record?.checkOutTime ? format(new Date(record.checkOutTime), 'p') : 'N/A'}</TableCell>
+                                    </TableRow>
+                                )
+                            })
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={4} className="h-24 text-center">
+                                    No students have been checked out yet.
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
         </Card>
     </div>
   );
