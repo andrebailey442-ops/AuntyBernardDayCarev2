@@ -210,8 +210,6 @@ export function DashboardHeader() {
     }
   }
 
-  const showNav = pathname !== '/dashboard';
-
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
       <div className="flex items-center gap-2">
@@ -223,12 +221,6 @@ export function DashboardHeader() {
             <span className="font-bold">BusyBee</span>
           </Link>
       </div>
-      
-      {showNav && (
-        <div className="hidden md:flex md:items-center md:gap-5 lg:gap-6 text-sm font-medium">
-          <DashboardNav />
-        </div>
-      )}
 
       <div className="flex w-full items-center gap-4 justify-end">
         <Button variant="ghost" size="icon" className="rounded-full">
@@ -273,26 +265,6 @@ export function DashboardHeader() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        {showNav && (
-          <div className="md:hidden">
-              <Sheet>
-                  <SheetTrigger asChild>
-                      <Button
-                      variant="outline"
-                      size="icon"
-                      >
-                      <Menu className="h-5 w-5" />
-                      <span className="sr-only">Toggle navigation menu</span>
-                      </Button>
-                  </SheetTrigger>
-                  <SheetContent side="right">
-                      <nav className="grid gap-6 text-lg font-medium mt-8">
-                        <DashboardNav />
-                      </nav>
-                  </SheetContent>
-              </Sheet>
-          </div>
-        )}
       </div>
     </header>
   );
