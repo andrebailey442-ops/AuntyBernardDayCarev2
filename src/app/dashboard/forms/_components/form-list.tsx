@@ -11,18 +11,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Download, FileText, HeartPulse, DollarSign } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { LucideProps } from 'lucide-react';
-import type { ForwardRefExoticComponent, RefAttributes } from 'react';
+import type { LucideIcon } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { BusyBeeLogo } from '@/components/icons';
 import type { FormDocument } from '@/lib/types';
 
 
-type IconComponents = {
-  [key: string]: ForwardRefExoticComponent<Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>>;
-};
-
-const icons: IconComponents = {
+const icons: { [key: string]: LucideIcon } = {
   FileText,
   HeartPulse,
   DollarSign,
