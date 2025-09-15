@@ -66,12 +66,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleTeacherLogin = () => {
-    form.setValue('username', 'Teacher');
-    form.setValue('password', 'teacher');
-    form.handleSubmit(onSubmit)();
-  }
-
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-6">
@@ -129,10 +123,7 @@ export default function LoginPage() {
                   />
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? 'Signing in...' : 'Sign In as Admin'}
-                    </Button>
-                    <Button type="button" variant="secondary" className="w-full" onClick={handleTeacherLogin} disabled={isLoading}>
-                        {isLoading ? 'Signing in...' : 'Sign In as Teacher'}
+                        {isLoading ? 'Signing in...' : 'Sign In'}
                     </Button>
                   </div>
                 </form>
