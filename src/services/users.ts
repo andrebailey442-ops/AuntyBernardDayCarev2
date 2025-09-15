@@ -7,7 +7,7 @@ import { USERS } from '@/lib/data';
 
 const COLLECTION_NAME = 'users';
 
-const initializeUserData = async () => {
+export const initializeUserData = async () => {
     const snapshot = await db.collection(COLLECTION_NAME).limit(1).get();
     if (snapshot.empty) {
         const batch = db.batch();

@@ -23,6 +23,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { getTeacherPermissions } from '@/services/permissions';
 import { DashboardHeader } from '@/components/dashboard-header';
 import HeroSlideshow from './_components/hero-slideshow';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardLayout({
   children,
@@ -59,9 +60,18 @@ export default function DashboardLayout({
 
   if (loading || !user) {
     return (
-      <div className="flex min-h-screen w-full flex-col items-center justify-center">
-        <div>Loading...</div>
-      </div>
+        <div className="flex min-h-screen w-full flex-col">
+            <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
+                <Skeleton className="h-8 w-36" />
+                <div className="flex w-full items-center gap-4 justify-end">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                </div>
+            </header>
+            <main className="flex flex-1 items-center justify-center">
+                <div>Loading...</div>
+            </main>
+        </div>
     );
   }
 

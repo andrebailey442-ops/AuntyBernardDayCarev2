@@ -1,33 +1,61 @@
 
+'use client';
+
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Users, CheckCircle, FileText } from 'lucide-react';
 import { getStudents } from '@/services/students';
 import { getAttendance } from '@/services/attendance';
 import { getFees } from '@/services/fees';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export default async function DashboardStats() {
-    const [students, attendance, fees] = await Promise.all([
-        getStudents(),
-        getAttendance(),
-        getFees()
-    ]);
+export default function DashboardStats() {
+    const [loading, setLoading] = React.useState(true);
+    const [totalStudents, setTotalStudents] = React.useState(0);
+    const [attendanceRate, setAttendanceRate] = React.useState(0);
+    const [totalRevenue, setTotalRevenue] = React.useState(0);
 
-    // Calculate total students (enrolled only)
-    const enrolledStudents = students.filter(s => s.status === 'enrolled');
-    const totalStudents = enrolledStudents.length;
+    React.useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            const [students, attendance, fees] = await Promise.all([
+                getStudents(),
+                getAttendance(),
+                getFees()
+            ]);
 
-    // Calculate attendance rate
-    let attendanceRate = 0;
-    if (attendance.length > 0) {
-        const presentCount = attendance.filter(a => a.status === 'present').length;
-        const rate = (presentCount / attendance.length) * 100;
-        attendanceRate = rate;
+            // Calculate total students (enrolled only)
+            const enrolledStudents = students.filter(s => s.status === 'enrolled');
+            setTotalStudents(enrolledStudents.length);
+
+            // Calculate attendance rate
+            if (attendance.length > 0) {
+                const presentCount = attendance.filter(a => a.status === 'present').length;
+                const rate = (presentCount / attendance.length) * 100;
+                setAttendanceRate(rate);
+            } else {
+                setAttendanceRate(0);
+            }
+            
+            // Calculate revenue
+            const revenue = fees.filter(f => f.status === 'Paid').reduce((sum, f) => sum + f.amount, 0);
+            setTotalRevenue(revenue);
+            
+            setLoading(false);
+        };
+        fetchData();
+    }, []);
+
+    if (loading) {
+        return (
+            <>
+                <Card><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
+                <Card><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
+                <Card><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
+                <Card><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
+            </>
+        )
     }
-    
-    // Calculate revenue
-    const totalRevenue = fees.filter(f => f.status === 'Paid').reduce((sum, f) => sum + f.amount, 0);
-
 
     return (
         <>

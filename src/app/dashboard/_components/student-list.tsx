@@ -1,5 +1,7 @@
 
+'use client';
 
+import * as React from 'react';
 import Image from 'next/image';
 import {
   Card,
@@ -19,11 +21,24 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { getStudents } from '@/services/students';
 import StudentListActions from './student-list-actions';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { Student } from '@/lib/types';
 
 
-export default async function StudentList() {
-  const allStudents = await getStudents();
-  const students = allStudents.filter(student => student.status !== 'graduated');
+export default function StudentList() {
+  const [students, setStudents] = React.useState<Student[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchStudents = async () => {
+      setLoading(true);
+      const allStudents = await getStudents();
+      const enrolledStudents = allStudents.filter(student => student.status !== 'graduated');
+      setStudents(enrolledStudents);
+      setLoading(false);
+    }
+    fetchStudents();
+  }, []);
 
   return (
     <Card>
@@ -49,7 +64,17 @@ export default async function StudentList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {students.length > 0 ? (
+            {loading ? (
+                Array.from({length: 5}).map((_, i) => (
+                    <TableRow key={i}>
+                        <TableCell className="hidden sm:table-cell"><Skeleton className="h-16 w-16 rounded-full" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-12 rounded-full" /></TableCell>
+                        <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-40" /></TableCell>
+                        <TableCell><Skeleton className="h-8 w-8" /></TableCell>
+                    </TableRow>
+                ))
+            ) : students.length > 0 ? (
               students.map((student) => (
                 <TableRow key={student.id}>
                   <TableCell className="hidden sm:table-cell">

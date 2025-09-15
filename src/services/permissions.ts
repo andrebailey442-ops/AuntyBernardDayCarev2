@@ -14,7 +14,7 @@ export const getTeacherPermissions = async (): Promise<string[]> => {
         return (docSnap.data() as { permissions: string[] }).permissions;
     }
     // If not set, initialize and return default.
-    await setDoc(docRef, { permissions: DEFAULT_TEACHER_PERMISSIONS });
+    await docRef.set({ permissions: DEFAULT_TEACHER_PERMISSIONS });
     return DEFAULT_TEACHER_PERMISSIONS;
 };
 
