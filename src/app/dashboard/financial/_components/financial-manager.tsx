@@ -56,7 +56,7 @@ export default function FinancialManager() {
   const [students, setStudents] = React.useState<Student[]>([]);
   const [fees, setFees] = React.useState<Fee[]>([]);
   const [filteredStudents, setFilteredStudents] = React.useState<Student[]>([]);
-  const [makePaymentStudentId, setMakePaymentStudentId] = React.useState('');
+  const [paymentStudent, setPaymentStudent] = React.useState<Student | null>(null);
   const [updatePaymentStudentId, setUpdatePaymentStudentId] = React.useState('');
   const [newPaymentStatus, setNewPaymentStatus] = React.useState<'Paid' | 'Pending' | 'Overdue' | ''>('');
   const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
@@ -97,9 +97,9 @@ export default function FinancialManager() {
   }
   
   const handleMakePayment = async () => {
-    if (!makePaymentStudentId) return;
+    if (!paymentStudent) return;
     try {
-        const feeToUpdate = await getFeeByStudentId(makePaymentStudentId);
+        const feeToUpdate = await getFeeByStudentId(paymentStudent.id);
         if (!feeToUpdate) {
             throw new Error('Fee record not found for student.');
         }
@@ -107,23 +107,22 @@ export default function FinancialManager() {
 
         setFees(prevFees =>
             prevFees.map(fee =>
-                fee.studentId === makePaymentStudentId
+                fee.studentId === paymentStudent.id
                 ? { ...fee, status: 'Paid' }
                 : fee
             )
         );
 
-        const studentToUpdate = students.find(s => s.id === makePaymentStudentId);
-        if (studentToUpdate?.status === 'pending') {
-          await updateStudentStatus(makePaymentStudentId, { status: 'enrolled' });
-          setStudents(prev => prev.map(s => s.id === makePaymentStudentId ? { ...s, status: 'enrolled'} : s));
+        if (paymentStudent.status === 'pending') {
+          await updateStudentStatus(paymentStudent.id, { status: 'enrolled' });
+          setStudents(prev => prev.map(s => s.id === paymentStudent.id ? { ...s, status: 'enrolled'} : s));
         }
 
         toast({
             title: 'Payment Processed',
-            description: `Payment for student ID ${makePaymentStudentId} has been recorded as Paid.`,
+            description: `Payment for ${paymentStudent.name} has been recorded as Paid.`,
         });
-        setMakePaymentStudentId('');
+        setPaymentStudent(null);
     } catch(error) {
         console.error("Failed to process payment: ", error);
         toast({
@@ -176,42 +175,16 @@ export default function FinancialManager() {
     }
   }
 
-  const handleConfirmPayment = async (student: Student) => {
-    const feeToUpdate = getStudentFee(student.id);
-    if (!feeToUpdate) {
-      toast({ variant: 'destructive', title: 'Error', description: 'Fee record not found for student.' });
-      return;
-    }
-    
-    try {
-      await updateFee(feeToUpdate.id, { status: 'Paid' });
-      setFees(prevFees =>
-        prevFees.map(fee =>
-            fee.studentId === student.id
-            ? { ...fee, status: 'Paid' }
-            : fee
-        )
-      );
-
-      if (student.status === 'pending') {
-        await updateStudentStatus(student.id, { status: 'enrolled' });
-        setStudents(prev => prev.map(s => s.id === student.id ? { ...s, status: 'enrolled'} : s));
-      }
-
-      toast({
-        title: 'Payment Confirmed',
-        description: `Payment for ${student.name} has been marked as Paid.`,
-      });
-    } catch(error) {
-      console.error("Failed to confirm payment: ", error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to confirm payment.' });
-    }
-  };
+  const handleOpenPaymentDialog = (student: Student) => {
+    setPaymentStudent(student);
+  }
   
   const handleViewInvoice = (student: Student) => {
     setSelectedStudent(student);
     setIsInvoiceDialogOpen(true);
   }
+
+  const studentFee = paymentStudent ? getStudentFee(paymentStudent.id) : null;
 
   return (
     <>
@@ -270,49 +243,9 @@ export default function FinancialManager() {
           <div className="space-x-2">
             <Dialog>
                 <DialogTrigger asChild>
-                    <Button>
-                        <DollarSign className="mr-2 h-4 w-4"/>
-                        Make Payment
-                    </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Make a Payment</DialogTitle>
-                        <DialogDescription>Enter student and payment details.</DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="make-payment-student-id" className="text-right">Student ID</Label>
-                            <Input id="make-payment-student-id" value={makePaymentStudentId} onChange={(e) => setMakePaymentStudentId(e.target.value)} className="col-span-3" placeholder="SID-..." />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="payment-plan" className="text-right">Payment Plan</Label>
-                             <Select>
-                                <SelectTrigger className="col-span-3">
-                                    <SelectValue placeholder="Select a plan" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="full">Full Payment ($2,375)</SelectItem>
-                                    <SelectItem value="installments">Two Installments ($1,250)</SelectItem>
-                                    <SelectItem value="monthly">Monthly Plan ($625)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="amount" className="text-right">Amount</Label>
-                            <Input id="amount" type="number" placeholder="Enter amount" className="col-span-3" />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button onClick={handleMakePayment} disabled={!makePaymentStudentId}>Process Payment</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-            <Dialog>
-                <DialogTrigger asChild>
                     <Button variant="secondary">
                         <Edit className="mr-2 h-4 w-4"/>
-                        Update Payment
+                        Update Status
                     </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[425px]">
@@ -423,11 +356,11 @@ export default function FinancialManager() {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                            onClick={() => handleConfirmPayment(student)}
+                            onClick={() => handleOpenPaymentDialog(student)}
                             disabled={fee?.status === 'Paid'}
                         >
-                            <CheckCircle className="mr-2 h-4 w-4" />
-                            Confirm Payment
+                            <DollarSign className="mr-2 h-4 w-4" />
+                            Make Payment
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -448,6 +381,34 @@ export default function FinancialManager() {
             <Dialog open={isInvoiceDialogOpen} onOpenChange={setIsInvoiceDialogOpen}>
                 <DialogContent className="sm:max-w-xl">
                     <InvoiceDialog student={selectedStudent} fee={getStudentFee(selectedStudent.id)} />
+                </DialogContent>
+            </Dialog>
+        )}
+
+        {paymentStudent && studentFee && (
+             <Dialog open={!!paymentStudent} onOpenChange={(open) => !open && setPaymentStudent(null)}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Make a Payment</DialogTitle>
+                        <DialogDescription>Confirm payment for {paymentStudent.name}.</DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="make-payment-student-id" className="text-right">Student ID</Label>
+                            <Input id="make-payment-student-id" value={paymentStudent.id} readOnly className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="payment-plan" className="text-right">Payment Plan</Label>
+                            <Input id="payment-plan" value={studentFee.plan} readOnly className="col-span-3" />
+                        </div>
+                         <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="amount" className="text-right">Amount</Label>
+                            <Input id="amount" type="text" value={`$${studentFee.amount.toFixed(2)}`} readOnly className="col-span-3" />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={handleMakePayment}>Process Payment</Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         )}
