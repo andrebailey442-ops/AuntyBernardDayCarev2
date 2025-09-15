@@ -8,7 +8,7 @@ import { GraduationCap, Sunset } from 'lucide-react';
 
 export default function DashboardSelectionPage() {
   return (
-    <div className="relative flex min-h-[calc(100vh-10rem)] flex-col items-center justify-center">
+    <div className="flex min-h-[calc(100vh-10rem)] flex-col items-center justify-center">
       <div className="relative z-10 flex flex-col items-center justify-center gap-8 p-4">
         <div className="text-center">
             <h1 className="text-3xl font-bold">Welcome to BusyBee</h1>
