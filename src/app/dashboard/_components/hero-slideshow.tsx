@@ -12,7 +12,7 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel';
 import Autoplay from "embla-carousel-autoplay"
-import { ScholarStartLogo } from '@/components/icons';
+import { BusyBeeLogo } from '@/components/icons';
 
 const slideImages = [
     {
@@ -63,7 +63,7 @@ export default function HeroSlideshow({ title }: HeroSlideshowProps) {
                 />
                 <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center p-4">
                     <div className="flex items-center gap-4 bg-black/50 p-6 rounded-lg">
-                        <ScholarStartLogo className="h-16 w-16 text-white" />
+                        <BusyBeeLogo className="h-16 w-16 text-white" />
                         <h1 className="text-5xl font-bold text-white tracking-wider">
                             {title}
                         </h1>

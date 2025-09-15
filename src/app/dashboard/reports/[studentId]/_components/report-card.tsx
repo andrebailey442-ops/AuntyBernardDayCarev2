@@ -16,7 +16,7 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Download, ArrowLeft } from 'lucide-react';
 import type { Student, Grade, Subject as SubjectType } from '@/lib/types';
-import { ScholarStartLogo } from '@/components/icons';
+import { BusyBeeLogo } from '@/components/icons';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -74,7 +74,7 @@ export default function ReportCard({ studentId }: ReportCardProps) {
   const addLogoAndHeader = (doc: jsPDF, title: string) => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(24);
-    doc.text('ScholarStart', 20, 22);
+    doc.text('BusyBee', 20, 22);
     
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(18);
@@ -186,7 +186,7 @@ export default function ReportCard({ studentId }: ReportCardProps) {
     <Card className="max-w-4xl mx-auto">
       <CardHeader className="text-center bg-muted/30">
         <div className="flex flex-col items-center gap-4">
-            <ScholarStartLogo className="h-12 w-12 text-primary" />
+            <BusyBeeLogo className="h-12 w-12 text-primary" />
             <CardTitle className="text-3xl">Report Card</CardTitle>
             <CardDescription className="text-lg">{student.name}</CardDescription>
         </div>

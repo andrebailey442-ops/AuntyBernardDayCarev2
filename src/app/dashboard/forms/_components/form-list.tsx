@@ -1,3 +1,4 @@
+
 'use client';
 import {
   Card,
@@ -13,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { LucideProps } from 'lucide-react';
 import type { ForwardRefExoticComponent, RefAttributes } from 'react';
 import { jsPDF } from 'jspdf';
-import { ScholarStartLogo } from '@/components/icons';
+import { BusyBeeLogo } from '@/components/icons';
 import type { FormDocument } from '@/lib/types';
 
 
@@ -55,7 +56,7 @@ export default function FormList() {
     const addLogoAndHeader = (doc: jsPDF, title: string) => {
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(24);
-      doc.text('ScholarStart', 20, 22);
+      doc.text('BusyBee', 20, 22);
       
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(18);

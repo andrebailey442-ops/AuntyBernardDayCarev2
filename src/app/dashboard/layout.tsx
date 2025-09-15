@@ -16,7 +16,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Bell, LogOut, Settings, Menu, Users } from 'lucide-react';
-import { ScholarStartLogo } from '@/components/icons';
+import { BusyBeeLogo } from '@/components/icons';
 import { DashboardNav } from '@/components/dashboard-nav';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/hooks/use-auth';
@@ -79,8 +79,8 @@ export default function DashboardLayout({
     <div className="flex min-h-screen w-full flex-col">
       <DashboardHeader />
       <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        {pathname.startsWith('/dashboard/preschool') && <HeroSlideshow title="ScholarStart Preschool" />}
-        {pathname.startsWith('/dashboard/after-care') && <HeroSlideshow title="ScholarStart AfterCare" />}
+        {pathname.startsWith('/dashboard/preschool') && <HeroSlideshow title="BusyBee Preschool" />}
+        {pathname.startsWith('/dashboard/after-care') && <HeroSlideshow title="BusyBee AfterCare" />}
         {children}
       </main>
     </div>

@@ -66,7 +66,7 @@ export default function ReportCardDialog({ student }: ReportCardDialogProps) {
         const doc = new jsPDF();
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(24);
-        doc.text('ScholarStart', 20, 22);
+        doc.text('BusyBee', 20, 22);
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(18);
         doc.text(`Report Card for ${student.name}`, 20, 35);

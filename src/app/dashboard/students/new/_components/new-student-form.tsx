@@ -26,7 +26,7 @@ import {
 import { Download, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
-import { ScholarStartLogo } from '@/components/icons';
+import { BusyBeeLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { jsPDF } from 'jspdf';
@@ -230,7 +230,7 @@ export function NewStudentForm() {
   const addLogoAndHeader = (doc: jsPDF, title: string) => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(24);
-    doc.text('ScholarStart', 20, 22);
+    doc.text('BusyBee', 20, 22);
     
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(18);
@@ -352,7 +352,7 @@ export function NewStudentForm() {
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-4">
-                <ScholarStartLogo className="h-12 w-12 text-primary" />
+                <BusyBeeLogo className="h-12 w-12 text-primary" />
                 <div>
                     <CardTitle className="text-3xl">Student Registration</CardTitle>
                     <CardDescription>

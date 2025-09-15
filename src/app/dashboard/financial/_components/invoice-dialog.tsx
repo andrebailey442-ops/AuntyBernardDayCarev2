@@ -10,7 +10,7 @@ import type { Student, Fee } from '@/lib/types';
 import { Download, Printer } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { ScholarStartLogo } from '@/components/icons';
+import { BusyBeeLogo } from '@/components/icons';
 
 
 type InvoiceDetailsProps = {
@@ -36,7 +36,7 @@ export default function InvoiceDialog({ student, fee }: InvoiceDetailsProps) {
     const addLogoAndHeader = (doc: jsPDF, title: string) => {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(24);
-        doc.text('ScholarStart', 20, 22);
+        doc.text('BusyBee', 20, 22);
         
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(18);

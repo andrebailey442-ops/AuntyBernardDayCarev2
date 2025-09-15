@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ScholarStartLogo } from '@/components/icons';
+import { BusyBeeLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 
@@ -70,9 +70,9 @@ export default function LoginPage() {
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
       <div className="w-full max-w-md space-y-6">
         <div className="flex flex-col items-center gap-4 text-center">
-            <ScholarStartLogo className="h-12 w-12 text-primary" />
+            <BusyBeeLogo className="h-12 w-12 text-primary" />
             <h1 className="text-3xl font-bold">
-              ScholarStart
+              BusyBee
             </h1>
             <p className="text-muted-foreground">
               Welcome back! Please enter your credentials to log in.

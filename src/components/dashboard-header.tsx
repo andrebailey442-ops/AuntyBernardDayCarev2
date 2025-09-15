@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -12,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from './ui/button';
 import { Bell, LogOut, Settings, Menu, Users } from 'lucide-react';
 import Link from 'next/link';
-import { ScholarStartLogo } from './icons';
+import { BusyBeeLogo } from './icons';
 import { DashboardNav } from './dashboard-nav';
 import { Sheet, SheetContent, SheetTrigger } from './ui/sheet';
 import { useAuth } from '@/hooks/use-auth';
@@ -34,8 +35,8 @@ export function DashboardHeader() {
             href="/dashboard"
             className="flex items-center gap-2 text-lg font-semibold"
           >
-            <ScholarStartLogo className="h-6 w-6 text-primary" />
-            <span className="font-bold">ScholarStart</span>
+            <BusyBeeLogo className="h-6 w-6 text-primary" />
+            <span className="font-bold">BusyBee</span>
           </Link>
       </div>
       

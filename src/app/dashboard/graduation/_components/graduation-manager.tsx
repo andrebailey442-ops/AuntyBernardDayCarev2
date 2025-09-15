@@ -112,7 +112,7 @@ export default function GraduationManager() {
       doc.setFontSize(40);
       doc.setFont('times', 'bold');
       doc.setTextColor('#0056b3');
-      doc.text('ScholarStart', pageWidth / 2, 80, { align: 'center' });
+      doc.text('BusyBee', pageWidth / 2, 80, { align: 'center' });
 
       doc.setFontSize(22);
       doc.setFont('helvetica', 'normal');

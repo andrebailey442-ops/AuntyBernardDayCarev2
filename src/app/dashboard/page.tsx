@@ -5,13 +5,13 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { GraduationCap, Sunset } from 'lucide-react';
-import { ScholarStartLogo } from '@/components/icons';
+import { BusyBeeLogo } from '@/components/icons';
 
 export default function DashboardSelectionPage() {
   return (
     <div className="flex flex-col items-center justify-center gap-8">
         <div className="text-center">
-            <h1 className="text-3xl font-bold">Welcome to ScholarStart</h1>
+            <h1 className="text-3xl font-bold">Welcome to BusyBee</h1>
             <p className="text-muted-foreground">Please select a section to manage.</p>
         </div>
         <div className="grid w-full max-w-4xl grid-cols-1 gap-8 md:grid-cols-2">

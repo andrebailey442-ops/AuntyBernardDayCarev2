@@ -26,7 +26,7 @@ import {
 import { ArrowLeft } from 'lucide-react';
 import { format, getYear, getMonth, getDate } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
-import { ScholarStartLogo } from '@/components/icons';
+import { BusyBeeLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import type { Student } from '@/lib/types';
@@ -243,7 +243,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     <Card className="max-w-4xl mx-auto">
       <CardHeader className="text-center">
         <div className="flex items-center justify-center gap-4 mb-4">
-            <ScholarStartLogo className="h-12 w-12 text-primary" />
+            <BusyBeeLogo className="h-12 w-12 text-primary" />
             <CardTitle className="text-3xl">Edit Student Profile</CardTitle>
         </div>
         <CardDescription>
