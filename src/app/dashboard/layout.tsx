@@ -23,6 +23,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { DashboardHeader } from '@/components/dashboard-header';
 import HeroSlideshow from './_components/hero-slideshow';
 import { Skeleton } from '@/components/ui/skeleton';
+import WallArt from '@/components/wall-art';
 
 export default function DashboardLayout({
   children,
@@ -58,12 +59,15 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col">
+    <div className="flex min-h-screen w-full flex-col bg-background">
       <DashboardHeader />
-      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        {pathname.startsWith('/dashboard/preschool') && <HeroSlideshow title="BusyBee Preschool" />}
-        {pathname.startsWith('/dashboard/after-care') && <HeroSlideshow title="BusyBee AfterCare" />}
-        {children}
+      <main className="relative flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8 overflow-hidden">
+        <WallArt />
+        <div className="relative z-10">
+            {pathname.startsWith('/dashboard/preschool') && <HeroSlideshow title="BusyBee Preschool" />}
+            {pathname.startsWith('/dashboard/after-care') && <HeroSlideshow title="BusyBee AfterCare" />}
+            {children}
+        </div>
       </main>
     </div>
   );
