@@ -216,13 +216,30 @@ export default function FormList() {
         
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
-        doc.text('Payment Information', 20, y);
+        doc.text('Student Information', 20, y);
         y += 15;
-        addFormField(doc, 'Student Name:', y);
+        addFormField(doc, 'Student Full Name:', y);
         y += 15;
         addFormField(doc, 'Student ID:', y);
+        y += 15;
+        addFormField(doc, 'Date of Birth (YYYY-MM-DD):', y);
         y += 25;
 
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Parent/Guardian Information', 20, y);
+        y += 15;
+        addFormField(doc, "Parent's Full Name:", y);
+        y += 15;
+        addFormField(doc, 'Email Address:', y);
+        y += 15;
+        addFormField(doc, 'Phone Number:', y);
+        y += 25;
+
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Payment Details', 20, y);
+        y += 15;
         doc.setFontSize(12);
         doc.text('Payment Plan Selection:', 20, y);
         y += 10;
