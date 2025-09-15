@@ -45,7 +45,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InvoiceDialog from './invoice-dialog';
-import { getStudents } from '@/services/students';
+import { getStudents, updateStudent as updateStudentStatus } from '@/services/students';
 import { getFees, getFeeByStudentId, updateFee } from '@/services/fees';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -112,6 +112,13 @@ export default function FinancialManager() {
                 : fee
             )
         );
+
+        const studentToUpdate = students.find(s => s.id === makePaymentStudentId);
+        if (studentToUpdate?.status === 'pending') {
+          await updateStudentStatus(makePaymentStudentId, { status: 'enrolled' });
+          setStudents(prev => prev.map(s => s.id === makePaymentStudentId ? { ...s, status: 'enrolled'} : s));
+        }
+
         toast({
             title: 'Payment Processed',
             description: `Payment for student ID ${makePaymentStudentId} has been recorded as Paid.`,
@@ -145,6 +152,14 @@ export default function FinancialManager() {
             )
         );
 
+        if (newPaymentStatus === 'Paid') {
+          const studentToUpdate = students.find(s => s.id === updatePaymentStudentId);
+          if (studentToUpdate?.status === 'pending') {
+            await updateStudentStatus(updatePaymentStudentId, { status: 'enrolled' });
+            setStudents(prev => prev.map(s => s.id === updatePaymentStudentId ? { ...s, status: 'enrolled'} : s));
+          }
+        }
+
         toast({
         title: 'Payment Updated',
         description: `Payment status for student ID ${updatePaymentStudentId} has been updated to ${newPaymentStatus}.`,
@@ -177,6 +192,12 @@ export default function FinancialManager() {
             : fee
         )
       );
+
+      if (student.status === 'pending') {
+        await updateStudentStatus(student.id, { status: 'enrolled' });
+        setStudents(prev => prev.map(s => s.id === student.id ? { ...s, status: 'enrolled'} : s));
+      }
+
       toast({
         title: 'Payment Confirmed',
         description: `Payment for ${student.name} has been marked as Paid.`,

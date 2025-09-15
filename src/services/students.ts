@@ -57,7 +57,7 @@ export const getStudent = async (id: string): Promise<Student | null> => {
 
 export const addStudent = async (id: string, student: Omit<Student, 'id'>) => {
     const allStudents = getStudentsFromStorage();
-    const newStudent: Student = { id, status: 'enrolled', ...student };
+    const newStudent: Student = { id, status: 'pending', ...student };
     allStudents.push(newStudent);
     saveStudentsToStorage(allStudents);
 };

@@ -33,7 +33,7 @@ export default function StudentList() {
     const fetchStudents = async () => {
       setLoading(true);
       const allStudents = await getStudents();
-      setStudents(allStudents);
+      setStudents(allStudents.filter(s => s.status === 'enrolled'));
       setLoading(false);
     }
     fetchStudents();

@@ -238,6 +238,19 @@ export default function StudentManager() {
     setDialogContent(content);
   }
 
+  const getStatusVariant = (status: 'enrolled' | 'pending' | 'graduated' | undefined) => {
+    switch (status) {
+      case 'enrolled':
+        return 'default';
+      case 'pending':
+        return 'secondary';
+      case 'graduated':
+        return 'outline';
+      default:
+        return 'secondary';
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -332,8 +345,8 @@ export default function StudentManager() {
                         <Badge variant="outline">{student.age}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={'default'}>
-                          Enrolled
+                        <Badge variant={getStatusVariant(student.status)} className="capitalize">
+                          {student.status || 'Pending'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -356,7 +369,7 @@ export default function StudentManager() {
                                 View Full Report Page
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => handleGraduate(student.id)}>
+                              <DropdownMenuItem onClick={() => handleGraduate(student.id)} disabled={student.status !== 'enrolled'}>
                                 <GraduationCap className="mr-2 h-4 w-4" />
                                 Graduate Student
                               </DropdownMenuItem>
@@ -389,7 +402,7 @@ export default function StudentManager() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="h-24 text-center">
-                      No enrolled students found.
+                      No students found.
                     </TableCell>
                   </TableRow>
                 )}

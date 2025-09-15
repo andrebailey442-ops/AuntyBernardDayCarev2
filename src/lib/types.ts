@@ -11,7 +11,7 @@ export type Student = {
   avatarUrl: string;
   imageHint: string;
   afterCare?: boolean;
-  status?: 'enrolled' | 'graduated';
+  status?: 'enrolled' | 'graduated' | 'pending';
   // Extended details from form
   parentFirstName?: string;
   parentLastName?: string;
