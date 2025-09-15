@@ -1,6 +1,3 @@
-
-'use server';
-
 import type { Fee } from '@/lib/types';
 
 const COLLECTION_NAME = 'fees';

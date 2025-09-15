@@ -1,6 +1,3 @@
-
-'use server';
-
 import { DEFAULT_TEACHER_PERMISSIONS } from '@/lib/data';
 
 const STORAGE_KEY = 'teacher_permissions';

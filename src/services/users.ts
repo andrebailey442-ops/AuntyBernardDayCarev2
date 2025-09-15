@@ -1,6 +1,3 @@
-
-'use server';
-
 import type { User, UserRole } from '@/lib/types';
 import { USERS, STUDENTS, GRADES, ATTENDANCE, FEES, SUBJECTS } from '@/lib/data';
 import { initializeStudentsData } from './students';

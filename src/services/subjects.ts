@@ -1,6 +1,3 @@
-
-'use server';
-
 import type { Subject } from '@/lib/types';
 import { SUBJECTS } from '@/lib/data';
 

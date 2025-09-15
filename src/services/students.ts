@@ -1,5 +1,3 @@
-
-'use server';
 import type { Student } from '@/lib/types';
 import { deleteFeeByStudentId } from './fees';
 import { deleteGradesByStudentId } from './grades';
