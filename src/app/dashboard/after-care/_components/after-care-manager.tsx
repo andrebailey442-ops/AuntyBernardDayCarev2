@@ -26,6 +26,7 @@ import { getStudents } from '@/services/students';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LogIn, LogOut, Users } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAuth } from '@/hooks/use-auth';
 
 type AfterCareStatus = 'Checked-In' | 'Checked-Out';
 
@@ -33,6 +34,8 @@ type AfterCareRecord = {
   status: AfterCareStatus;
   checkInTime?: string; // Storing as ISO string
   checkOutTime?: string; // Storing as ISO string
+  checkedInBy?: string;
+  checkedOutBy?: string;
 };
 
 type StudentStatus = {
@@ -43,6 +46,7 @@ const AFTER_CARE_STORAGE_KEY = 'afterCareStatuses';
 
 export default function AfterCareManager() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [students, setStudents] = React.useState<Student[]>([]);
   const [studentStatuses, setStudentStatuses] = React.useState<StudentStatus>({});
   const [loading, setLoading] = React.useState(true);
@@ -74,21 +78,22 @@ export default function AfterCareManager() {
   const handleToggleStatus = (studentId: string) => {
     const currentRecord = studentStatuses[studentId];
     const now = new Date();
+    const currentUsername = user?.username || 'Unknown';
     
     let newRecord: AfterCareRecord;
     const studentName = students.find(s => s.id === studentId)?.name || 'Student';
 
     if (currentRecord.status === 'Checked-In') {
-        newRecord = { ...currentRecord, status: 'Checked-Out', checkOutTime: now.toISOString() };
+        newRecord = { ...currentRecord, status: 'Checked-Out', checkOutTime: now.toISOString(), checkedOutBy: currentUsername };
         toast({
           title: `Student Checked Out`,
-          description: `${studentName} has been checked out at ${format(now, 'p')}.`,
+          description: `${studentName} has been checked out at ${format(now, 'p')} by ${currentUsername}.`,
         });
     } else {
-        newRecord = { status: 'Checked-In', checkInTime: now.toISOString(), checkOutTime: undefined }; // Reset checkout time
+        newRecord = { status: 'Checked-In', checkInTime: now.toISOString(), checkedOutTime: undefined, checkedInBy: currentUsername, checkedOutBy: undefined }; // Reset checkout time
         toast({
           title: `Student Checked In`,
-          description: `${studentName} has been checked in at ${format(now, 'p')}.`,
+          description: `${studentName} has been checked in at ${format(now, 'p')} by ${currentUsername}.`,
         });
     }
     
@@ -167,6 +172,7 @@ export default function AfterCareManager() {
                 <TableHead>Student</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Check-in Time</TableHead>
+                <TableHead>Checked In By</TableHead>
                 <TableHead className="text-right">Action</TableHead>
                 </TableRow>
             </TableHeader>
@@ -182,6 +188,7 @@ export default function AfterCareManager() {
                             </TableCell>
                             <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
                             <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
                             <TableCell className="text-right"><Skeleton className="h-10 w-28" /></TableCell>
                         </TableRow>
                     ))
@@ -210,6 +217,9 @@ export default function AfterCareManager() {
                     </TableCell>
                     <TableCell>
                         {record.checkInTime ? format(new Date(record.checkInTime), 'p') : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                        {record.checkedInBy || 'N/A'}
                     </TableCell>
                     <TableCell className="text-right">
                         <Button
@@ -251,13 +261,15 @@ export default function AfterCareManager() {
                         <TableHead>Student ID</TableHead>
                         <TableHead>Name</TableHead>
                         <TableHead>Check-in Time</TableHead>
+                        <TableHead>Checked In By</TableHead>
                         <TableHead>Check-out Time</TableHead>
+                        <TableHead>Checked Out By</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {loading ? (
                              <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center">Loading Log...</TableCell>
+                                <TableCell colSpan={6} className="h-24 text-center">Loading Log...</TableCell>
                             </TableRow>
                         ) : checkedOutStudents.length > 0 ? (
                             checkedOutStudents.map(student => {
@@ -279,13 +291,15 @@ export default function AfterCareManager() {
                                             </div>
                                         </TableCell>
                                         <TableCell>{record?.checkInTime ? format(new Date(record.checkInTime), 'p') : 'N/A'}</TableCell>
+                                        <TableCell>{record?.checkedInBy || 'N/A'}</TableCell>
                                         <TableCell>{record?.checkOutTime ? format(new Date(record.checkOutTime), 'p') : 'N/A'}</TableCell>
+                                        <TableCell>{record?.checkedOutBy || 'N/A'}</TableCell>
                                     </TableRow>
                                 )
                             })
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center">
+                                <TableCell colSpan={6} className="h-24 text-center">
                                     No students have been checked out yet.
                                 </TableCell>
                             </TableRow>
