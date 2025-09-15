@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { BusyBeeLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import WallArt from '@/components/wall-art';
 
 const loginSchema = z.object({
   username: z.string().min(1, { message: 'Username is required.' }),
@@ -67,8 +68,9 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-6">
+    <main className="relative flex min-h-screen flex-col items-center justify-center bg-background p-4 overflow-hidden">
+      <WallArt />
+      <div className="relative z-10 w-full max-w-md space-y-6">
         <div className="flex flex-col items-center gap-4 text-center">
             <BusyBeeLogo className="h-12 w-12 text-primary" />
             <h1 className="text-3xl font-bold">
@@ -78,7 +80,7 @@ export default function LoginPage() {
               Welcome back! Please enter your credentials to log in.
             </p>
         </div>
-        <Card>
+        <Card className="backdrop-blur-sm bg-card/80">
             <CardHeader>
               <CardTitle>Login</CardTitle>
               <CardDescription>Use "Admin" and "admin" to continue.</CardDescription>
