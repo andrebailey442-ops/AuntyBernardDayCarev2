@@ -131,22 +131,6 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
             </div>
 
             <Separator />
-            
-            {fee && (
-              <>
-                <div>
-                    <h3 className="text-xl font-semibold mb-4">Fee & Payment Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div><p className="text-sm text-muted-foreground">Payment Plan</p><p>{fee.plan}</p></div>
-                        <div><p className="text-sm text-muted-foreground">Amount Due</p><p>${fee.amount.toFixed(2)}</p></div>
-                        <div><p className="text-sm text-muted-foreground">Status</p><p><Badge variant={getStatusVariant(fee.status)}>{fee.status}</Badge></p></div>
-                    </div>
-                </div>
-
-                <Separator />
-              </>
-            )}
-
 
             <div>
                 <h3 className="text-xl font-semibold mb-4">Emergency and Health Information</h3>

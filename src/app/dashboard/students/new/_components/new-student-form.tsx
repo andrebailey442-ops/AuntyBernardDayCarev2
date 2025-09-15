@@ -66,9 +66,6 @@ const newStudentSchema = z.object({
   city: z.string().min(1, 'City is required'),
   state: z.string().min(1, 'State is required'),
   zip: z.string().min(1, 'ZIP code is required'),
-  paymentPlan: z.enum(['Full Payment', 'Two Installments', 'Monthly Plan'], {
-    required_error: "Payment plan is required"
-  }),
   afterCare: z.boolean().default(false),
   emergencyContactName: z.string().min(1, 'Emergency contact name is required'),
   emergencyContactPhone: z.string().min(1, 'Emergency contact phone is required'),
@@ -88,8 +85,6 @@ export function NewStudentForm() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [studentId, setStudentId] = React.useState('');
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [totalFee, setTotalFee] = React.useState(0);
-  const [enrollmentDeposit, setEnrollmentDeposit] = React.useState(0);
 
   const [dobState, setDobState] = React.useState({
     day: '',
@@ -112,7 +107,6 @@ export function NewStudentForm() {
         city: '',
         state: '',
         zip: '',
-        paymentPlan: undefined,
         afterCare: false,
         emergencyContactName: '',
         emergencyContactPhone: '',
@@ -128,9 +122,6 @@ export function NewStudentForm() {
 
   const dob = form.watch('dob');
   const formValues = form.watch();
-  const paymentPlan = form.watch('paymentPlan');
-  const afterCare = form.watch('afterCare');
-
 
   React.useEffect(() => {
     const { day, month, year } = dobState;
@@ -156,18 +147,6 @@ export function NewStudentForm() {
     }
   }, [dob, form]);
 
-  React.useEffect(() => {
-    let baseTuition = 0;
-    if (paymentPlan === 'Full Payment') {
-        baseTuition = TUITION_FULL;
-    } else if (paymentPlan === 'Two Installments' || paymentPlan === 'Monthly Plan') {
-        baseTuition = TUITION_INSTALLMENTS;
-    }
-
-    const currentTotal = baseTuition + (afterCare ? AFTER_CARE_FEE : 0);
-    setTotalFee(currentTotal);
-    setEnrollmentDeposit(currentTotal * 0.3);
-  }, [paymentPlan, afterCare]);
 
   const onSubmit = async (data: NewStudentFormValues & { studentId: string }) => {
     setIsLoading(true);
@@ -192,15 +171,6 @@ export function NewStudentForm() {
             medicalConditions: data.medicalConditions,
         };
         await addStudent(data.studentId, studentData);
-        
-        const feeData = {
-            studentId: data.studentId,
-            plan: data.paymentPlan,
-            amount: totalFee,
-            amountPaid: 0,
-            status: 'Pending' as 'Pending' | 'Paid' | 'Overdue',
-        }
-        await addFee(feeData);
 
         toast({
         title: 'Registration Submitted',
@@ -500,28 +470,6 @@ export function NewStudentForm() {
                 <h3 className="text-xl font-semibold">Program Enrollment</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                         <FormField
-                            control={form.control}
-                            name="paymentPlan"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Select a Payment Plan</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Choose a plan..." />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                    <SelectItem value="Full Payment">Full Payment ($2,375)</SelectItem>
-                                    <SelectItem value="Two Installments">Two Installments ($1,250 x 2)</SelectItem>
-                                    <SelectItem value="Monthly Plan">Monthly Plan ($625 x 4)</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
                         <div className="mt-4">
                             <FormField
                                 control={form.control}
@@ -532,9 +480,6 @@ export function NewStudentForm() {
                                         <FormLabel className="text-base">
                                         After-Care Program
                                         </FormLabel>
-                                        <FormDescription>
-                                        Enroll for an additional $500.
-                                        </FormDescription>
                                     </div>
                                     <FormControl>
                                         <Switch
@@ -547,29 +492,6 @@ export function NewStudentForm() {
                             />
                         </div>
                     </div>
-                    {paymentPlan && (
-                        <Card className="bg-muted/50">
-                            <CardHeader>
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <Info className="h-5 w-5 text-primary" />
-                                    Payment Information
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-2">
-                                <div className="flex justify-between">
-                                    <span className="text-muted-foreground">Total Fee:</span>
-                                    <span className="font-semibold">${totalFee.toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between font-bold text-primary">
-                                    <span >30% Enrollment Deposit:</span>
-                                    <span>${enrollmentDeposit.toFixed(2)}</span>
-                                </div>
-                                <p className="text-xs text-muted-foreground pt-2">
-                                    The student's status will change to "Enrolled" once the 30% deposit has been paid.
-                                </p>
-                            </CardContent>
-                        </Card>
-                    )}
                 </div>
             </div>
 
@@ -631,10 +553,7 @@ export function NewStudentForm() {
                         <Separator />
                         <div>
                             <h4 className="font-semibold mb-2">Program Enrollment</h4>
-                            <p><strong>Payment Plan:</strong> {formValues.paymentPlan}</p>
                             <p><strong>After Care:</strong> {formValues.afterCare ? 'Yes' : 'No'}</p>
-                            <p className="mt-2"><strong>Total Fee:</strong> ${totalFee.toFixed(2)}</p>
-                            <p className="font-bold"><strong>30% Deposit Due:</strong> ${enrollmentDeposit.toFixed(2)}</p>
                         </div>
                          <Separator />
                         <div>

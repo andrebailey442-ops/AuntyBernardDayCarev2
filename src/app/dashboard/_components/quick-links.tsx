@@ -28,11 +28,6 @@ const links = [
     icon: Users,
   },
   {
-    href: '/dashboard/financial',
-    label: 'Financial',
-    icon: DollarSign,
-  },
-  {
     href: '/dashboard/forms',
     label: 'View All Forms',
     icon: FileText,

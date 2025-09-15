@@ -292,7 +292,6 @@ export default function StudentManager() {
                     </TableHead>
                   <TableHead>Student</TableHead>
                   <TableHead>Age</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -311,7 +310,6 @@ export default function StudentManager() {
                         </div>
                       </TableCell>
                       <TableCell><Skeleton className="h-4 w-[50px]" /></TableCell>
-                      <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
                       <TableCell className="text-right"><Skeleton className="h-8 w-8" /></TableCell>
                     </TableRow>
                   ))
@@ -343,11 +341,6 @@ export default function StudentManager() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">{student.age}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusVariant(student.status)} className="capitalize">
-                          {student.status || 'Pending'}
-                        </Badge>
                       </TableCell>
                       <TableCell className="text-right">
                           <DropdownMenu>
