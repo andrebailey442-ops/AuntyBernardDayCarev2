@@ -59,7 +59,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import type { User, UserRole } from '@/lib/types';
-import { getUsers, addUser, removeUser, resetPassword } from '@/services/users';
+import { getUsers, addUser, removeUser } from '@/services/users';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function UserManager() {
@@ -71,10 +71,6 @@ export default function UserManager() {
   const [newUsername, setNewUsername] = React.useState('');
   const [newPassword, setNewPassword] = React.useState('');
   const [newRole, setNewRole] = React.useState<UserRole>('Teacher');
-  
-  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = React.useState(false);
-  const [passwordResetUser, setPasswordResetUser] = React.useState<User | null>(null);
-  const [passwordToReset, setPasswordToReset] = React.useState('');
 
   const [isRemoveUserAlertOpen, setIsRemoveUserAlertOpen] = React.useState(false);
   const [userToRemove, setUserToRemove] = React.useState<User | null>(null);
@@ -122,28 +118,6 @@ export default function UserManager() {
         setUserToRemove(null);
     }
   };
-
-  const handleResetPassword = async () => {
-    if (!passwordResetUser || !passwordToReset) {
-        toast({ variant: 'destructive', title: 'Error', description: 'New password is required.'});
-        return;
-    }
-    try {
-        await resetPassword(passwordResetUser.id, passwordToReset);
-        toast({ title: 'Password Reset', description: `Password for ${passwordResetUser.username} has been reset.`});
-        setIsResetPasswordDialogOpen(false);
-        setPasswordResetUser(null);
-        setPasswordToReset('');
-    } catch(error) {
-        console.error('Failed to reset password: ', error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Failed to reset password.'});
-    }
-  }
-
-  const openResetPasswordDialog = (user: User) => {
-    setPasswordResetUser(user);
-    setIsResetPasswordDialogOpen(true);
-  }
 
   const openRemoveUserAlert = (user: User) => {
     setUserToRemove(user);
@@ -248,11 +222,6 @@ export default function UserManager() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => openResetPasswordDialog(user)}>
-                        <KeyRound className="mr-2 h-4 w-4" />
-                        Reset Password
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
                       <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => openRemoveUserAlert(user)}>
                         <Trash2 className="mr-2 h-4 w-4" />
                         Remove User
@@ -264,24 +233,6 @@ export default function UserManager() {
             ))}
           </TableBody>
         </Table>
-
-        <Dialog open={isResetPasswordDialogOpen} onOpenChange={setIsResetPasswordDialogOpen}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Reset Password</DialogTitle>
-                    <DialogDescription>Enter a new password for {passwordResetUser?.username}.</DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="new-password" className="text-right">New Password</Label>
-                        <Input id="new-password" type="password" value={passwordToReset} onChange={e => setPasswordToReset(e.target.value)} className="col-span-3" />
-                    </div>
-                </div>
-                <DialogFooter>
-                    <Button onClick={handleResetPassword}>Reset Password</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
 
         <AlertDialog open={isRemoveUserAlertOpen} onOpenChange={setIsRemoveUserAlertOpen}>
             <AlertDialogContent>

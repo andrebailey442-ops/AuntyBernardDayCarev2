@@ -1,3 +1,4 @@
+
 import type { User, UserRole } from '@/lib/types';
 import { USERS, STUDENTS, GRADES, ATTENDANCE, FEES, SUBJECTS } from '@/lib/data';
 import { initializeStudentsData } from './students';
@@ -55,15 +56,6 @@ export const removeUser = async (userId: string): Promise<void> => {
     let allUsers = getUsersFromStorage();
     const updatedUsers = allUsers.filter(u => u.id !== userId);
     saveUsersToStorage(updatedUsers);
-};
-
-export const resetPassword = async (userId: string, newPassword?: string): Promise<void> => {
-    let allUsers = getUsersFromStorage();
-    const userIndex = allUsers.findIndex(u => u.id === userId);
-    if (userIndex > -1) {
-        allUsers[userIndex].password = newPassword;
-        saveUsersToStorage(allUsers);
-    }
 };
 
 export const authenticateUser = async (username: string, password?: string): Promise<User | null> => {
