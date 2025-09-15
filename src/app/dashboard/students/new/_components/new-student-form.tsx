@@ -23,18 +23,11 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { CalendarIcon, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 import { ScholarStartLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { jsPDF } from 'jspdf';
 import { Separator } from '@/components/ui/separator';
@@ -93,6 +86,12 @@ export function NewStudentForm() {
   const [studentId, setStudentId] = React.useState('');
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
+  const [dobState, setDobState] = React.useState({
+    day: '',
+    month: '',
+    year: '',
+  });
+
   const form = useForm<NewStudentFormValues & { studentId: string }>({
     resolver: zodResolver(newStudentSchema.extend({ studentId: z.string() })),
     defaultValues: {
@@ -124,6 +123,17 @@ export function NewStudentForm() {
 
   const dob = form.watch('dob');
   const formValues = form.watch();
+
+  React.useEffect(() => {
+    const { day, month, year } = dobState;
+    if (day && month && year) {
+      const newDob = new Date(Number(year), Number(month) - 1, Number(day));
+      // Check if it's a valid date
+      if (!isNaN(newDob.getTime())) {
+          form.setValue('dob', newDob, { shouldValidate: true });
+      }
+    }
+  }, [dobState, form]);
 
   React.useEffect(() => {
     if (dob) {
@@ -312,6 +322,18 @@ export function NewStudentForm() {
     }
   }
 
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
+  const months = [
+    { value: '1', label: 'January' }, { value: '2', label: 'February' },
+    { value: '3', label: 'March' }, { value: '4', label: 'April' },
+    { value: '5', label: 'May' }, { value: '6', label: 'June' },
+    { value: '7', label: 'July' }, { value: '8', label: 'August' },
+    { value: '9', label: 'September' }, { value: '10', label: 'October' },
+    { value: '11', label: 'November' }, { value: '12', label: 'December' },
+  ];
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+
   return (
     <Card className="max-w-4xl mx-auto border-4 border-primary/10 shadow-lg">
       <CardHeader>
@@ -346,26 +368,72 @@ export function NewStudentForm() {
                         <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input placeholder="Smith" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
+                <FormField
+                  control={form.control}
+                  name="dob"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date of Birth</FormLabel>
+                      <div className="grid grid-cols-3 gap-4">
+                        <Select
+                          value={dobState.month}
+                          onValueChange={(value) => setDobState((prev) => ({ ...prev, month: value }))}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Month" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {months.map((month) => (
+                              <SelectItem key={month.value} value={month.value}>
+                                {month.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={dobState.day}
+                          onValueChange={(value) => setDobState((prev) => ({ ...prev, day: value }))}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Day" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {days.map((day) => (
+                              <SelectItem key={day} value={String(day)}>
+                                {day}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={dobState.year}
+                          onValueChange={(value) => setDobState((prev) => ({ ...prev, year: value }))}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Year" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {years.map((year) => (
+                              <SelectItem key={year} value={String(year)}>
+                                {year}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="dob" render={({ field }) => (
-                        <FormItem className="flex flex-col"><FormLabel>Date of Birth</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <FormControl>
-                                        <Button variant={"outline"} className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                            {field.value ? (format(field.value, "PPP")) : (<span>Pick a date</span>)}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                        </Button>
-                                    </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus />
-                                </PopoverContent>
-                            </Popover>
-                        <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField control={form.control} name="age" render={({ field }) => (
+                    <div></div>
+                     <FormField control={form.control} name="age" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Age</FormLabel>
                             <FormControl>

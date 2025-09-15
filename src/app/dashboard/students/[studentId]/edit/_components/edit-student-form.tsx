@@ -23,22 +23,22 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { ArrowLeft, CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import { ArrowLeft } from 'lucide-react';
+import { format, getYear, getMonth, getDate } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 import { ScholarStartLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import type { Student } from '@/lib/types';
 import { getStudent, updateStudent } from '@/services/students';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const editStudentSchema = z.object({
     firstName: z.string().min(1, 'First name is required'),
@@ -71,6 +71,12 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
   const [isFetching, setIsFetching] = React.useState(true);
   const [student, setStudent] = React.useState<Student | null>(null);
 
+  const [dobState, setDobState] = React.useState({
+    day: '',
+    month: '',
+    year: '',
+  });
+
   const form = useForm<EditStudentFormValues>({
     resolver: zodResolver(editStudentSchema),
     defaultValues: {
@@ -97,11 +103,12 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
         if (studentData) {
             setStudent(studentData);
             const [firstName, ...lastName] = studentData.name.split(' ');
+            const dob = studentData.dob ? new Date(studentData.dob) : new Date(new Date().setFullYear(new Date().getFullYear() - studentData.age));
             
             form.reset({
                 firstName: firstName,
                 lastName: lastName.join(' '),
-                dob: studentData.dob ? new Date(studentData.dob) : new Date(new Date().setFullYear(new Date().getFullYear() - studentData.age)),
+                dob: dob,
                 age: studentData.age,
                 parentFirstName: studentData.parentFirstName || '',
                 parentLastName: studentData.parentLastName || '',
@@ -115,6 +122,13 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                 emergencyContactPhone: studentData.emergencyContactPhone || '',
                 medicalConditions: studentData.medicalConditions || ''
             });
+
+            setDobState({
+              day: getDate(dob).toString(),
+              month: (getMonth(dob) + 1).toString(),
+              year: getYear(dob).toString(),
+            });
+
         } else {
             toast({ variant: 'destructive', title: 'Error', description: 'Student not found.' });
             router.push('/dashboard');
@@ -138,6 +152,16 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
       form.setValue('age', age);
     }
   }, [dob, form]);
+
+  React.useEffect(() => {
+    const { day, month, year } = dobState;
+    if (day && month && year) {
+      const newDob = new Date(Number(year), Number(month) - 1, Number(day));
+      if (!isNaN(newDob.getTime())) {
+          form.setValue('dob', newDob, { shouldValidate: true });
+      }
+    }
+  }, [dobState, form]);
 
   const onSubmit = async (data: EditStudentFormValues) => {
     setIsLoading(true);
@@ -181,15 +205,11 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
             </div>
             <Card className="max-w-4xl mx-auto">
                 <CardHeader className="text-center">
-                    <div className="flex items-center justify-center gap-4 mb-4">
-                       <Skeleton className="h-12 w-12" />
-                        <Skeleton className="h-8 w-64" />
+                    <div className="flex flex-col items-center gap-4 mb-4">
+                        <Skeleton className="h-24 w-24 rounded-full" />
+                        <Skeleton className="h-8 w-48" />
                     </div>
-                    <Skeleton className="h-4 w-48 mx-auto" />
-                    <div className="pt-4">
-                        <Skeleton className="h-4 w-32 mx-auto" />
-                        <Skeleton className="h-6 w-40 mx-auto mt-1" />
-                    </div>
+                    <Skeleton className="h-4 w-64 mx-auto" />
                 </CardHeader>
                 <CardContent className="space-y-8">
                     <Skeleton className="h-64 w-full" />
@@ -199,6 +219,18 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
         </div>
       );
   }
+
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 100 }, (_, i) => currentYear - i);
+  const months = [
+    { value: '1', label: 'January' }, { value: '2', label: 'February' },
+    { value: '3', label: 'March' }, { value: '4', label: 'April' },
+    { value: '5', label: 'May' }, { value: '6', label: 'June' },
+    { value: '7', label: 'July' }, { value: '8', label: 'August' },
+    { value: '9', label: 'September' }, { value: '10', label: 'October' },
+    { value: '11', label: 'November' }, { value: '12', label: 'December' },
+  ];
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
   return (
     <>
@@ -237,25 +269,71 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                         <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
+                <FormField
+                  control={form.control}
+                  name="dob"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date of Birth</FormLabel>
+                      <div className="grid grid-cols-3 gap-4">
+                        <Select
+                          value={dobState.month}
+                          onValueChange={(value) => setDobState((prev) => ({ ...prev, month: value }))}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Month" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {months.map((month) => (
+                              <SelectItem key={month.value} value={month.value}>
+                                {month.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={dobState.day}
+                          onValueChange={(value) => setDobState((prev) => ({ ...prev, day: value }))}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Day" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {days.map((day) => (
+                              <SelectItem key={day} value={String(day)}>
+                                {day}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={dobState.year}
+                          onValueChange={(value) => setDobState((prev) => ({ ...prev, year: value }))}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Year" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {years.map((year) => (
+                              <SelectItem key={year} value={String(year)}>
+                                {year}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="dob" render={({ field }) => (
-                        <FormItem className="flex flex-col"><FormLabel>Date of Birth</FormLabel>
-                            <Popover>
-                                <PopoverTrigger asChild>
-                                    <FormControl>
-                                        <Button variant={"outline"} className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                            {field.value ? (format(field.value, "PPP")) : (<span>Pick a date</span>)}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                        </Button>
-                                    </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar mode="single" selected={field.value} onSelect={field.onChange} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus />
-                                </PopoverContent>
-                            </Popover>
-                        <FormMessage />
-                        </FormItem>
-                    )} />
+                    <div></div>
                     <FormField control={form.control} name="age" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Age</FormLabel>
