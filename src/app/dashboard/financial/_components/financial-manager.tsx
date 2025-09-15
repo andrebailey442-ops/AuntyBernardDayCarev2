@@ -45,7 +45,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InvoiceDialog from './invoice-dialog';
-import { getStudents, updateStudent as updateStudentStatus } from '@/services/students';
+import { getStudent, getStudents, updateStudent as updateStudentStatus } from '@/services/students';
 import { getFees, getFeeByStudentId, updateFee } from '@/services/fees';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -126,7 +126,8 @@ export default function FinancialManager() {
         );
 
         // Check for enrollment status update
-        if (paymentStudent.status === 'pending' && newAmountPaid >= (feeToUpdate.amount * 0.3)) {
+        const studentToUpdate = await getStudent(paymentStudent.id);
+        if (studentToUpdate?.status === 'pending' && newAmountPaid >= (feeToUpdate.amount * 0.3)) {
           await updateStudentStatus(paymentStudent.id, { status: 'enrolled' });
           setStudents(prev => prev.map(s => s.id === paymentStudent.id ? { ...s, status: 'enrolled'} : s));
           toast({
@@ -175,8 +176,8 @@ export default function FinancialManager() {
                 : fee
             )
         );
-
-        const studentToUpdate = students.find(s => s.id === updatePaymentStudentId);
+        
+        const studentToUpdate = await getStudent(updatePaymentStudentId);
         if (studentToUpdate?.status === 'pending' && newAmountPaid >= (feeToUpdate.amount * 0.3)) {
             await updateStudentStatus(updatePaymentStudentId, { status: 'enrolled' });
             setStudents(prev => prev.map(s => s.id === updatePaymentStudentId ? { ...s, status: 'enrolled'} : s));
