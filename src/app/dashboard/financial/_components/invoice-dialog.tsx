@@ -100,7 +100,7 @@ export default function InvoiceDialog({ student, fee }: InvoiceDetailsProps) {
             doc.setFont('helvetica', 'bold');
             doc.text('Amount Due', 120, y);
             doc.text(`$${(fee.amount - (fee.amountPaid || 0)).toFixed(2)}`, 170, y, { align: 'right' });
-            y += 10;
+            y += 15;
             
             doc.setFontSize(14);
             doc.text(`Status: ${fee.status}`, 120, y);
