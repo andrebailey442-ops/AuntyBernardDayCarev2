@@ -3,6 +3,7 @@
 
 import * as React from 'react';
 import type { User } from '@/lib/types';
+import { authenticateUser } from '@/services/users';
 
 type AuthContextType = {
   user: User | null;
@@ -16,40 +17,31 @@ const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<User | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const AUTH_STORAGE_KEY = 'currentUser';
 
   React.useEffect(() => {
-    const fetchSession = async () => {
-      setLoading(true);
+    const initialize = async () => {
       try {
-        const res = await fetch('/api/auth/session');
-        if (res.ok) {
-          const userSession = await res.json();
-          setUser(userSession);
-        } else {
-          setUser(null);
+        const storedUser = localStorage.getItem(AUTH_STORAGE_KEY);
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
         }
       } catch (error) {
-        console.error("Failed to fetch session", error);
-        setUser(null);
+        console.error("Failed to retrieve user from localStorage", error);
       } finally {
         setLoading(false);
       }
-    };
-    fetchSession();
+    }
+    initialize();
   }, []);
 
   const login = async (username: string, password?: string) => {
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (res.ok) {
-        const authenticatedUser = await res.json();
+      const authenticatedUser = await authenticateUser(username, password);
+      if (authenticatedUser) {
         setUser(authenticatedUser);
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authenticatedUser));
         return authenticatedUser;
       }
       return null;
@@ -61,13 +53,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = async () => {
+  const logout = () => {
     setUser(null);
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
+    localStorage.removeItem(AUTH_STORAGE_KEY);
   };
 
   const value = { user, loading, login, logout };
