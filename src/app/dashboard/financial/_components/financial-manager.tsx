@@ -57,6 +57,7 @@ export default function FinancialManager() {
   const [fees, setFees] = React.useState<Fee[]>([]);
   const [filteredStudents, setFilteredStudents] = React.useState<Student[]>([]);
   const [paymentStudent, setPaymentStudent] = React.useState<Student | null>(null);
+  const [amountToPay, setAmountToPay] = React.useState<number | ''>('');
   const [updatePaymentStudentId, setUpdatePaymentStudentId] = React.useState('');
   const [newPaymentStatus, setNewPaymentStatus] = React.useState<'Paid' | 'Pending' | 'Overdue' | ''>('');
   const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
@@ -97,32 +98,50 @@ export default function FinancialManager() {
   }
   
   const handleMakePayment = async () => {
-    if (!paymentStudent) return;
+    if (!paymentStudent || amountToPay === '' || amountToPay <= 0) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Please enter a valid payment amount.'});
+        return;
+    };
+    
     try {
         const feeToUpdate = await getFeeByStudentId(paymentStudent.id);
         if (!feeToUpdate) {
             throw new Error('Fee record not found for student.');
         }
-        await updateFee(feeToUpdate.id, { status: 'Paid' });
+        
+        const newAmountPaid = (feeToUpdate.amountPaid || 0) + Number(amountToPay);
+        const newStatus = newAmountPaid >= feeToUpdate.amount ? 'Paid' : feeToUpdate.status;
+
+        await updateFee(feeToUpdate.id, { 
+            amountPaid: newAmountPaid,
+            status: newStatus 
+        });
 
         setFees(prevFees =>
             prevFees.map(fee =>
-                fee.studentId === paymentStudent.id
-                ? { ...fee, status: 'Paid' }
+                fee.id === feeToUpdate.id
+                ? { ...fee, amountPaid: newAmountPaid, status: newStatus }
                 : fee
             )
         );
 
-        if (paymentStudent.status === 'pending') {
+        // Check for enrollment status update
+        if (paymentStudent.status === 'pending' && newAmountPaid >= (feeToUpdate.amount * 0.3)) {
           await updateStudentStatus(paymentStudent.id, { status: 'enrolled' });
           setStudents(prev => prev.map(s => s.id === paymentStudent.id ? { ...s, status: 'enrolled'} : s));
+          toast({
+            title: 'Student Enrolled',
+            description: `${paymentStudent.name} has met the payment threshold and is now enrolled.`,
+          });
+        } else {
+            toast({
+                title: 'Payment Processed',
+                description: `Payment of $${amountToPay} for ${paymentStudent.name} has been recorded.`,
+            });
         }
 
-        toast({
-            title: 'Payment Processed',
-            description: `Payment for ${paymentStudent.name} has been recorded as Paid.`,
-        });
         setPaymentStudent(null);
+        setAmountToPay('');
     } catch(error) {
         console.error("Failed to process payment: ", error);
         toast({
@@ -141,22 +160,26 @@ export default function FinancialManager() {
         if (!feeToUpdate) {
             throw new Error('Fee record not found for student.');
         }
-        await updateFee(feeToUpdate.id, { status: newPaymentStatus as 'Paid' | 'Pending' | 'Overdue' });
+
+        let newAmountPaid = feeToUpdate.amountPaid;
+        if (newPaymentStatus === 'Paid') {
+            newAmountPaid = feeToUpdate.amount;
+        }
+        
+        await updateFee(feeToUpdate.id, { status: newPaymentStatus as 'Paid' | 'Pending' | 'Overdue', amountPaid: newAmountPaid });
 
         setFees(prevFees =>
             prevFees.map(fee =>
                 fee.studentId === updatePaymentStudentId
-                ? { ...fee, status: newPaymentStatus as 'Paid' | 'Pending' | 'Overdue' }
+                ? { ...fee, status: newPaymentStatus as 'Paid' | 'Pending' | 'Overdue', amountPaid: newAmountPaid }
                 : fee
             )
         );
 
-        if (newPaymentStatus === 'Paid') {
-          const studentToUpdate = students.find(s => s.id === updatePaymentStudentId);
-          if (studentToUpdate?.status === 'pending') {
+        const studentToUpdate = students.find(s => s.id === updatePaymentStudentId);
+        if (studentToUpdate?.status === 'pending' && newAmountPaid >= (feeToUpdate.amount * 0.3)) {
             await updateStudentStatus(updatePaymentStudentId, { status: 'enrolled' });
             setStudents(prev => prev.map(s => s.id === updatePaymentStudentId ? { ...s, status: 'enrolled'} : s));
-          }
         }
 
         toast({
@@ -185,6 +208,7 @@ export default function FinancialManager() {
   }
 
   const studentFee = paymentStudent ? getStudentFee(paymentStudent.id) : null;
+  const amountDue = studentFee ? studentFee.amount - (studentFee.amountPaid || 0) : 0;
 
   return (
     <>
@@ -331,7 +355,7 @@ export default function FinancialManager() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>${fee?.amount.toFixed(2)}</TableCell>
+                  <TableCell>${fee ? (fee.amount - (fee.amountPaid || 0)).toFixed(2) : '0.00'}</TableCell>
                   <TableCell>
                     <Badge variant={fee?.status ? getStatusVariant(fee.status) : 'outline'}>{fee?.status ?? 'N/A'}</Badge>
                   </TableCell>
@@ -402,8 +426,12 @@ export default function FinancialManager() {
                             <Input id="payment-plan" value={studentFee.plan} readOnly className="col-span-3" />
                         </div>
                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="amount" className="text-right">Amount</Label>
-                            <Input id="amount" type="text" value={`$${studentFee.amount.toFixed(2)}`} readOnly className="col-span-3" />
+                            <Label htmlFor="amount" className="text-right">Amount Due</Label>
+                            <Input id="amount" type="text" value={`$${amountDue.toFixed(2)}`} readOnly className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="amount-to-pay" className="text-right">Amount to Pay</Label>
+                            <Input id="amount-to-pay" type="number" value={amountToPay} onChange={(e) => setAmountToPay(e.target.value === '' ? '' : Number(e.target.value))} placeholder="0.00" className="col-span-3" />
                         </div>
                     </div>
                     <DialogFooter>

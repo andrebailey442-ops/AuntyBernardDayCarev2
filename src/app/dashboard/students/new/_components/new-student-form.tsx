@@ -185,6 +185,7 @@ export function NewStudentForm() {
             studentId: data.studentId,
             plan: data.paymentPlan,
             amount: amount,
+            amountPaid: 0,
             status: 'Pending' as 'Pending' | 'Paid' | 'Overdue',
         }
         await addFee(feeData);
@@ -613,5 +614,3 @@ export function NewStudentForm() {
     </Card>
   );
 }
-
-    

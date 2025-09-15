@@ -63,6 +63,7 @@ export type Fee = {
     id: string;
     studentId: string;
     amount: number;
+    amountPaid: number;
     status: 'Paid' | 'Pending' | 'Overdue';
     plan: 'Full Payment' | 'Two Installments' | 'Monthly Plan';
 };

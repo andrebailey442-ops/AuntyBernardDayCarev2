@@ -88,8 +88,18 @@ export default function InvoiceDialog({ student, fee }: InvoiceDetailsProps) {
             y += 10;
             
             doc.setFont('helvetica', 'bold');
-            doc.text('Total Due', 120, y);
+            doc.text('Total Amount', 120, y);
             doc.text(`$${fee.amount.toFixed(2)}`, 170, y, { align: 'right' });
+            y += 10;
+
+            doc.setFont('helvetica', 'normal');
+            doc.text('Amount Paid', 120, y);
+            doc.text(`$${(fee.amountPaid || 0).toFixed(2)}`, 170, y, { align: 'right' });
+            y += 10;
+
+            doc.setFont('helvetica', 'bold');
+            doc.text('Amount Due', 120, y);
+            doc.text(`$${(fee.amount - (fee.amountPaid || 0)).toFixed(2)}`, 170, y, { align: 'right' });
             y += 10;
             
             doc.setFontSize(14);
@@ -110,6 +120,8 @@ export default function InvoiceDialog({ student, fee }: InvoiceDetailsProps) {
             });
         }
     }
+
+    const amountDue = fee ? fee.amount - (fee.amountPaid || 0) : 0;
 
     return (
         <>
@@ -137,8 +149,16 @@ export default function InvoiceDialog({ student, fee }: InvoiceDetailsProps) {
                             </div>
                         )}
                         <div className="grid grid-cols-3 items-center gap-4">
-                            <span className="text-muted-foreground">Amount Due</span>
+                            <span className="text-muted-foreground">Total Amount</span>
                             <span className="col-span-2 font-semibold">${fee.amount.toFixed(2)}</span>
+                        </div>
+                        <div className="grid grid-cols-3 items-center gap-4">
+                            <span className="text-muted-foreground">Amount Paid</span>
+                            <span className="col-span-2 font-semibold">${(fee.amountPaid || 0).toFixed(2)}</span>
+                        </div>
+                        <div className="grid grid-cols-3 items-center gap-4 font-bold">
+                            <span className="text-muted-foreground">Amount Due</span>
+                            <span className="col-span-2">${amountDue.toFixed(2)}</span>
                         </div>
                         <div className="grid grid-cols-3 items-center gap-4">
                             <span className="text-muted-foreground">Status</span>
@@ -165,5 +185,3 @@ export default function InvoiceDialog({ student, fee }: InvoiceDetailsProps) {
         </>
     )
 }
-
-    
