@@ -33,8 +33,7 @@ export default function StudentList() {
     const fetchStudents = async () => {
       setLoading(true);
       const allStudents = await getStudents();
-      const enrolledStudents = allStudents.filter(student => student.status !== 'graduated');
-      setStudents(enrolledStudents);
+      setStudents(allStudents);
       setLoading(false);
     }
     fetchStudents();

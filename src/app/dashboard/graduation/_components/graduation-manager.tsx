@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Student, Grade } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { getStudents, updateStudent } from '@/services/students';
+import { getStudents, getArchivedStudents, updateStudent } from '@/services/students';
 import { getGradesByStudent } from '@/services/grades';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Award, GraduationCap } from 'lucide-react';
@@ -30,14 +30,19 @@ import jsPDF from 'jspdf';
 
 export default function GraduationManager() {
   const { toast } = useToast();
-  const [students, setStudents] = React.useState<Student[]>([]);
+  const [enrolledStudents, setEnrolledStudents] = React.useState<Student[]>([]);
+  const [graduatedStudents, setGraduatedStudents] = React.useState<Student[]>([]);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     const fetchStudents = async () => {
       setLoading(true);
-      const studentList = await getStudents();
-      setStudents(studentList);
+      const [enrolled, graduated] = await Promise.all([
+        getStudents(),
+        getArchivedStudents(),
+      ]);
+      setEnrolledStudents(enrolled);
+      setGraduatedStudents(graduated);
       setLoading(false);
     };
     fetchStudents();
@@ -46,9 +51,13 @@ export default function GraduationManager() {
   const handleGraduate = async (studentId: string) => {
     try {
       await updateStudent(studentId, { status: 'graduated' });
-      setStudents(prev =>
-        prev.map(s => (s.id === studentId ? { ...s, status: 'graduated' } : s))
-      );
+      
+      const studentToGraduate = enrolledStudents.find(s => s.id === studentId);
+      if (studentToGraduate) {
+        setEnrolledStudents(prev => prev.filter(s => s.id !== studentId));
+        setGraduatedStudents(prev => [...prev, { ...studentToGraduate, status: 'graduated' }]);
+      }
+
       toast({
         title: 'Student Graduated',
         description: 'The student has been moved to the graduated list.',
@@ -155,9 +164,6 @@ export default function GraduationManager() {
       });
     }
   };
-
-  const enrolledStudents = students.filter(s => s.status !== 'graduated');
-  const graduatedStudents = students.filter(s => s.status === 'graduated');
 
   return (
     <div className="space-y-8">

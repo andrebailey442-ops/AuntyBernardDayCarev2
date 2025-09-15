@@ -72,7 +72,7 @@ export default function StudentManager() {
   const fetchStudents = React.useCallback(async () => {
     setLoading(true);
     const studentList = await getStudents();
-    setAllStudents(studentList.filter(s => s.status !== 'graduated'));
+    setAllStudents(studentList);
     setLoading(false);
   }, []);
 
@@ -332,8 +332,8 @@ export default function StudentManager() {
                         <Badge variant="outline">{student.age}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={student.status === 'graduated' ? 'secondary' : 'default'}>
-                          {student.status === 'graduated' ? 'Graduated' : 'Enrolled'}
+                        <Badge variant={'default'}>
+                          Enrolled
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
