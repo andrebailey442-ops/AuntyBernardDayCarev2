@@ -19,7 +19,6 @@ export type Student = {
   address?: string;
   city?: string;
   state?: string;
-  zip?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   medicalConditions?: string;

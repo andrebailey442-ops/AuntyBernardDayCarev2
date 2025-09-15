@@ -126,7 +126,7 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                     <div><p className="text-sm text-muted-foreground">Last Name</p><p>{student.parentLastName || 'N/A'}</p></div>
                     <div><p className="text-sm text-muted-foreground">Email</p><p>{student.parentContact}</p></div>
                     <div><p className="text-sm text-muted-foreground">Phone</p><p>{student.parentPhone || 'N/A'}</p></div>
-                    <div className="md:col-span-2"><p className="text-sm text-muted-foreground">Address</p><p>{`${student.address || ''}, ${student.city || ''}, ${student.state || ''} ${student.zip || ''}`}</p></div>
+                    <div className="md:col-span-2"><p className="text-sm text-muted-foreground">Address</p><p>{`${student.address || ''}, ${student.city || ''}, ${student.state || ''}`}</p></div>
                 </div>
             </div>
 

@@ -52,7 +52,6 @@ const editStudentSchema = z.object({
     address: z.string().min(1, 'Address is required'),
     city: z.string().min(1, 'City is required'),
     state: z.string().min(1, 'State is required'),
-    zip: z.string().min(1, 'ZIP code is required'),
     emergencyContactName: z.string().min(1, 'Emergency contact name is required'),
     emergencyContactPhone: z.string().min(1, 'Emergency contact phone is required'),
     medicalConditions: z.string().optional(),
@@ -89,7 +88,6 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
         address: '',
         city: '',
         state: '',
-        zip: '',
         emergencyContactName: '',
         emergencyContactPhone: '',
         medicalConditions: '',
@@ -117,7 +115,6 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                 address: studentData.address || '',
                 city: studentData.city || '',
                 state: studentData.state || '',
-                zip: studentData.zip || '',
                 emergencyContactName: studentData.emergencyContactName || '',
                 emergencyContactPhone: studentData.emergencyContactPhone || '',
                 medicalConditions: studentData.medicalConditions || ''
@@ -177,7 +174,6 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
             address: data.address,
             city: data.city,
             state: data.state,
-            zip: data.zip,
             emergencyContactName: data.emergencyContactName,
             emergencyContactPhone: data.emergencyContactPhone,
             medicalConditions: data.medicalConditions,
@@ -375,9 +371,6 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField control={form.control} name="state" render={({ field }) => (
                         <FormItem><FormLabel>State</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="zip" render={({ field }) => (
-                        <FormItem><FormLabel>ZIP Code</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
             </div>

@@ -65,7 +65,6 @@ const newStudentSchema = z.object({
   address: z.string().min(1, 'Address is required'),
   city: z.string().min(1, 'City is required'),
   state: z.string().min(1, 'State is required'),
-  zip: z.string().min(1, 'ZIP code is required'),
   afterCare: z.boolean().default(false),
   emergencyContactName: z.string().min(1, 'Emergency contact name is required'),
   emergencyContactPhone: z.string().min(1, 'Emergency contact phone is required'),
@@ -106,7 +105,6 @@ export function NewStudentForm() {
         address: '',
         city: '',
         state: '',
-        zip: '',
         afterCare: false,
         emergencyContactName: '',
         emergencyContactPhone: '',
@@ -164,7 +162,6 @@ export function NewStudentForm() {
             address: data.address,
             city: data.city,
             state: data.state,
-            zip: data.zip,
             afterCare: data.afterCare,
             emergencyContactName: data.emergencyContactName,
             emergencyContactPhone: data.emergencyContactPhone,
@@ -458,9 +455,6 @@ export function NewStudentForm() {
                     <FormField control={form.control} name="state" render={({ field }) => (
                         <FormItem><FormLabel>State</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
-                    <FormField control={form.control} name="zip" render={({ field }) => (
-                        <FormItem><FormLabel>ZIP Code</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
                 </div>
             </div>
 
@@ -548,7 +542,7 @@ export function NewStudentForm() {
                             <p><strong>Name:</strong> {formValues.parentFirstName} {formValues.parentLastName}</p>
                             <p><strong>Email:</strong> {formValues.parentEmail}</p>
                             <p><strong>Phone:</strong> {formValues.parentPhone}</p>
-                            <p><strong>Address:</strong> {`${formValues.address}, ${formValues.city}, ${formValues.state} ${formValues.zip}`}</p>
+                            <p><strong>Address:</strong> {`${formValues.address}, ${formValues.city}, ${formValues.state}`}</p>
                         </div>
                         <Separator />
                         <div>
