@@ -79,6 +79,9 @@ export type User = {
   imageHint: string;
 };
 
+export type SessionUser = Omit<User, 'password'>;
+
+
 export type Permission = {
     id: string;
     label: string;

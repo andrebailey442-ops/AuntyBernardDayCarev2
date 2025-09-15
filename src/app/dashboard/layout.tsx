@@ -20,7 +20,6 @@ import { BusyBeeLogo } from '@/components/icons';
 import { DashboardNav } from '@/components/dashboard-nav';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/hooks/use-auth';
-import { getTeacherPermissions } from '@/services/permissions';
 import { DashboardHeader } from '@/components/dashboard-header';
 import HeroSlideshow from './_components/hero-slideshow';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -35,28 +34,11 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   React.useEffect(() => {
-    const checkAuthAndPermissions = async () => {
-      if (!loading) {
-        if (!user) {
-          router.replace('/');
-        } else if (user.role === 'Teacher') {
-          // Redirect teacher if they try to access a forbidden page
-          const permissions = await getTeacherPermissions();
-          // The base dashboard and preschool pages are always allowed for teachers
-          const isAllowed =
-            pathname === '/dashboard' || 
-            pathname.startsWith('/dashboard/preschool') ||
-            permissions.includes(pathname);
-          const isAdminPage = pathname.startsWith('/dashboard/manage-users');
-
-          if (!isAllowed || isAdminPage) {
-            router.replace('/dashboard');
-          }
-        }
-      }
+    if (!loading && !user) {
+        router.replace('/');
     }
-    checkAuthAndPermissions();
-  }, [user, loading, router, pathname]);
+  }, [user, loading, router]);
+
 
   if (loading || !user) {
     return (
