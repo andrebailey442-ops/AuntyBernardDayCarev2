@@ -37,16 +37,15 @@ type HeroSlideshowProps = {
 };
 
 export default function HeroSlideshow({ title }: HeroSlideshowProps) {
-    const plugin = React.useRef(
-        Autoplay({ delay: 3000, stopOnInteraction: true })
-    )
-
   return (
     <Carousel 
-        plugins={[plugin.current]}
+        plugins={[
+            Autoplay({
+              delay: 3000,
+              stopOnInteraction: true,
+            }),
+        ]}
         className="w-full"
-        onMouseEnter={plugin.current.stop}
-        onMouseLeave={plugin.current.reset}
     >
       <CarouselContent>
         {slideImages.map((image, index) => (
