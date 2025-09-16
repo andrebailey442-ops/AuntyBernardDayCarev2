@@ -180,12 +180,22 @@ export default function AfterCareManager() {
     toast({ title: 'Log Archived', description: 'Today\'s checkout log has been archived.'});
   }
 
+  const addLogoAndHeader = (doc: jsPDF, title: string) => {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(24);
+    doc.text('BusyBee', 20, 22);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(18);
+    doc.text(title, 20, 35);
+    doc.setLineWidth(0.5);
+    doc.line(20, 40, 190, 40);
+  };
+
   const downloadLogReport = (log: ArchivedLog) => {
     try {
         const doc = new jsPDF();
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(16);
-        doc.text(`After-Care Log for ${format(new Date(log.date), 'PPP')}`, 14, 22);
+        addLogoAndHeader(doc, `After-Care Log for ${format(new Date(log.date), 'PPP')}`);
 
         const tableColumn = ["Student", "Check-in Time", "Checked In By", "Check-out Time", "Checked Out By"];
         const tableRows: (string | null)[][] = [];
@@ -204,7 +214,7 @@ export default function AfterCareManager() {
         (doc as any).autoTable({
             head: [tableColumn],
             body: tableRows,
-            startY: 30,
+            startY: 50, // Adjusted startY for header
         });
 
         doc.save(`AfterCare_Log_${log.date}.pdf`);
