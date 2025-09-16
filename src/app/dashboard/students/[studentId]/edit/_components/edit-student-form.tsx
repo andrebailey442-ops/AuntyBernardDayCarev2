@@ -39,6 +39,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
 
 const editStudentSchema = z.object({
     firstName: z.string().min(1, 'First name is required'),
@@ -52,6 +54,7 @@ const editStudentSchema = z.object({
     address: z.string().min(1, 'Address is required'),
     city: z.string().min(1, 'City is required'),
     state: z.string().min(1, 'State is required'),
+    afterCare: z.boolean().optional(),
     emergencyContactName: z.string().min(1, 'Emergency contact name is required'),
     emergencyContactPhone: z.string().min(1, 'Emergency contact phone is required'),
     medicalConditions: z.string().optional(),
@@ -88,6 +91,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
         address: '',
         city: '',
         state: '',
+        afterCare: false,
         emergencyContactName: '',
         emergencyContactPhone: '',
         medicalConditions: '',
@@ -115,6 +119,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                 address: studentData.address || '',
                 city: studentData.city || '',
                 state: studentData.state || '',
+                afterCare: studentData.afterCare || false,
                 emergencyContactName: studentData.emergencyContactName || '',
                 emergencyContactPhone: studentData.emergencyContactPhone || '',
                 medicalConditions: studentData.medicalConditions || ''
@@ -174,6 +179,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
             address: data.address,
             city: data.city,
             state: data.state,
+            afterCare: data.afterCare,
             emergencyContactName: data.emergencyContactName,
             emergencyContactPhone: data.emergencyContactPhone,
             medicalConditions: data.medicalConditions,
@@ -375,6 +381,36 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                 </div>
             </div>
 
+            <Separator />
+            
+            <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Program Enrollment</h3>
+                 <FormField
+                    control={form.control}
+                    name="afterCare"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                        <div className="space-y-0.5">
+                            <FormLabel className="text-base">
+                            After-Care Program
+                            </FormLabel>
+                            <FormDescription>
+                                Enroll this student in the after-care program.
+                            </FormDescription>
+                        </div>
+                        <FormControl>
+                            <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            />
+                        </FormControl>
+                        </FormItem>
+                    )}
+                />
+            </div>
+
+            <Separator />
+
             <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Emergency and Health Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -409,3 +445,5 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     </>
   );
 }
+
+    
