@@ -17,25 +17,25 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
-import { getTeacherPermissions } from '@/services/permissions';
+import { getPermissionsByRole } from '@/services/permissions';
 
 type NavItem = {
   href: string;
   label: string;
   icon: LucideIcon;
-  adminOnly?: boolean;
+  id: string;
 };
 
 const navItems: NavItem[] = [
-  { href: '/dashboard/preschool', label: 'Preschool', icon: GraduationCap },
-  { href: '/dashboard/student-management', label: 'Students', icon: Users },
-  { href: '/dashboard/attendance', label: 'Attendance', icon: ClipboardCheck },
-  { href: '/dashboard/grades', label: 'Grades', icon: GraduationCap },
-  { href: '/dashboard/financial', label: 'Financial', icon: DollarSign },
-  { href: '/dashboard/forms', label: 'Forms', icon: FileText },
-  { href: '/dashboard/reports', label: 'Reports', icon: FileText },
-  { href: '/dashboard/graduation', label: 'Graduation', icon: Award },
-  { href: '/dashboard/after-care', label: 'After Care', icon: Sunset },
+  { href: '/dashboard/preschool', label: 'Preschool', icon: GraduationCap, id: '/dashboard/preschool' },
+  { href: '/dashboard/student-management', label: 'Students', icon: Users, id: '/dashboard/student-management' },
+  { href: '/dashboard/attendance', label: 'Attendance', icon: ClipboardCheck, id: '/dashboard/attendance' },
+  { href: '/dashboard/grades', label: 'Grades', icon: GraduationCap, id: '/dashboard/grades' },
+  { href: '/dashboard/financial', label: 'Financial', icon: DollarSign, id: '/dashboard/financial' },
+  { href: '/dashboard/forms', label: 'Forms', icon: FileText, id: '/dashboard/forms' },
+  { href: '/dashboard/reports', label: 'Reports', icon: FileText, id: '/dashboard/reports' },
+  { href: '/dashboard/graduation', label: 'Graduation', icon: Award, id: '/dashboard/graduation' },
+  { href: '/dashboard/after-care', label: 'After Care', icon: Sunset, id: '/dashboard/after-care' },
 ];
 
 export function DashboardNav() {
@@ -45,15 +45,10 @@ export function DashboardNav() {
 
   React.useEffect(() => {
     const determineVisibleItems = async () => {
-      if (user?.role === 'Admin') {
-        setVisibleNavItems(navItems);
-      } else if (user?.role === 'Teacher') {
-        const permissions = await getTeacherPermissions();
-        // The main dashboard link is always visible
-        const teacherNav = navItems.filter(item => 
-            !item.adminOnly && (item.href === '/dashboard/preschool' || permissions.includes(item.href))
-        );
-        setVisibleNavItems(teacherNav);
+      if (user) {
+        const permissions = await getPermissionsByRole(user.role);
+        const userNav = navItems.filter(item => permissions.includes(item.id));
+        setVisibleNavItems(userNav);
       } else {
         setVisibleNavItems([]);
       }

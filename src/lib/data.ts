@@ -37,6 +37,7 @@ export const USERS: User[] = [
 ];
 
 export const PERMISSIONS: {id: string, label: string}[] = [
+    { id: '/dashboard/preschool', label: 'Preschool Dashboard' },
     { id: '/dashboard/student-management', label: 'Student Management' },
     { id: '/dashboard/attendance', label: 'Attendance' },
     { id: '/dashboard/grades', label: 'Grades' },
@@ -45,6 +46,7 @@ export const PERMISSIONS: {id: string, label: string}[] = [
     { id: '/dashboard/reports', label: 'Reports' },
     { id: '/dashboard/graduation', label: 'Graduation' },
     { id: '/dashboard/after-care', label: 'After-Care' },
+    { id: '/dashboard/manage-users', label: 'Manage Users'},
 ];
 
-export const DEFAULT_TEACHER_PERMISSIONS: string[] = ['/dashboard/attendance', '/dashboard/grades'];
+export const DEFAULT_TEACHER_PERMISSIONS: string[] = ['/dashboard/preschool', '/dashboard/attendance', '/dashboard/grades'];

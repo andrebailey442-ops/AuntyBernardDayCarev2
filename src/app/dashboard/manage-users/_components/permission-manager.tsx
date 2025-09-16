@@ -14,25 +14,34 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { PERMISSIONS } from '@/lib/data';
-import { getTeacherPermissions, saveTeacherPermissions } from '@/services/permissions';
+import { getPermissionsByRole, savePermissionsByRole } from '@/services/permissions';
+import type { UserRole } from '@/lib/types';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function PermissionManager() {
   const { toast } = useToast();
-  const [permissions, setPermissions] = React.useState<string[]>([]);
+  const [teacherPermissions, setTeacherPermissions] = React.useState<string[]>([]);
+  const [adminPermissions, setAdminPermissions] = React.useState<string[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<UserRole>('Teacher');
 
   React.useEffect(() => {
     const fetchPermissions = async () => {
       setLoading(true);
-      const currentPermissions = await getTeacherPermissions();
-      setPermissions(currentPermissions);
+      const [teacherPerms, adminPerms] = await Promise.all([
+        getPermissionsByRole('Teacher'),
+        getPermissionsByRole('Admin')
+      ]);
+      setTeacherPermissions(teacherPerms);
+      setAdminPermissions(adminPerms);
       setLoading(false);
     };
     fetchPermissions();
   }, []);
 
   const handlePermissionChange = (permissionId: string, checked: boolean) => {
+    const setPermissions = activeTab === 'Teacher' ? setTeacherPermissions : setAdminPermissions;
     setPermissions(prev =>
       checked
         ? [...prev, permissionId]
@@ -43,10 +52,11 @@ export default function PermissionManager() {
   const handleSaveChanges = async () => {
     setSaving(true);
     try {
-      await saveTeacherPermissions(permissions);
+      const permissionsToSave = activeTab === 'Teacher' ? teacherPermissions : adminPermissions;
+      await savePermissionsByRole(activeTab, permissionsToSave);
       toast({
         title: 'Permissions Updated',
-        description: "Teacher role permissions have been saved.",
+        description: `${activeTab} role permissions have been saved.`,
       });
     } catch (error) {
       console.error('Failed to save permissions:', error);
@@ -70,34 +80,52 @@ export default function PermissionManager() {
       )
   }
 
+  const renderPermissionsGrid = (permissions: string[]) => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {PERMISSIONS.map(permission => (
+              <div key={permission.id} className="flex items-center space-x-2 p-4 border rounded-lg">
+                  <Checkbox
+                      id={`${activeTab}-${permission.id}`}
+                      checked={permissions.includes(permission.id)}
+                      onCheckedChange={(checked) => handlePermissionChange(permission.id, !!checked)}
+                      disabled={activeTab === 'Admin' && permission.id === '/dashboard/manage-users'}
+                  />
+                  <Label htmlFor={`${activeTab}-${permission.id}`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                     {permission.label}
+                  </Label>
+              </div>
+          ))}
+      </div>
+      <div className="flex justify-end pt-4">
+          <Button onClick={handleSaveChanges} disabled={saving}>
+              {saving ? 'Saving...' : `Save ${activeTab} Permissions`}
+          </Button>
+      </div>
+    </div>
+  )
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Teacher Role Permissions</CardTitle>
+        <CardTitle>Role Permissions</CardTitle>
         <CardDescription>
-          Select the dashboard sections that users with the 'Teacher' role can access.
+          Select the dashboard sections that each user role can access.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {PERMISSIONS.map(permission => (
-                <div key={permission.id} className="flex items-center space-x-2 p-4 border rounded-lg">
-                    <Checkbox
-                        id={permission.id}
-                        checked={permissions.includes(permission.id)}
-                        onCheckedChange={(checked) => handlePermissionChange(permission.id, !!checked)}
-                    />
-                    <Label htmlFor={permission.id} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                       {permission.label}
-                    </Label>
-                </div>
-            ))}
-        </div>
-        <div className="flex justify-end pt-4">
-            <Button onClick={handleSaveChanges} disabled={saving}>
-                {saving ? 'Saving...' : 'Save Changes'}
-            </Button>
-        </div>
+      <CardContent>
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as UserRole)}>
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="Teacher">Teacher Role</TabsTrigger>
+                <TabsTrigger value="Admin">Admin Role</TabsTrigger>
+            </TabsList>
+            <TabsContent value="Teacher" className="mt-4">
+                {renderPermissionsGrid(teacherPermissions)}
+            </TabsContent>
+            <TabsContent value="Admin" className="mt-4">
+                {renderPermissionsGrid(adminPermissions)}
+            </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
