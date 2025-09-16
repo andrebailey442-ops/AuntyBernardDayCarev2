@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 const RowDataSchema = z.record(z.any());
@@ -24,3 +25,20 @@ export type MappedStudent = z.infer<typeof MappedStudentSchema>;
 
 export const AnalyzeStudentImportOutputSchema = z.array(MappedStudentSchema);
 export type AnalyzeStudentImportOutput = z.infer<typeof AnalyzeStudentImportOutputSchema>;
+
+export const ResizeImageInputSchema = z.object({
+    photoDataUri: z
+      .string()
+      .describe(
+        "A photo to be resized, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
+      ),
+    targetWidth: z.number().describe('The target width for the resized image in pixels.'),
+    targetHeight: z.number().describe('The target height for the resized image in pixels.'),
+  });
+export type ResizeImageInput = z.infer<typeof ResizeImageInputSchema>;
+  
+export const ResizeImageOutputSchema = z.object({
+    imageUrl: z.string().describe('The data URI of the resized image.'),
+});
+export type ResizeImageOutput = z.infer<typeof ResizeImageOutputSchema>;
+

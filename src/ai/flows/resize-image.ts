@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI flow to resize an image to specific dimensions.
@@ -9,22 +10,10 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { ResizeImageInputSchema, ResizeImageOutputSchema } from './schemas';
+import type { ResizeImageInput, ResizeImageOutput } from './schemas';
 
-export const ResizeImageInputSchema = z.object({
-  photoDataUri: z
-    .string()
-    .describe(
-      "A photo to be resized, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
-    ),
-  targetWidth: z.number().describe('The target width for the resized image in pixels.'),
-  targetHeight: z.number().describe('The target height for the resized image in pixels.'),
-});
-export type ResizeImageInput = z.infer<typeof ResizeImageInputSchema>;
-
-export const ResizeImageOutputSchema = z.object({
-  imageUrl: z.string().describe('The data URI of the resized image.'),
-});
-export type ResizeImageOutput = z.infer<typeof ResizeImageOutputSchema>;
+export type { ResizeImageInput, ResizeImageOutput };
 
 export async function resizeImage(input: ResizeImageInput): Promise<ResizeImageOutput> {
   return resizeImageFlow(input);
@@ -55,3 +44,4 @@ const resizeImageFlow = ai.defineFlow(
     return { imageUrl: media.url };
   }
 );
+
