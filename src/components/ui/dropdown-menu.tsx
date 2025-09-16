@@ -4,6 +4,7 @@
 import * as React from "react"
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
 import { Check, ChevronRight, Circle } from "lucide-react"
+import { Slot } from "@radix-ui/react-slot"
 
 import { cn } from "@/lib/utils"
 
@@ -82,7 +83,7 @@ const DropdownMenuItem = React.forwardRef<
     asChild?: boolean,
   }
 >(({ className, inset, asChild, ...props }, ref) => {
-  const Comp: any = asChild ? 'div' : DropdownMenuPrimitive.Item;
+  const Comp: any = asChild ? Slot : DropdownMenuPrimitive.Item;
   return (
     <Comp
       ref={ref}
