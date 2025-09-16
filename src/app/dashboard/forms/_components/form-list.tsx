@@ -14,27 +14,13 @@ import { useToast } from '@/hooks/use-toast';
 import type { LucideIcon } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import type { FormDocument } from '@/lib/types';
+import { FORMS } from '@/lib/data';
 
 
 const icons: { [key: string]: LucideIcon } = {
   FileText,
   HeartPulse,
 };
-
-const FORMS: FormDocument[] = [
-    {
-      id: 'f1',
-      title: 'New Student Application',
-      description: 'Standard application form for all new student registrations.',
-      icon: 'FileText',
-    },
-    {
-      id: 'f2',
-      title: 'Medical & Consent Form',
-      description: 'Emergency contacts and medical consent for treatment.',
-      icon: 'HeartPulse',
-    },
-];
 
 
 export default function FormList() {

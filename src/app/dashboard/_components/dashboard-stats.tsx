@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Users, CheckCircle, FileText } from 'lucide-react';
 import type { Student, Attendance } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FORMS } from '@/lib/data';
 
 type DashboardStatsProps = {
     students: Student[];
@@ -71,7 +72,7 @@ export default function DashboardStats({ students, attendance, loading }: Dashbo
                     <FileText className="h-4 w-4 text-muted-foreground" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold">3</div>
+                    <div className="text-2xl font-bold">{FORMS.length}</div>
                     <p className="text-xs text-muted-foreground">
                         Total available forms
                     </p>

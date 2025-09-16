@@ -31,7 +31,6 @@ const navItems: NavItem[] = [
   { href: '/dashboard/student-management', label: 'Students', icon: Users, id: '/dashboard/student-management' },
   { href: '/dashboard/attendance', label: 'Attendance', icon: ClipboardCheck, id: '/dashboard/attendance' },
   { href: '/dashboard/grades', label: 'Grades', icon: GraduationCap, id: '/dashboard/grades' },
-  { href: '/dashboard/financial', label: 'Financial', icon: DollarSign, id: '/dashboard/financial' },
   { href: '/dashboard/forms', label: 'Forms', icon: FileText, id: '/dashboard/forms' },
   { href: '/dashboard/reports', label: 'Reports', icon: FileText, id: '/dashboard/reports' },
   { href: '/dashboard/graduation', label: 'Graduation', icon: Award, id: '/dashboard/graduation' },

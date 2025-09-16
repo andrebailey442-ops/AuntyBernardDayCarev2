@@ -265,4 +265,17 @@ export const PERMISSIONS: {id: string, label: string}[] = [
 
 export const DEFAULT_TEACHER_PERMISSIONS: string[] = ['/dashboard/preschool', '/dashboard/attendance', '/dashboard/grades'];
 
-    
+export const FORMS: {id: string, title: string, description: string, icon: any}[] = [
+    {
+      id: 'f1',
+      title: 'New Student Application',
+      description: 'Standard application form for all new student registrations.',
+      icon: 'FileText',
+    },
+    {
+      id: 'f2',
+      title: 'Medical & Consent Form',
+      description: 'Emergency contacts and medical consent for treatment.',
+      icon: 'HeartPulse',
+    },
+];
