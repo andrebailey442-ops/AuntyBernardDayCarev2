@@ -20,9 +20,11 @@ function getFirebaseAdmin() {
   } = process.env;
 
   if (!projectId || !clientEmail || !privateKey) {
-    throw new Error(
-      'Firebase environment variables (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY) are not set.'
+    // We won't throw an error here for client-side use cases
+    console.warn(
+      'Firebase server environment variables are not fully set. Server-side Firebase features will be disabled.'
     );
+    return null;
   }
 
   try {
@@ -44,5 +46,5 @@ function getFirebaseAdmin() {
   }
 }
 
-getFirebaseAdmin();
-export const db = admin.firestore();
+const adminApp = getFirebaseAdmin();
+export const db = adminApp ? admin.firestore() : null;

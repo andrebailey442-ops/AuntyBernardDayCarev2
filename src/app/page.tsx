@@ -21,6 +21,7 @@ import { BusyBeeLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import WallArt from '@/components/wall-art';
+import { Separator } from '@/components/ui/separator';
 
 const loginSchema = z.object({
   username: z.string().min(1, { message: 'Username is required.' }),
@@ -33,7 +34,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -64,6 +65,30 @@ export default function LoginPage() {
       });
     } finally {
         setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    try {
+      const user = await loginWithGoogle();
+      if (user) {
+        toast({
+          title: 'Login Successful',
+          description: `Welcome, ${user.username}!`,
+        });
+        router.push('/dashboard');
+      } else {
+        throw new Error('Google Sign-In failed.');
+      }
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: (error as Error).message || 'An error occurred during Google Sign-In.',
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -123,13 +148,27 @@ export default function LoginPage() {
                       </FormItem>
                       )}
                   />
-                  <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="flex flex-col gap-2">
                     <Button type="submit" className="w-full" disabled={isLoading}>
                         {isLoading ? 'Signing in...' : 'Sign In'}
                     </Button>
                   </div>
                 </form>
             </Form>
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
+             <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={isLoading}>
+              <svg className="mr-2 h-4 w-4" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="google" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512"><path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 109.8 512 0 402.2 0 261.8 0 120.3 109.8 11.8 244 11.8c70.3 0 129.8 28.7 173.4 74.9L345 165.1c-19.4-19.4-44.9-39.6-101-39.6-82.3 0-149.2 67.5-149.2 149.2s66.9 149.2 149.2 149.2c93.2 0 135.7-70.4 141.2-106.3H244v-85.3h236.2c2.3 12.7 3.8 26.6 3.8 41.4z"></path></svg>
+              Google
+            </Button>
             </CardContent>
         </Card>
       </div>

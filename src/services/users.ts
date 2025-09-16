@@ -30,14 +30,19 @@ export const getUsers = async (): Promise<User[]> => {
     return getUsersFromStorage();
 };
 
-export const addUser = async (username: string, role: UserRole, password?: string): Promise<User> => {
+export const findUserByUsername = async (username: string): Promise<User | null> => {
+    const users = getUsersFromStorage();
+    return users.find(u => u.username === username) || null;
+}
+
+export const addUser = async (username: string, role: UserRole, password?: string, avatarUrl?: string, displayName?: string): Promise<User> => {
     const users = getUsersFromStorage();
     const newUser: User = {
         id: `user-${Date.now()}`,
         username,
         role,
         password,
-        avatarUrl: `https://picsum.photos/seed/${username}/100/100`,
+        avatarUrl: avatarUrl || `https://picsum.photos/seed/${username}/100/100`,
         imageHint: 'person avatar'
     };
     users.push(newUser);
