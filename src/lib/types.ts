@@ -71,7 +71,8 @@ export type UserRole = 'Admin' | 'Teacher';
 
 export type User = {
   id: string;
-  username: string;
+  username: string; // This is the display name
+  email?: string; // This is the login email
   role: UserRole;
   password?: string; // Should be handled securely in a real app
   avatarUrl: string;

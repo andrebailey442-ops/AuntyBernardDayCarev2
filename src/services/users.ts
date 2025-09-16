@@ -32,7 +32,8 @@ export const getUsers = async (): Promise<User[]> => {
 
 export const findUserByUsername = async (username: string): Promise<User | null> => {
     const users = getUsersFromStorage();
-    return users.find(u => u.username.toLowerCase() === username.toLowerCase()) || null;
+    const loginIdentifier = username.toLowerCase();
+    return users.find(u => u.username.toLowerCase() === loginIdentifier) || null;
 }
 
 export const addUser = async (email: string, role: UserRole, password?: string, avatarUrl?: string, displayName?: string): Promise<User> => {
@@ -43,7 +44,8 @@ export const addUser = async (email: string, role: UserRole, password?: string, 
     }
     const newUser: User = {
         id: `user-${Date.now()}`,
-        username: email, // Use email as username
+        username: displayName || email, // Use displayName for display, fallback to email
+        email: email, // Store email for login
         role,
         password,
         avatarUrl: avatarUrl || `https://picsum.photos/seed/${email}/100/100`,
@@ -63,6 +65,8 @@ export const removeUser = async (userId: string): Promise<void> => {
 export const authenticateUser = async (emailOrUsername: string, password?: string): Promise<User | null> => {
     const users = getUsersFromStorage();
     const loginIdentifier = emailOrUsername.toLowerCase();
-    const user = users.find(u => u.username.toLowerCase() === loginIdentifier && u.password === password);
+    const user = users.find(u => 
+        (u.email?.toLowerCase() === loginIdentifier || u.username.toLowerCase() === loginIdentifier) && u.password === password
+    );
     return user || null;
 };

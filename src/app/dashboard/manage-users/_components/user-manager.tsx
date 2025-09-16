@@ -68,6 +68,7 @@ export default function UserManager() {
   const [loading, setLoading] = React.useState(true);
   
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = React.useState(false);
+  const [newName, setNewName] = React.useState('');
   const [newEmail, setNewEmail] = React.useState('');
   const [newPassword, setNewPassword] = React.useState('');
   const [newRole, setNewRole] = React.useState<UserRole>('Teacher');
@@ -86,8 +87,8 @@ export default function UserManager() {
   }, []);
 
   const handleAddUser = async () => {
-    if (!newEmail || !newPassword) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Email and password are required.'});
+    if (!newName || !newEmail || !newPassword) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Name, email and password are required.'});
         return;
     }
     // Basic email validation
@@ -96,10 +97,11 @@ export default function UserManager() {
         return;
     }
     try {
-        const newUser = await addUser(newEmail, newRole, newPassword);
+        const newUser = await addUser(newEmail, newRole, newPassword, undefined, newName);
         setUsers(prev => [...prev, newUser]);
-        toast({ title: 'User Added', description: `${newEmail} has been added.`});
+        toast({ title: 'User Added', description: `${newName} has been added.`});
         setIsAddUserDialogOpen(false);
+        setNewName('');
         setNewEmail('');
         setNewPassword('');
         setNewRole('Teacher');
@@ -149,6 +151,10 @@ export default function UserManager() {
                     <DialogDescription>Enter the details for the new user account.</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="name" className="text-right">Name</Label>
+                        <Input id="name" value={newName} onChange={e => setNewName(e.target.value)} className="col-span-3" placeholder="John Doe" />
+                    </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="email" className="text-right">Email</Label>
                         <Input id="email" type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} className="col-span-3" placeholder="user@example.com" />

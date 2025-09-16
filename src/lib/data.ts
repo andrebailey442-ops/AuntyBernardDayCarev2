@@ -21,6 +21,7 @@ export const USERS: User[] = [
     {
       id: 'user-1',
       username: 'Admin',
+      email: 'admin@example.com',
       role: 'Admin',
       password: 'admin',
       avatarUrl: 'https://picsum.photos/seed/admin/100/100',
@@ -29,6 +30,7 @@ export const USERS: User[] = [
     {
         id: 'user-2',
         username: 'Teacher',
+        email: 'teacher@example.com',
         role: 'Teacher',
         password: 'teacher',
         avatarUrl: 'https://picsum.photos/seed/teacher/100/100',
