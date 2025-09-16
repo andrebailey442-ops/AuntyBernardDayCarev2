@@ -261,6 +261,14 @@ export function DashboardHeader() {
                     </Link>
                 </DropdownMenuItem>
              )}
+             {user?.role === 'Admin' && showSlideshow && (
+                <DialogTrigger asChild>
+                    <DropdownMenuItem>
+                        <Image className="mr-2 h-4 w-4" />
+                        <span>Manage Images</span>
+                    </DropdownMenuItem>
+                </DialogTrigger>
+             )}
              <DropdownMenuItem onClick={downloadHandbook}>
               <BookOpen className="mr-2 h-4 w-4" />
               <span>Handbook</span>

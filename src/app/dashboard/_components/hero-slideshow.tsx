@@ -15,7 +15,7 @@ import Autoplay from "embla-carousel-autoplay"
 import { BusyBeeLogo } from '@/components/icons';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Upload, Trash2, Wand2, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { resizeImage } from '@/ai/flows/resize-image';
@@ -57,6 +57,9 @@ export default function HeroSlideshow({ title }: HeroSlideshowProps) {
   const [slideImages, setSlideImages] = React.useState<SlideImage[]>(defaultSlideImages);
   const [isResizing, setIsResizing] = React.useState(false);
   const uploadInputRef = React.useRef<HTMLInputElement>(null);
+  const autoplay = React.useRef(
+    Autoplay({ delay: 3000, stopOnInteraction: true })
+  );
 
   React.useEffect(() => {
       const storedImages = localStorage.getItem(SLIDESHOW_STORAGE_KEY);
@@ -138,15 +141,10 @@ export default function HeroSlideshow({ title }: HeroSlideshowProps) {
   }
 
   return (
-    <Dialog>
+    <>
     <div className="relative">
     <Carousel 
-        plugins={[
-            Autoplay({
-              delay: 3000,
-              stopOnInteraction: true,
-            }),
-        ]}
+        plugins={[autoplay.current]}
         className="w-full"
     >
       <CarouselContent>
@@ -179,13 +177,7 @@ export default function HeroSlideshow({ title }: HeroSlideshowProps) {
       <CarouselPrevious className="absolute left-4" />
       <CarouselNext className="absolute right-4" />
     </Carousel>
-      {user?.role === 'Admin' && (
-        <DialogTrigger asChild>
-          <Button variant="secondary" className="absolute top-4 right-4 z-10">
-            <ImageIcon className="mr-2 h-4 w-4" /> Manage Images
-          </Button>
-        </DialogTrigger>
-      )}
+    </div>
       <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
               <DialogTitle>Manage Slideshow Images</DialogTitle>
@@ -217,7 +209,6 @@ export default function HeroSlideshow({ title }: HeroSlideshowProps) {
               Upload Image
           </Button>
       </DialogContent>
-    </div>
-    </Dialog>
+    </>
   );
 }
