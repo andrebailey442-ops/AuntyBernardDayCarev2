@@ -9,11 +9,13 @@ import AttendanceChart from '../_components/attendance-chart';
 import GradeOverview from '../_components/grade-overview';
 import { getAttendance } from '@/services/attendance';
 import { getGrades } from '@/services/grades';
+import { getStudents } from '@/services/students';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Attendance, Grade } from '@/lib/types';
+import type { Attendance, Grade, Student } from '@/lib/types';
 
 
 export default function PreschoolDashboardPage() {
+  const [students, setStudents] = React.useState<Student[]>([]);
   const [attendance, setAttendance] = React.useState<Attendance[]>([]);
   const [grades, setGrades] = React.useState<Grade[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -21,10 +23,12 @@ export default function PreschoolDashboardPage() {
   React.useEffect(() => {
     const fetchData = async () => {
         setLoading(true);
-        const [attendanceData, gradesData] = await Promise.all([
+        const [studentsData, attendanceData, gradesData] = await Promise.all([
+          getStudents(),
           getAttendance(),
           getGrades()
         ]);
+        setStudents(studentsData);
         setAttendance(attendanceData);
         setGrades(gradesData);
         setLoading(false);
@@ -38,13 +42,11 @@ export default function PreschoolDashboardPage() {
             <QuickLinks key="quick-links" />
         </div>
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 col-span-1 lg:col-span-3">
-            <React.Fragment key="dashboard-stats">
-              <DashboardStats />
-            </React.Fragment>
+            <DashboardStats students={students} attendance={attendance} loading={loading} />
         </div>
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3 col-span-1 lg:col-span-3">
             <div className="lg:col-span-2 xl:col-span-2">
-                {loading ? <Skeleton className="h-[400px]" /> : <StudentList />}
+                <StudentList students={students} loading={loading} />
             </div>
             <div className="grid gap-4 auto-rows-max">
                 {loading ? <Skeleton className="h-[300px]" /> : <AttendanceChart attendance={attendance} />}

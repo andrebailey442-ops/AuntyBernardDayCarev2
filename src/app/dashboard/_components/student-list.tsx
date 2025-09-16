@@ -19,25 +19,20 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { getStudents } from '@/services/students';
 import StudentListActions from './student-list-actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Student } from '@/lib/types';
 
+type StudentListProps = {
+  students: Student[];
+  loading: boolean;
+};
 
-export default function StudentList() {
-  const [students, setStudents] = React.useState<Student[]>([]);
-  const [loading, setLoading] = React.useState(true);
+export default function StudentList({ students, loading }: StudentListProps) {
 
-  React.useEffect(() => {
-    const fetchStudents = async () => {
-      setLoading(true);
-      const allStudents = await getStudents();
-      setStudents(allStudents.filter(s => s.status === 'enrolled'));
-      setLoading(false);
-    }
-    fetchStudents();
-  }, []);
+  const enrolledStudents = React.useMemo(() => {
+    return students.filter(s => s.status === 'enrolled');
+  }, [students]);
 
   return (
     <Card>
@@ -73,8 +68,8 @@ export default function StudentList() {
                         <TableCell><Skeleton className="h-8 w-8" /></TableCell>
                     </TableRow>
                 ))
-            ) : students.length > 0 ? (
-              students.map((student) => (
+            ) : enrolledStudents.length > 0 ? (
+              enrolledStudents.map((student) => (
                 <TableRow key={student.id}>
                   <TableCell className="hidden sm:table-cell">
                     <Image

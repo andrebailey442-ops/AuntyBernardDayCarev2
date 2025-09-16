@@ -4,40 +4,30 @@
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Users, CheckCircle, FileText } from 'lucide-react';
-import { getStudents } from '@/services/students';
-import { getAttendance } from '@/services/attendance';
+import type { Student, Attendance } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function DashboardStats() {
-    const [loading, setLoading] = React.useState(true);
-    const [totalStudents, setTotalStudents] = React.useState(0);
-    const [attendanceRate, setAttendanceRate] = React.useState(0);
+type DashboardStatsProps = {
+    students: Student[];
+    attendance: Attendance[];
+    loading: boolean;
+}
 
-    React.useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            const [students, attendance] = await Promise.all([
-                getStudents(),
-                getAttendance(),
-            ]);
+export default function DashboardStats({ students, attendance, loading }: DashboardStatsProps) {
+    const { totalStudents, attendanceRate } = React.useMemo(() => {
+        // Calculate total students (enrolled only)
+        const enrolledStudents = students.filter(s => s.status === 'enrolled');
+        const total = enrolledStudents.length;
 
-            // Calculate total students (enrolled only)
-            const enrolledStudents = students.filter(s => s.status === 'enrolled');
-            setTotalStudents(enrolledStudents.length);
+        // Calculate attendance rate
+        let rate = 0;
+        if (attendance.length > 0) {
+            const presentCount = attendance.filter(a => a.status === 'present').length;
+            rate = (presentCount / attendance.length) * 100;
+        }
 
-            // Calculate attendance rate
-            if (attendance.length > 0) {
-                const presentCount = attendance.filter(a => a.status === 'present').length;
-                const rate = (presentCount / attendance.length) * 100;
-                setAttendanceRate(rate);
-            } else {
-                setAttendanceRate(0);
-            }
-            
-            setLoading(false);
-        };
-        fetchData();
-    }, []);
+        return { totalStudents: total, attendanceRate: rate };
+    }, [students, attendance]);
 
     if (loading) {
         return (
