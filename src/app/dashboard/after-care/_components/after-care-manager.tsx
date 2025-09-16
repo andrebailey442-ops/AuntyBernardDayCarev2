@@ -24,11 +24,13 @@ import type { Student } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { getStudents } from '@/services/students';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LogIn, LogOut, Users, Archive, Trash2 } from 'lucide-react';
+import { LogIn, LogOut, Users, Archive, Trash2, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 
 type AfterCareStatus = 'Checked-In' | 'Checked-Out';
@@ -176,6 +178,49 @@ export default function AfterCareManager() {
     localStorage.setItem(AFTER_CARE_STORAGE_KEY, JSON.stringify(newStatuses));
 
     toast({ title: 'Log Archived', description: 'Today\'s checkout log has been archived.'});
+  }
+
+  const downloadLogReport = (log: ArchivedLog) => {
+    try {
+        const doc = new jsPDF();
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(16);
+        doc.text(`After-Care Log for ${format(new Date(log.date), 'PPP')}`, 14, 22);
+
+        const tableColumn = ["Student", "Check-in Time", "Checked In By", "Check-out Time", "Checked Out By"];
+        const tableRows: (string | null)[][] = [];
+
+        log.records.forEach(record => {
+            const rowData = [
+                record.name,
+                record.log.checkInTime ? format(new Date(record.log.checkInTime), 'p') : 'N/A',
+                record.log.checkedInBy || 'N/A',
+                record.log.checkOutTime ? format(new Date(record.log.checkOutTime), 'p') : 'N/A',
+                record.log.checkedOutBy || 'N/A'
+            ];
+            tableRows.push(rowData);
+        });
+
+        (doc as any).autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 30,
+        });
+
+        doc.save(`AfterCare_Log_${log.date}.pdf`);
+        toast({
+            title: 'Report Downloaded',
+            description: `The log for ${format(new Date(log.date), 'PPP')} has been downloaded.`
+        });
+
+    } catch (error) {
+        console.error("Failed to generate PDF:", error);
+        toast({
+            variant: 'destructive',
+            title: 'Download Failed',
+            description: 'Could not generate the log report.'
+        });
+    }
   }
 
 
@@ -408,6 +453,12 @@ export default function AfterCareManager() {
                         </TabsList>
                         {archivedLogs.map(log => (
                              <TabsContent key={log.date} value={log.date}>
+                                <div className="flex justify-end mb-4">
+                                     <Button variant="outline" size="sm" onClick={() => downloadLogReport(log)}>
+                                        <Download className="mr-2 h-4 w-4" />
+                                        Download Log
+                                    </Button>
+                                </div>
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
@@ -456,3 +507,4 @@ export default function AfterCareManager() {
   );
 }
 
+    
