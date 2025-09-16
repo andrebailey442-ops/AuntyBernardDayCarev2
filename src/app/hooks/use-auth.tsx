@@ -10,7 +10,7 @@ import { auth } from '@/lib/firebase-client';
 type AuthContextType = {
   user: User | null;
   loading: boolean;
-  login: (username: string, password?: string) => Promise<User | null>;
+  login: (emailOrUsername: string, password?: string) => Promise<User | null>;
   loginWithGoogle: () => Promise<User | null>;
   logout: () => void;
 };
@@ -38,10 +38,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initialize();
   }, []);
 
-  const login = async (username: string, password?: string) => {
+  const login = async (emailOrUsername: string, password?: string) => {
     setLoading(true);
     try {
-      const authenticatedUser = await authenticateUser(username, password);
+      const authenticatedUser = await authenticateUser(emailOrUsername, password);
       if (authenticatedUser) {
         setUser(authenticatedUser);
         localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authenticatedUser));

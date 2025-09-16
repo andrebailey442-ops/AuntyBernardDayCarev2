@@ -60,8 +60,9 @@ export const removeUser = async (userId: string): Promise<void> => {
     saveUsersToStorage(users);
 };
 
-export const authenticateUser = async (email: string, password?: string): Promise<User | null> => {
+export const authenticateUser = async (emailOrUsername: string, password?: string): Promise<User | null> => {
     const users = getUsersFromStorage();
-    const user = users.find(u => u.username.toLowerCase() === email.toLowerCase() && u.password === password);
+    const loginIdentifier = emailOrUsername.toLowerCase();
+    const user = users.find(u => u.username.toLowerCase() === loginIdentifier && u.password === password);
     return user || null;
 };

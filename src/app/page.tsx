@@ -24,7 +24,7 @@ import WallArt from '@/components/wall-art';
 import { Separator } from '@/components/ui/separator';
 
 const loginSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
+  emailOrUsername: z.string().min(1, { message: 'Please enter your email or username.' }),
   password: z.string().min(1, { message: 'Password is required.' }),
 });
 
@@ -39,7 +39,7 @@ export default function LoginPage() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
+      emailOrUsername: '',
       password: '',
     },
   });
@@ -47,7 +47,7 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
-      const user = await login(data.email, data.password);
+      const user = await login(data.emailOrUsername, data.password);
       if (user) {
         toast({
           title: 'Login Successful',
@@ -61,7 +61,7 @@ export default function LoginPage() {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: 'Invalid email or password.',
+        description: 'Invalid email/username or password.',
       });
     } finally {
         setIsLoading(false);
@@ -115,13 +115,13 @@ export default function LoginPage() {
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
                       control={form.control}
-                      name="email"
+                      name="emailOrUsername"
                       render={({ field }) => (
                       <FormItem>
-                          <FormLabel>Email</FormLabel>
+                          <FormLabel>Email or Username</FormLabel>
                           <FormControl>
                           <Input
-                              placeholder="admin@example.com"
+                              placeholder="admin or admin@example.com"
                               {...field}
                               disabled={isLoading}
                           />
