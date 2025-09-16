@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const loginWithGoogle = async () => {
-    setLoading(true);
+    // Note: this function doesn't set loading(true) because the page does.
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
@@ -67,27 +67,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         let appUser = await findUserByUsername(googleUser.email);
 
         if (!appUser) {
-          // If user doesn't exist, create a new one
+          // If user doesn't exist, create a new one without a password
           const newUser = await addUser(
             googleUser.email,
-            'Teacher', // Default role for new Google sign-ups
-            undefined, // No password for Google users
+            'Teacher', // Default role
+            undefined, // No password for Google-created users
             googleUser.photoURL || `https://picsum.photos/seed/${googleUser.uid}/100/100`,
             googleUser.displayName || googleUser.email
           );
           appUser = newUser;
         }
         
-        setUser(appUser);
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(appUser));
+        // If appUser has a password, the UI will prompt for it.
+        // Otherwise, we can log them in directly.
+        if (!appUser.password) {
+          setUser(appUser);
+          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(appUser));
+        }
         return appUser;
       }
       return null;
     } catch (error) {
       console.error("Google login failed", error);
-      return null;
-    } finally {
-      setLoading(false);
+      throw error; // Re-throw to be caught by the UI
     }
   };
 

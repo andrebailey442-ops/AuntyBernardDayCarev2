@@ -16,12 +16,27 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+  } from "@/components/ui/dialog"
 import { BusyBeeLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import WallArt from '@/components/wall-art';
 import { Separator } from '@/components/ui/separator';
+import type { User } from '@/lib/types';
 
 const loginSchema = z.object({
   emailOrUsername: z.string().min(1, { message: 'Please enter your email or username.' }),
@@ -35,6 +50,9 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
   const { login, loginWithGoogle } = useAuth();
+  
+  const [pendingGoogleUser, setPendingGoogleUser] = React.useState<User | null>(null);
+  const [passwordToVerify, setPasswordToVerify] = React.useState('');
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -44,16 +62,20 @@ export default function LoginPage() {
     },
   });
 
+  const completeLogin = (user: User) => {
+    toast({
+      title: 'Login Successful',
+      description: `Welcome, ${user.username}!`,
+    });
+    router.push('/dashboard');
+  }
+
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
       const user = await login(data.emailOrUsername, data.password);
       if (user) {
-        toast({
-          title: 'Login Successful',
-          description: `Welcome back, ${user.username}!`,
-        });
-        router.push('/dashboard');
+        completeLogin(user);
       } else {
         throw new Error('Invalid credentials');
       }
@@ -73,11 +95,12 @@ export default function LoginPage() {
     try {
       const user = await loginWithGoogle();
       if (user) {
-        toast({
-          title: 'Login Successful',
-          description: `Welcome, ${user.username}!`,
-        });
-        router.push('/dashboard');
+        // If the user from google has a password, it means it's an existing local account
+        if (user.password) {
+            setPendingGoogleUser(user);
+        } else {
+            completeLogin(user);
+        }
       } else {
         throw new Error('Google Sign-In failed.');
       }
@@ -91,6 +114,30 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
+
+  const handleVerifyPassword = async () => {
+    if (!pendingGoogleUser) return;
+    setIsLoading(true);
+    try {
+        const user = await login(pendingGoogleUser.username, passwordToVerify);
+        if (user) {
+            setPendingGoogleUser(null);
+            setPasswordToVerify('');
+            completeLogin(user);
+        } else {
+            throw new Error('Incorrect password');
+        }
+    } catch (error) {
+        toast({
+            variant: 'destructive',
+            title: 'Verification Failed',
+            description: (error as Error).message || 'An error occurred.',
+        });
+    } finally {
+        setIsLoading(false);
+    }
+  }
+
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center bg-background p-4 overflow-hidden">
@@ -172,6 +219,35 @@ export default function LoginPage() {
             </CardContent>
         </Card>
       </div>
+
+       <Dialog open={!!pendingGoogleUser} onOpenChange={(open) => !open && setPendingGoogleUser(null)}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Verify Your Account</DialogTitle>
+                <DialogDescription>
+                    This Google account is linked to an existing user. Please enter your password to continue.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <FormLabel htmlFor="password-verify" className="text-right">Password</FormLabel>
+                    <Input
+                        id="password-verify"
+                        type="password"
+                        className="col-span-3"
+                        value={passwordToVerify}
+                        onChange={(e) => setPasswordToVerify(e.target.value)}
+                        disabled={isLoading}
+                    />
+                </div>
+            </div>
+            <DialogFooter>
+                <Button onClick={handleVerifyPassword} disabled={isLoading}>
+                    {isLoading ? 'Verifying...' : 'Verify'}
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
