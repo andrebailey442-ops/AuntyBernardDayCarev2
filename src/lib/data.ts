@@ -255,7 +255,6 @@ export const PERMISSIONS: {id: string, label: string}[] = [
     { id: '/dashboard/student-management', label: 'Student Management' },
     { id: '/dashboard/attendance', label: 'Attendance' },
     { id: '/dashboard/grades', label: 'Grades' },
-    { id: '/dashboard/financial', label: 'Financial' },
     { id: '/dashboard/forms', label: 'Forms' },
     { id: '/dashboard/reports', label: 'Reports' },
     { id: '/dashboard/graduation', label: 'Graduation' },
