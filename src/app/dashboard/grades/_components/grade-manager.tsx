@@ -28,19 +28,22 @@ import {
 } from '@/components/ui/select';
 import type { Student, Subject } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { Check } from 'lucide-react';
+import { Check, Search } from 'lucide-react';
 import { getStudents } from '@/services/students';
 import { getSubjects } from '@/services/subjects';
 import { getGrades, upsertGrade } from '@/services/grades';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
 
 type GradeState = { [studentId: string]: { [subjectId: string]: string } };
 
 export default function GradeManager() {
   const { toast } = useToast();
   const [grades, setGrades] = React.useState<GradeState>({});
-  const [students, setStudents] = React.useState<Student[]>([]);
+  const [allStudents, setAllStudents] = React.useState<Student[]>([]);
+  const [filteredStudents, setFilteredStudents] = React.useState<Student[]>([]);
   const [subjects, setSubjects] = React.useState<Subject[]>([]);
+  const [searchTerm, setSearchTerm] = React.useState('');
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
 
@@ -52,7 +55,8 @@ export default function GradeManager() {
             getSubjects(),
             getGrades()
         ]);
-        setStudents(studentList);
+        setAllStudents(studentList);
+        setFilteredStudents(studentList);
         setSubjects(subjectList);
 
         const initialState: GradeState = {};
@@ -68,6 +72,14 @@ export default function GradeManager() {
     };
     fetchData();
   }, []);
+
+  React.useEffect(() => {
+    const results = allStudents.filter(student =>
+      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.id.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredStudents(results);
+  }, [searchTerm, allStudents]);
 
   const handleGradeChange = (studentId: string, subjectId: string, grade: string) => {
     setGrades(prev => ({
@@ -111,20 +123,32 @@ export default function GradeManager() {
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between">
-          <div>
+        <CardHeader className="flex flex-col md:flex-row md:items-start md:justify-between">
+          <div className="mb-4 md:mb-0">
             <CardTitle>Grade Management</CardTitle>
             <CardDescription>Enter grades for each student across all subjects.</CardDescription>
           </div>
-          <Button onClick={handleSaveAll} disabled={saving}>
-            {saving ? 'Saving...' : <><Check className="mr-2 h-4 w-4" /> Save All Grades</>}
-          </Button>
+          <div className="flex flex-col-reverse md:flex-row items-center gap-4">
+            <div className="relative w-full md:w-auto">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                    type="search"
+                    placeholder="Search by name or ID..."
+                    className="pl-8 sm:w-[300px]"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </div>
+            <Button onClick={handleSaveAll} disabled={saving} className="w-full md:w-auto">
+                {saving ? 'Saving...' : <><Check className="mr-2 h-4 w-4" /> Save All Grades</>}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[250px]">Student</TableHead>
+                <TableHead className="w-[300px]">Student</TableHead>
                 {subjects.map((subject) => (
                   <TableHead key={subject.id} className="min-w-[150px]">{subject.name}</TableHead>
                 ))}
@@ -137,7 +161,10 @@ export default function GradeManager() {
                         <TableCell>
                             <div className="flex items-center gap-3">
                                 <Skeleton className="h-10 w-10 rounded-full" />
-                                <Skeleton className="h-4 w-[150px]" />
+                                <div>
+                                    <Skeleton className="h-4 w-[150px]" />
+                                    <Skeleton className="h-3 w-[120px] mt-1" />
+                                </div>
                             </div>
                         </TableCell>
                         {subjects.map(subject => (
@@ -145,7 +172,7 @@ export default function GradeManager() {
                         ))}
                     </TableRow>
                 ))
-              ) : students.map((student) => (
+              ) : filteredStudents.map((student) => (
                 <TableRow key={student.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -157,7 +184,10 @@ export default function GradeManager() {
                         width="40"
                         data-ai-hint={student.imageHint}
                       />
-      <div className="font-medium">{student.name}</div>
+                      <div>
+                        <div className="font-medium">{student.name}</div>
+                        <div className="text-sm text-muted-foreground font-mono">{student.id}</div>
+                      </div>
                     </div>
                   </TableCell>
                   {subjects.map((subject) => (

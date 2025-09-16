@@ -9,18 +9,16 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, FileText, HeartPulse, DollarSign } from 'lucide-react';
+import { Download, FileText, HeartPulse } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { LucideIcon } from 'lucide-react';
 import { jsPDF } from 'jspdf';
-import { BusyBeeLogo } from '@/components/icons';
 import type { FormDocument } from '@/lib/types';
 
 
 const icons: { [key: string]: LucideIcon } = {
   FileText,
   HeartPulse,
-  DollarSign,
 };
 
 const FORMS: FormDocument[] = [
@@ -35,12 +33,6 @@ const FORMS: FormDocument[] = [
       title: 'Medical & Consent Form',
       description: 'Emergency contacts and medical consent for treatment.',
       icon: 'HeartPulse',
-    },
-    {
-      id: 'f3',
-      title: 'Fee Payment Form',
-      description: 'Form for submitting tuition and other fee payments.',
-      icon: 'DollarSign',
     },
 ];
 
@@ -204,67 +196,12 @@ export default function FormList() {
         doc.save('Medical-and-Consent-Form.pdf');
     }
 
-    const downloadFeePaymentForm = () => {
-        const doc = new jsPDF();
-        addLogoAndHeader(doc, 'Fee Payment Form');
-        let y = 60;
-        
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Student Information', 20, y);
-        y += 15;
-        addFormField(doc, 'Student Full Name:', y);
-        y += 15;
-        addFormField(doc, 'Student ID:', y);
-        y += 15;
-        addFormField(doc, 'Date of Birth (YYYY-MM-DD):', y);
-        y += 25;
-
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Parent/Guardian Information', 20, y);
-        y += 15;
-        addFormField(doc, "Parent's Full Name:", y);
-        y += 15;
-        addFormField(doc, 'Email Address:', y);
-        y += 15;
-        addFormField(doc, 'Phone Number:', y);
-        y += 25;
-
-        doc.setFontSize(14);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Payment Details', 20, y);
-        y += 15;
-        doc.setFontSize(12);
-        doc.text('Payment Plan Selection:', 20, y);
-        y += 10;
-        addCheckboxField(doc, 'Full Payment ($2,375 - 5% discount)', y);
-        y += 10;
-        addCheckboxField(doc, 'Two Installments ($1,250 each)', y);
-        y += 10;
-        addCheckboxField(doc, 'Monthly Plan ($625 per month)', y);
-        y += 25;
-
-        addFormField(doc, 'Amount Paid:', y);
-        y += 15;
-        addFormField(doc, 'Payment Date:', y);
-        y += 15;
-        addFormField(doc, 'Payment Method (e.g., Credit Card, Check):', y);
-        y += 25;
-
-        addSignatureLine(doc, y);
-
-        doc.save('Fee-Payment-Form.pdf');
-    }
-
     const handleDownload = (formId: string) => {
         try {
             if (formId === 'f1') {
                 downloadNewStudentApplication();
             } else if (formId === 'f2') {
                 downloadMedicalConsentForm();
-            } else if (formId === 'f3') {
-                downloadFeePaymentForm();
             }
 
             const form = FORMS.find(f => f.id === formId);
