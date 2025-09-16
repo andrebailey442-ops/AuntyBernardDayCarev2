@@ -86,7 +86,7 @@ export default function LoginPage() {
         <div className="flex flex-col items-center gap-4 text-center">
             <BusyBeeLogo className="h-12 w-12 text-primary" />
             <h1 className="text-3xl font-bold">
-              Aunty Bernard
+              Aunty Bernard DayCare and Pre-school
             </h1>
             <p className="text-muted-foreground">
               Welcome back! Please enter your credentials to log in.
