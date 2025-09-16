@@ -69,8 +69,10 @@ export default function DashboardLayout({
       <main className="relative flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8 overflow-hidden">
         <WallArt />
         <div className="relative z-10">
-            {showSlideshow && <HeroSlideshow key={pathname} title={slideshowTitle} />}
+          <React.Fragment>
+            {showSlideshow && <HeroSlideshow title={slideshowTitle} />}
             {children}
+          </React.Fragment>
         </div>
       </main>
     </div>
