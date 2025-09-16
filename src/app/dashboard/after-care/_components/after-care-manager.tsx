@@ -24,9 +24,12 @@ import type { Student } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { getStudents } from '@/services/students';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LogIn, LogOut, Users } from 'lucide-react';
+import { LogIn, LogOut, Users, Archive, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 type AfterCareStatus = 'Checked-In' | 'Checked-Out';
 
@@ -42,7 +45,13 @@ type StudentStatus = {
   [studentId: string]: AfterCareRecord;
 };
 
+type ArchivedLog = {
+    date: string;
+    records: (Student & { log: AfterCareRecord })[];
+}
+
 const AFTER_CARE_STORAGE_KEY = 'afterCareStatuses';
+const ARCHIVED_LOGS_STORAGE_KEY = 'afterCareArchivedLogs';
 
 export default function AfterCareManager() {
   const { toast } = useToast();
@@ -50,15 +59,15 @@ export default function AfterCareManager() {
   const [students, setStudents] = React.useState<Student[]>([]);
   const [studentStatuses, setStudentStatuses] = React.useState<StudentStatus>({});
   const [loading, setLoading] = React.useState(true);
+  const [archivedLogs, setArchivedLogs] = React.useState<ArchivedLog[]>([]);
 
   React.useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchStudentsAndLogs = async () => {
       setLoading(true);
       const allStudents = await getStudents();
       const afterCareStudents = allStudents.filter(student => student.afterCare);
       setStudents(afterCareStudents);
       
-      // Load statuses from localStorage
       const savedStatuses = localStorage.getItem(AFTER_CARE_STORAGE_KEY);
       let initialStatuses: StudentStatus = {};
       if (savedStatuses) {
@@ -69,10 +78,15 @@ export default function AfterCareManager() {
         });
       }
       setStudentStatuses(initialStatuses);
+      
+      const savedArchivedLogs = localStorage.getItem(ARCHIVED_LOGS_STORAGE_KEY);
+      if (savedArchivedLogs) {
+          setArchivedLogs(JSON.parse(savedArchivedLogs));
+      }
 
       setLoading(false);
     };
-    fetchStudents();
+    fetchStudentsAndLogs();
   }, []);
 
   const handleToggleStatus = (studentId: string) => {
@@ -114,9 +128,39 @@ export default function AfterCareManager() {
   const checkedOutStudents = students.filter(student => studentStatuses[student.id]?.status === 'Checked-Out' && studentStatuses[student.id]?.checkOutTime);
   const notCheckedInStudents = students.filter(student => !studentStatuses[student.id] || (studentStatuses[student.id]?.status === 'Checked-Out' && !studentStatuses[student.id]?.checkOutTime));
 
-
   const checkedInCount = Object.values(studentStatuses).filter(s => s.status === 'Checked-In').length;
-  const checkedOutCount = students.length - checkedInCount;
+
+  const handleArchiveLog = () => {
+    const recordsToArchive = checkedOutStudents.map(student => ({
+        ...student,
+        log: studentStatuses[student.id],
+    }));
+
+    if (recordsToArchive.length === 0) {
+        toast({ variant: 'destructive', title: 'Nothing to Archive', description: 'No students have been checked out today.'});
+        return;
+    }
+
+    const newArchive: ArchivedLog = {
+        date: format(new Date(), 'yyyy-MM-dd HH:mm'),
+        records: recordsToArchive
+    }
+
+    const updatedArchivedLogs = [newArchive, ...archivedLogs];
+    setArchivedLogs(updatedArchivedLogs);
+    localStorage.setItem(ARCHIVED_LOGS_STORAGE_KEY, JSON.stringify(updatedArchivedLogs));
+
+    // Reset student statuses
+    const newStatuses: StudentStatus = {};
+    students.forEach(student => {
+      newStatuses[student.id] = { status: 'Checked-Out' };
+    });
+    setStudentStatuses(newStatuses);
+    localStorage.setItem(AFTER_CARE_STORAGE_KEY, JSON.stringify(newStatuses));
+
+    toast({ title: 'Log Archived', description: 'Today\'s checkout log has been archived and the system is reset for the next day.'});
+  }
+
 
   return (
     <div className="space-y-6">
@@ -248,11 +292,33 @@ export default function AfterCareManager() {
         </Card>
         
         <Card>
-            <CardHeader>
-                <CardTitle>Today's Checked-Out Log</CardTitle>
-                <CardDescription>
-                Record of all students who have been checked out today.
-                </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Today's Checked-Out Log</CardTitle>
+                    <CardDescription>
+                    Record of all students who have been checked out today.
+                    </CardDescription>
+                </div>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="outline" disabled={checkedOutStudents.length === 0}>
+                            <Archive className="mr-2 h-4 w-4" />
+                            Clear & Archive Log
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will move today's checkout log to the archives and reset the check-in status for all students. This is typically done at the end of the day.
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleArchiveLog}>Continue</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -308,6 +374,68 @@ export default function AfterCareManager() {
                 </Table>
             </CardContent>
         </Card>
+         <Card>
+            <CardHeader>
+                <CardTitle>Log History</CardTitle>
+                <CardDescription>
+                Review checkout logs from previous days.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                {archivedLogs.length > 0 ? (
+                    <Tabs defaultValue={archivedLogs[0].date} className="w-full">
+                        <TabsList>
+                            {archivedLogs.map(log => (
+                                <TabsTrigger key={log.date} value={log.date}>{format(new Date(log.date), 'MMM d, yyyy')}</TabsTrigger>
+                            ))}
+                        </TabsList>
+                        {archivedLogs.map(log => (
+                             <TabsContent key={log.date} value={log.date}>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Student</TableHead>
+                                            <TableHead>Check-in Time</TableHead>
+                                            <TableHead>Checked In By</TableHead>
+                                            <TableHead>Check-out Time</TableHead>
+                                            <TableHead>Checked Out By</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {log.records.map(student => (
+                                            <TableRow key={student.id}>
+                                                <TableCell>
+                                                     <div className="flex items-center gap-3">
+                                                        <Image
+                                                            alt="Student avatar"
+                                                            className="aspect-square rounded-full object-cover"
+                                                            height="32"
+                                                            src={student.avatarUrl}
+                                                            width="32"
+                                                            data-ai-hint={student.imageHint}
+                                                        />
+                                                        <div className="font-medium">{student.name}</div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>{student.log.checkInTime ? format(new Date(student.log.checkInTime), 'p') : 'N/A'}</TableCell>
+                                                <TableCell>{student.log.checkedInBy || 'N/A'}</TableCell>
+                                                <TableCell>{student.log.checkOutTime ? format(new Date(student.log.checkOutTime), 'p') : 'N/A'}</TableCell>
+                                                <TableCell>{student.log.checkedOutBy || 'N/A'}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TabsContent>
+                        ))}
+                    </Tabs>
+                ): (
+                    <div className="text-center text-muted-foreground py-8">
+                        No archived logs found.
+                    </div>
+                )}
+            </CardContent>
+        </Card>
     </div>
   );
 }
+
