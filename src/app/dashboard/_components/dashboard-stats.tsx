@@ -6,22 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Users, CheckCircle, FileText } from 'lucide-react';
 import { getStudents } from '@/services/students';
 import { getAttendance } from '@/services/attendance';
-import { getFees } from '@/services/fees';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardStats() {
     const [loading, setLoading] = React.useState(true);
     const [totalStudents, setTotalStudents] = React.useState(0);
     const [attendanceRate, setAttendanceRate] = React.useState(0);
-    const [totalRevenue, setTotalRevenue] = React.useState(0);
 
     React.useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
-            const [students, attendance, fees] = await Promise.all([
+            const [students, attendance] = await Promise.all([
                 getStudents(),
                 getAttendance(),
-                getFees()
             ]);
 
             // Calculate total students (enrolled only)
@@ -37,10 +34,6 @@ export default function DashboardStats() {
                 setAttendanceRate(0);
             }
             
-            // Calculate revenue
-            const revenue = fees.filter(f => f.status === 'Paid').reduce((sum, f) => sum + f.amount, 0);
-            setTotalRevenue(revenue);
-            
             setLoading(false);
         };
         fetchData();
@@ -49,7 +42,6 @@ export default function DashboardStats() {
     if (loading) {
         return (
             <>
-                <Card><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
                 <Card><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
                 <Card><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
                 <Card><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
@@ -92,18 +84,6 @@ export default function DashboardStats() {
                     <div className="text-2xl font-bold">3</div>
                     <p className="text-xs text-muted-foreground">
                         Total available forms
-                    </p>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-                    <Activity className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
-                    <p className="text-xs text-muted-foreground">
-                        Total revenue from paid fees
                     </p>
                 </CardContent>
             </Card>
