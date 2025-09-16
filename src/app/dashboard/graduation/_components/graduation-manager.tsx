@@ -30,6 +30,7 @@ import { Award, GraduationCap, Download } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format, getYear } from 'date-fns';
 import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 type GroupedGraduates = {
   [year: string]: Student[];
