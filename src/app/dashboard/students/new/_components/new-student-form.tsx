@@ -197,7 +197,7 @@ export function NewStudentForm() {
   const addLogoAndHeader = (doc: jsPDF, title: string) => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(24);
-    doc.text('BusyBee', 20, 22);
+    doc.text('Aunty Bernard', 20, 22);
     
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(18);

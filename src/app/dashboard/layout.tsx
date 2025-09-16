@@ -45,7 +45,7 @@ export default function DashboardLayout({
   }
   
   const showSlideshow = pathname.startsWith('/dashboard/preschool') || pathname.startsWith('/dashboard/after-care');
-  const slideshowTitle = pathname.includes('preschool') ? 'BusyBee Preschool' : 'BusyBee AfterCare';
+  const slideshowTitle = pathname.includes('preschool') ? 'Aunty Bernard Pre-school' : 'Aunty Bernard AfterCare';
 
   return (
     <Dialog>

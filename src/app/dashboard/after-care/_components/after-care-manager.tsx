@@ -183,7 +183,7 @@ export default function AfterCareManager() {
   const addLogoAndHeader = (doc: jsPDF, title: string) => {
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(24);
-    doc.text('BusyBee', 20, 22);
+    doc.text('Aunty Bernard', 20, 22);
     
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(18);
@@ -310,7 +310,7 @@ export default function AfterCareManager() {
                     ))
                 ) : [...notCheckedInStudents, ...checkedInStudents].length > 0 ? (
                 [...notCheckedInStudents, ...checkedInStudents].map((student) => {
-                    const record = studentStatuses[student.id] || { status: 'Checked-Out' };
+                    const record = studentStatuses[student.id];
                     return (
                     <TableRow key={student.id}>
                     <TableCell>
@@ -327,23 +327,23 @@ export default function AfterCareManager() {
                         </div>
                     </TableCell>
                     <TableCell>
-                        <Badge variant={getStatusVariant(record.status)}>
-                            {record.status}
+                        <Badge variant={record ? getStatusVariant(record.status) : 'secondary'}>
+                            {record ? record.status : 'Checked-Out'}
                         </Badge>
                     </TableCell>
                     <TableCell>
-                        {record.checkInTime ? format(new Date(record.checkInTime), 'p') : 'N/A'}
+                        {record?.checkInTime ? format(new Date(record.checkInTime), 'p') : 'N/A'}
                     </TableCell>
                     <TableCell>
-                        {record.checkedInBy || 'N/A'}
+                        {record?.checkedInBy || 'N/A'}
                     </TableCell>
                     <TableCell className="text-right">
                         <Button
-                            variant={record.status === 'Checked-In' ? 'destructive' : 'default'}
+                            variant={record?.status === 'Checked-In' ? 'destructive' : 'default'}
                             onClick={() => handleToggleStatus(student.id)}
                             size="sm"
                         >
-                        {record.status === 'Checked-In' ? 
+                        {record?.status === 'Checked-In' ? 
                             <><LogOut className="mr-2 h-4 w-4" />Check Out</> : 
                             <><LogIn className="mr-2 h-4 w-4" />Check In</>
                         }

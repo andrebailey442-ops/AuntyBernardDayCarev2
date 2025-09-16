@@ -28,11 +28,11 @@ import { useLogo } from '@/hooks/use-logo';
 
 
 const handbookContent = `
-# BusyBee Application Handbook
+# Aunty Bernard DayCare and Pre-school Application Handbook
 
 ## 1. Introduction
 
-Welcome to BusyBee! This handbook is your guide to using the application to manage your preschool and after-care programs. We've designed it to be a simple and powerful tool for handling student records, attendance, grades, payments, and more.
+Welcome to Aunty Bernard DayCare and Pre-school! This handbook is your guide to using the application to manage your preschool and after-care programs. We've designed it to be a simple and powerful tool for handling student records, attendance, grades, payments, and more.
 
 ---
 
@@ -144,7 +144,7 @@ This page is for managing students in the after-care program.
     -   Click **Check Out** to log their departure time.
 -   **Dashboard Cards:** See live counts of total students, how many are currently checked in, and how many have checked out.
 
-This handbook should help you get comfortable with the BusyBee application. For administrator-only features, please see the **Administrator User Manual**.
+This handbook should help you get comfortable with the Aunty Bernard DayCare and Pre-school application. For administrator-only features, please see the **Administrator User Manual**.
 `;
 
 function LogoUpdateDialog() {
@@ -273,7 +273,7 @@ export function DashboardHeader() {
         }
       });
       
-      doc.save('BusyBee_Handbook.pdf');
+      doc.save('AuntyBernard_Handbook.pdf');
       toast({
         title: 'Download Started',
         description: 'The application handbook is being downloaded.',
@@ -299,7 +299,7 @@ export function DashboardHeader() {
                     className="flex items-center gap-2 text-lg font-semibold"
                 >
                     <BusyBeeLogo className="h-6 w-6 text-primary" />
-                    <span className="font-bold">BusyBee</span>
+                    <span className="font-bold">Aunty Bernard</span>
                 </Link>
             </div>
 

@@ -293,7 +293,7 @@ export default function StudentManager() {
         const doc = new jsPDF();
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(24);
-        doc.text('BusyBee', 20, 22);
+        doc.text('Aunty Bernard', 20, 22);
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(18);
         doc.text(`Report Card for ${student.name}`, 20, 35);

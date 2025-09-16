@@ -1,4 +1,4 @@
-# BusyBee Administrator User Manual
+# Aunty Bernard DayCare and Pre-school Administrator User Manual
 
 ## 1. Introduction
 
@@ -8,7 +8,7 @@ This manual is for administrators. It explains special features that only you ca
 
 ## 2. Administrator Privileges
 
-As an Administrator, you have access to everything in the BusyBee application, plus:
+As an Administrator, you have access to everything in the Aunty Bernard DayCare and Pre-school application, plus:
 
 -   **User Management:** Add, remove, and manage all user accounts.
 -   **Permission Management:** Control which pages and features teachers can see and use.

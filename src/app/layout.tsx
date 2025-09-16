@@ -7,7 +7,7 @@ import { AuthProvider } from '@/hooks/use-auth';
 import { LogoProvider } from '@/hooks/use-logo';
 
 export const metadata: Metadata = {
-  title: 'BusyBee',
+  title: 'Aunty Bernard DayCare and Pre-school',
   description: 'Preschool Admin Management',
 };
 
