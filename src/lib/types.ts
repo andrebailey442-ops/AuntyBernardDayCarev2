@@ -12,6 +12,7 @@ export type Student = {
   imageHint: string;
   afterCare?: boolean;
   status?: 'enrolled' | 'graduated' | 'pending';
+  graduationDate?: string;
   // Extended details from form
   parentFirstName?: string;
   parentLastName?: string;

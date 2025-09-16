@@ -26,7 +26,13 @@ import { getStudents, getArchivedStudents, updateStudent } from '@/services/stud
 import { getGradesByStudent } from '@/services/grades';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Award, GraduationCap } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { format, getYear } from 'date-fns';
 import jsPDF from 'jspdf';
+
+type GroupedGraduates = {
+  [year: string]: Student[];
+};
 
 export default function GraduationManager() {
   const { toast } = useToast();
@@ -50,12 +56,13 @@ export default function GraduationManager() {
 
   const handleGraduate = async (studentId: string) => {
     try {
-      await updateStudent(studentId, { status: 'graduated' });
+      const graduationDate = new Date().toISOString();
+      await updateStudent(studentId, { status: 'graduated', graduationDate });
       
       const studentToGraduate = enrolledStudents.find(s => s.id === studentId);
       if (studentToGraduate) {
         setEnrolledStudents(prev => prev.filter(s => s.id !== studentId));
-        setGraduatedStudents(prev => [...prev, { ...studentToGraduate, status: 'graduated' }]);
+        setGraduatedStudents(prev => [...prev, { ...studentToGraduate, status: 'graduated', graduationDate }]);
       }
 
       toast({
@@ -164,6 +171,20 @@ export default function GraduationManager() {
       });
     }
   };
+  
+  const groupedGraduates = React.useMemo(() => {
+    return graduatedStudents.reduce((acc, student) => {
+      const year = student.graduationDate ? getYear(new Date(student.graduationDate)) : 'Unknown';
+      if (!acc[year]) {
+        acc[year] = [];
+      }
+      acc[year].push(student);
+      return acc;
+    }, {} as GroupedGraduates);
+  }, [graduatedStudents]);
+
+  const sortedYears = Object.keys(groupedGraduates).sort((a, b) => Number(b) - Number(a));
+
 
   return (
     <div className="space-y-8">
@@ -238,63 +259,72 @@ export default function GraduationManager() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Graduated Students</CardTitle>
+          <CardTitle>Graduation History</CardTitle>
           <CardDescription>
-            Students who have successfully graduated from the program.
+            Students who have successfully graduated from the program, grouped by year.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Student</TableHead>
-                <TableHead>Age at Graduation</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                 <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center">
-                      Loading...
-                    </TableCell>
-                </TableRow>
-              ) : graduatedStudents.length > 0 ? (
-                graduatedStudents.map(student => (
-                  <TableRow key={student.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Image
-                          alt="Student avatar"
-                          className="aspect-square rounded-full object-cover"
-                          height="40"
-                          src={student.avatarUrl}
-                          width="40"
-                          data-ai-hint={student.imageHint}
-                        />
-                        <div className="font-medium">{student.name}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{student.age}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button onClick={() => generateCertificate(student)} size="sm" variant="secondary">
-                        <Award className="mr-2 h-4 w-4" />
-                        Generate Certificate
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={3} className="h-24 text-center">
-                    No students have graduated yet.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          {loading ? (
+            <div className="text-center text-muted-foreground py-8">Loading...</div>
+          ) : sortedYears.length > 0 ? (
+            <Tabs defaultValue={sortedYears[0]} className="w-full">
+              <TabsList>
+                {sortedYears.map(year => (
+                  <TabsTrigger key={year} value={year}>Class of {year}</TabsTrigger>
+                ))}
+              </TabsList>
+              {sortedYears.map(year => (
+                <TabsContent key={year} value={year}>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Student</TableHead>
+                        <TableHead>Age at Graduation</TableHead>
+                        <TableHead>Graduation Date</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {groupedGraduates[year].map(student => (
+                        <TableRow key={student.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Image
+                                alt="Student avatar"
+                                className="aspect-square rounded-full object-cover"
+                                height="40"
+                                src={student.avatarUrl}
+                                width="40"
+                                data-ai-hint={student.imageHint}
+                              />
+                              <div className="font-medium">{student.name}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary">{student.age}</Badge>
+                          </TableCell>
+                          <TableCell>
+                            {student.graduationDate ? format(new Date(student.graduationDate), 'PPP') : 'N/A'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button onClick={() => generateCertificate(student)} size="sm" variant="secondary">
+                              <Award className="mr-2 h-4 w-4" />
+                              Generate Certificate
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TabsContent>
+              ))}
+            </Tabs>
+          ) : (
+            <div className="text-center text-muted-foreground py-8">
+              No students have graduated yet.
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
