@@ -106,7 +106,7 @@ export default function AfterCareManager() {
           description: `${studentName} has been checked out at ${format(now, 'p')} by ${currentUsername}.`,
         });
     } else {
-        newRecord = { status: 'Checked-In', checkInTime: now.toISOString(), checkedOutTime: undefined, checkedInBy: currentUsername, checkedOutBy: undefined }; // Reset checkout time
+        newRecord = { ...currentRecord, status: 'Checked-In', checkInTime: now.toISOString(), checkOutTime: undefined, checkedInBy: currentUsername, checkedOutBy: undefined }; // Reset checkout time
         toast({
           title: `Student Checked In`,
           description: `${studentName} has been checked in at ${format(now, 'p')} by ${currentUsername}.`,
@@ -516,5 +516,3 @@ export default function AfterCareManager() {
     </div>
   );
 }
-
-    

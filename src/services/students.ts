@@ -45,7 +45,9 @@ export const getStudent = async (id: string): Promise<Student | null> => {
 
 export const addStudent = async (id: string, student: Omit<Student, 'id'>) => {
     const allStudents = getStudentsFromStorage(STUDENTS_STORAGE_KEY, STUDENTS);
-    const newStudent = { id, ...student, status: 'pending' } as Student;
+    // If after-care is selected, student is automatically enrolled. Otherwise, pending.
+    const status = student.afterCare ? 'enrolled' : 'pending';
+    const newStudent = { id, ...student, status } as Student;
     allStudents.push(newStudent);
     saveStudentsToStorage(STUDENTS_STORAGE_KEY, allStudents);
 };
