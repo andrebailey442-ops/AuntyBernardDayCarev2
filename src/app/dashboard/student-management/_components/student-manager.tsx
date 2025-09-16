@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Search, Trash2, GraduationCap, Download, Upload, FileUp, FileDown } from 'lucide-react';
+import { Search, Trash2, GraduationCap, Download, Upload, FileUp, FileDown, Wand2 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
@@ -56,6 +56,7 @@ import { getAttendanceByStudent } from '@/services/attendance';
 import { getSubjects } from '@/services/subjects';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
+import { analyzeStudentImport } from '@/ai/flows/analyze-student-import';
 
 
 export default function StudentManager() {
@@ -67,6 +68,7 @@ export default function StudentManager() {
   const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
   const [dialogContent, setDialogContent] = React.useState<'report' | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [isProcessingImport, setIsProcessingImport] = React.useState(false);
   const [selectedStudents, setSelectedStudents] = React.useState<string[]>([]);
   const [isDownloading, setIsDownloading] = React.useState(false);
   const importInputRef = React.useRef<HTMLInputElement>(null);
@@ -192,6 +194,12 @@ export default function StudentManager() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    setIsProcessingImport(true);
+    toast({
+        title: 'AI is Analyzing Your File',
+        description: 'Please wait while we process the student data...',
+    });
+
     const reader = new FileReader();
     reader.onload = async (e) => {
         try {
@@ -201,34 +209,42 @@ export default function StudentManager() {
             const worksheet = workbook.Sheets[sheetName];
             const json = XLSX.utils.sheet_to_json<any>(worksheet);
 
-            const importPromises = json.map(row => {
+            const mappedStudents = await analyzeStudentImport(json);
+
+            if (!mappedStudents || mappedStudents.length === 0) {
+                throw new Error("AI analysis did not return any student data.");
+            }
+
+            const importPromises = mappedStudents.map(studentData => {
                 const newId = `SID-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-                const studentData = {
-                    name: row['Name'] || 'N/A',
-                    age: parseInt(row['Age'], 10) || 0,
-                    dob: row['Birthday'] ? new Date(row['Birthday']).toISOString() : new Date().toISOString(),
-                    parentContact: row['Parent Email'] || '',
+                const [firstName, ...lastName] = studentData.name.split(' ');
+
+                const finalStudentData: Omit<Student, 'id' | 'status'> = {
+                    name: studentData.name,
+                    age: studentData.age || 0,
+                    dob: studentData.dob || new Date().toISOString(),
+                    parentContact: studentData.parentContact,
                     avatarUrl: `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/100/100`,
                     imageHint: 'child portrait',
-                    parentFirstName: row['Parent Name']?.split(' ')[0] || '',
-                    parentLastName: row['Parent Name']?.split(' ').slice(1).join(' ') || '',
-                    parentPhone: row['Parent Phone'] || '',
-                    address: row['Address'] || '',
-                    city: row['City'] || '',
-                    state: row['State'] || '',
-                    afterCare: (row['After Care'] || '').toLowerCase() === 'yes',
-                    emergencyContactName: row['Emergency Contact'] || '',
-                    emergencyContactPhone: row['Emergency Phone'] || '',
-                    medicalConditions: row['Medical Info'] || ''
+                    parentFirstName: studentData.parentFirstName || firstName,
+                    parentLastName: studentData.parentLastName || lastName.join(' '),
+                    parentPhone: studentData.parentPhone || '',
+                    address: studentData.address || '',
+                    city: studentData.city || '',
+                    state: studentData.state || '',
+                    afterCare: studentData.afterCare || false,
+                    emergencyContactName: studentData.emergencyContactName || '',
+                    emergencyContactPhone: studentData.emergencyContactPhone || '',
+                    medicalConditions: studentData.medicalConditions || ''
                 };
-                return addStudent(newId, studentData);
+                return addStudent(newId, finalStudentData);
             });
 
             await Promise.all(importPromises);
             
             toast({
                 title: 'Import Successful',
-                description: `${json.length} students have been imported.`,
+                description: `${mappedStudents.length} students have been imported.`,
             });
             fetchStudents(); // Refresh student list
         } catch (error) {
@@ -236,12 +252,13 @@ export default function StudentManager() {
             toast({
                 variant: 'destructive',
                 title: 'Import Failed',
-                description: 'Please check the file format and try again.',
+                description: 'The AI could not process the file. Please check the file format and try again.',
             });
         } finally {
              if (importInputRef.current) {
                 importInputRef.current.value = '';
             }
+            setIsProcessingImport(false);
         }
     };
     reader.readAsArrayBuffer(file);
@@ -371,9 +388,13 @@ export default function StudentManager() {
           </div>
           <div className="flex items-center gap-2">
             <input type="file" ref={importInputRef} className="hidden" onChange={handleImport} accept=".xlsx, .csv" />
-            <Button onClick={() => importInputRef.current?.click()} variant="outline">
+            <Button onClick={() => importInputRef.current?.click()} variant="outline" disabled={isProcessingImport}>
                 <FileUp className="mr-2 h-4 w-4" />
-                Import
+                {isProcessingImport ? 'Processing...' : 'Import'}
+            </Button>
+            <Button variant="outline" disabled>
+                <Wand2 className="mr-2 h-4 w-4" />
+                Suggest
             </Button>
             <Button onClick={handleExport}>
                 <FileDown className="mr-2 h-4 w-4" />
