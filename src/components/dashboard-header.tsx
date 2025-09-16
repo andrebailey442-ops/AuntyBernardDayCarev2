@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from './ui/button';
-import { Bell, LogOut, Settings, Menu, Users, BookOpen } from 'lucide-react';
+import { Bell, LogOut, Settings, Menu, Users, BookOpen, Image } from 'lucide-react';
 import Link from 'next/link';
 import { BusyBeeLogo } from './icons';
 import { DashboardNav } from './dashboard-nav';
@@ -20,6 +20,10 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter, usePathname } from 'next/navigation';
 import jsPDF from 'jspdf';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import HeroSlideshow from '@/app/dashboard/_components/hero-slideshow';
+import { useIsMobile } from '@/hooks/use-mobile';
+
 
 const handbookContent = `
 # BusyBee Application Handbook
@@ -146,6 +150,7 @@ export function DashboardHeader() {
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const handleLogout = () => {
     logout();
@@ -209,6 +214,8 @@ export function DashboardHeader() {
         });
     }
   }
+  
+  const showSlideshow = pathname.startsWith('/dashboard/preschool') || pathname.startsWith('/dashboard/after-care');
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
@@ -253,6 +260,14 @@ export function DashboardHeader() {
                     <span>Manage Users</span>
                     </Link>
                 </DropdownMenuItem>
+             )}
+             {user?.role === 'Admin' && showSlideshow && (
+                <DialogTrigger asChild>
+                  <DropdownMenuItem>
+                    <Image className="mr-2 h-4 w-4" />
+                    <span>Manage Images</span>
+                  </DropdownMenuItem>
+                </DialogTrigger>
              )}
              <DropdownMenuItem onClick={downloadHandbook}>
               <BookOpen className="mr-2 h-4 w-4" />

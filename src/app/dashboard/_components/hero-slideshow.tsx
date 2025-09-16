@@ -55,7 +55,6 @@ export default function HeroSlideshow({ title }: HeroSlideshowProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [slideImages, setSlideImages] = React.useState<SlideImage[]>(defaultSlideImages);
-  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
   const [isResizing, setIsResizing] = React.useState(false);
   const uploadInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -139,7 +138,8 @@ export default function HeroSlideshow({ title }: HeroSlideshowProps) {
   }
 
   return (
-    <div className="relative group">
+    <Dialog>
+    <div className="relative">
     <Carousel 
         plugins={[
             Autoplay({
@@ -179,46 +179,38 @@ export default function HeroSlideshow({ title }: HeroSlideshowProps) {
       <CarouselPrevious className="absolute left-4" />
       <CarouselNext className="absolute right-4" />
     </Carousel>
-    {user?.role === 'Admin' && (
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogTrigger asChild>
-          <Button variant="secondary" className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-            Edit Slideshow
+      <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+              <DialogTitle>Manage Slideshow Images</DialogTitle>
+              <DialogDescription>Add or remove images from the hero slideshow.</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto p-2">
+              {slideImages.map((image, index) => (
+                  <div key={index} className="relative group/image">
+                      <Image src={image.src} alt={image.alt} width={300} height={100} className="rounded-md object-cover aspect-[3/1]" />
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover/image:opacity-100 transition-opacity">
+                          <Button variant="destructive" size="icon" onClick={() => handleRemoveImage(index)}>
+                              <Trash2 className="h-4 w-4" />
+                          </Button>
+                      </div>
+                  </div>
+              ))}
+              {isResizing && (
+                  <div className="flex items-center justify-center aspect-[3/1] border-2 border-dashed rounded-md">
+                      <div className="text-center space-y-2">
+                          <Wand2 className="h-8 w-8 mx-auto animate-pulse text-primary" />
+                          <p className="text-sm text-muted-foreground">AI is resizing...</p>
+                      </div>
+                  </div>
+              )}
+          </div>
+            <input type="file" ref={uploadInputRef} className="hidden" onChange={handleImageUpload} accept="image/png, image/jpeg, image/webp" />
+          <Button onClick={() => uploadInputRef.current?.click()} disabled={isResizing}>
+              <Upload className="mr-2 h-4 w-4" />
+              Upload Image
           </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-2xl">
-            <DialogHeader>
-                <DialogTitle>Edit Slideshow Images</DialogTitle>
-                <DialogDescription>Add or remove images from the hero slideshow.</DialogDescription>
-            </DialogHeader>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto p-2">
-                {slideImages.map((image, index) => (
-                    <div key={index} className="relative group/image">
-                        <Image src={image.src} alt={image.alt} width={300} height={100} className="rounded-md object-cover aspect-[3/1]" />
-                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover/image:opacity-100 transition-opacity">
-                            <Button variant="destructive" size="icon" onClick={() => handleRemoveImage(index)}>
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-                ))}
-                {isResizing && (
-                    <div className="flex items-center justify-center aspect-[3/1] border-2 border-dashed rounded-md">
-                        <div className="text-center space-y-2">
-                            <Wand2 className="h-8 w-8 mx-auto animate-pulse text-primary" />
-                            <p className="text-sm text-muted-foreground">AI is resizing...</p>
-                        </div>
-                    </div>
-                )}
-            </div>
-             <input type="file" ref={uploadInputRef} className="hidden" onChange={handleImageUpload} accept="image/png, image/jpeg, image/webp" />
-            <Button onClick={() => uploadInputRef.current?.click()} disabled={isResizing}>
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Image
-            </Button>
-        </DialogContent>
-      </Dialog>
-    )}
+      </DialogContent>
     </div>
+    </Dialog>
   );
 }

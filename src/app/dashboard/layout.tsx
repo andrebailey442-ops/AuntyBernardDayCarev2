@@ -24,6 +24,7 @@ import { DashboardHeader } from '@/components/dashboard-header';
 import HeroSlideshow from './_components/hero-slideshow';
 import { Skeleton } from '@/components/ui/skeleton';
 import WallArt from '@/components/wall-art';
+import { Dialog } from '@/components/ui/dialog';
 
 export default function DashboardLayout({
   children,
@@ -57,18 +58,21 @@ export default function DashboardLayout({
         </div>
     );
   }
+  
+  const showSlideshow = pathname.startsWith('/dashboard/preschool') || pathname.startsWith('/dashboard/after-care');
 
   return (
+    <Dialog>
     <div className="flex min-h-screen w-full flex-col bg-background">
       <DashboardHeader />
       <main className="relative flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8 overflow-hidden">
         <WallArt />
         <div className="relative z-10">
-            {pathname.startsWith('/dashboard/preschool') && <HeroSlideshow title="BusyBee Preschool" />}
-            {pathname.startsWith('/dashboard/after-care') && <HeroSlideshow title="BusyBee AfterCare" />}
+            {showSlideshow && <HeroSlideshow title={pathname.includes('preschool') ? 'BusyBee Preschool' : 'BusyBee AfterCare'} />}
             {children}
         </div>
       </main>
     </div>
+    </Dialog>
   );
 }
