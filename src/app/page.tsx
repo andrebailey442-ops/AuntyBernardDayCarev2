@@ -24,7 +24,7 @@ import WallArt from '@/components/wall-art';
 import { Separator } from '@/components/ui/separator';
 
 const loginSchema = z.object({
-  username: z.string().min(1, { message: 'Username is required.' }),
+  email: z.string().email({ message: 'Please enter a valid email address.' }),
   password: z.string().min(1, { message: 'Password is required.' }),
 });
 
@@ -39,7 +39,7 @@ export default function LoginPage() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: '',
+      email: '',
       password: '',
     },
   });
@@ -47,7 +47,7 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
-      const user = await login(data.username, data.password);
+      const user = await login(data.email, data.password);
       if (user) {
         toast({
           title: 'Login Successful',
@@ -61,7 +61,7 @@ export default function LoginPage() {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: 'Invalid username or password.',
+        description: 'Invalid email or password.',
       });
     } finally {
         setIsLoading(false);
@@ -108,20 +108,20 @@ export default function LoginPage() {
         <Card className="backdrop-blur-sm bg-card/80">
             <CardHeader>
               <CardTitle>Login</CardTitle>
-              <CardDescription>Use "Admin" and "admin" to continue.</CardDescription>
+              <CardDescription>Use "Admin" with password "admin" to continue.</CardDescription>
             </CardHeader>
             <CardContent>
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
                       control={form.control}
-                      name="username"
+                      name="email"
                       render={({ field }) => (
                       <FormItem>
-                          <FormLabel>Username</FormLabel>
+                          <FormLabel>Email</FormLabel>
                           <FormControl>
                           <Input
-                              placeholder="Admin"
+                              placeholder="admin@example.com"
                               {...field}
                               disabled={isLoading}
                           />
