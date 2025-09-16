@@ -4,9 +4,10 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Search, Trash2, GraduationCap, Download } from 'lucide-react';
+import { Search, Trash2, GraduationCap, Download, Upload, FileUp, FileDown } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
+import * as XLSX from 'xlsx';
 import {
   Card,
   CardContent,
@@ -49,7 +50,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
-import { getStudents, deleteStudent, updateStudent } from '@/services/students';
+import { getStudents, deleteStudent, updateStudent, addStudent } from '@/services/students';
 import { getGradesByStudent } from '@/services/grades';
 import { getAttendanceByStudent } from '@/services/attendance';
 import { getSubjects } from '@/services/subjects';
@@ -68,6 +69,7 @@ export default function StudentManager() {
   const [loading, setLoading] = React.useState(true);
   const [selectedStudents, setSelectedStudents] = React.useState<string[]>([]);
   const [isDownloading, setIsDownloading] = React.useState(false);
+  const importInputRef = React.useRef<HTMLInputElement>(null);
 
   const fetchStudents = React.useCallback(async () => {
     setLoading(true);
@@ -155,6 +157,96 @@ export default function StudentManager() {
       });
     }
   };
+
+  const handleExport = () => {
+    const studentsToExport = selectedStudents.length > 0
+      ? allStudents.filter(s => selectedStudents.includes(s.id))
+      : allStudents;
+
+    const worksheet = XLSX.utils.json_to_sheet(studentsToExport.map(s => ({
+        ID: s.id,
+        Name: s.name,
+        Age: s.age,
+        Birthday: s.dob,
+        'Parent Email': s.parentContact,
+        'Parent Name': `${s.parentFirstName} ${s.parentLastName}`,
+        'Parent Phone': s.parentPhone,
+        Address: s.address,
+        City: s.city,
+        State: s.state,
+        'After Care': s.afterCare ? 'Yes' : 'No',
+        'Emergency Contact': s.emergencyContactName,
+        'Emergency Phone': s.emergencyContactPhone,
+        'Medical Info': s.medicalConditions
+    })));
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
+    XLSX.writeFile(workbook, 'students.xlsx');
+    toast({
+        title: 'Export Complete',
+        description: `${studentsToExport.length} student(s) have been exported.`,
+    });
+  }
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        try {
+            const data = new Uint8Array(e.target?.result as ArrayBuffer);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const json = XLSX.utils.sheet_to_json<any>(worksheet);
+
+            const importPromises = json.map(row => {
+                const newId = `SID-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+                const studentData = {
+                    name: row['Name'] || 'N/A',
+                    age: parseInt(row['Age'], 10) || 0,
+                    dob: row['Birthday'] ? new Date(row['Birthday']).toISOString() : new Date().toISOString(),
+                    parentContact: row['Parent Email'] || '',
+                    avatarUrl: `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/100/100`,
+                    imageHint: 'child portrait',
+                    parentFirstName: row['Parent Name']?.split(' ')[0] || '',
+                    parentLastName: row['Parent Name']?.split(' ').slice(1).join(' ') || '',
+                    parentPhone: row['Parent Phone'] || '',
+                    address: row['Address'] || '',
+                    city: row['City'] || '',
+                    state: row['State'] || '',
+                    afterCare: (row['After Care'] || '').toLowerCase() === 'yes',
+                    emergencyContactName: row['Emergency Contact'] || '',
+                    emergencyContactPhone: row['Emergency Phone'] || '',
+                    medicalConditions: row['Medical Info'] || ''
+                };
+                return addStudent(newId, studentData);
+            });
+
+            await Promise.all(importPromises);
+            
+            toast({
+                title: 'Import Successful',
+                description: `${json.length} students have been imported.`,
+            });
+            fetchStudents(); // Refresh student list
+        } catch (error) {
+            console.error('Import failed:', error);
+            toast({
+                variant: 'destructive',
+                title: 'Import Failed',
+                description: 'Please check the file format and try again.',
+            });
+        } finally {
+             if (importInputRef.current) {
+                importInputRef.current.value = '';
+            }
+        }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
 
   const handleDownloadReports = async () => {
     setIsDownloading(true);
@@ -272,9 +364,20 @@ export default function StudentManager() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
-            <Button onClick={handleDownloadReports} disabled={selectedStudents.length === 0 || isDownloading}>
+            <Button onClick={handleDownloadReports} disabled={selectedStudents.length === 0 || isDownloading} variant="outline">
                 <Download className="mr-2 h-4 w-4" />
-                {isDownloading ? 'Downloading...' : `Download (${selectedStudents.length})`}
+                {isDownloading ? 'Downloading...' : `Download Reports (${selectedStudents.length})`}
+            </Button>
+          </div>
+          <div className="flex items-center gap-2">
+            <input type="file" ref={importInputRef} className="hidden" onChange={handleImport} accept=".xlsx, .csv" />
+            <Button onClick={() => importInputRef.current?.click()} variant="outline">
+                <FileUp className="mr-2 h-4 w-4" />
+                Import
+            </Button>
+            <Button onClick={handleExport}>
+                <FileDown className="mr-2 h-4 w-4" />
+                Export
             </Button>
           </div>
         </div>
