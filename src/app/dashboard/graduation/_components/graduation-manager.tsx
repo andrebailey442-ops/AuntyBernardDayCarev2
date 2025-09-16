@@ -181,51 +181,149 @@ export default function GraduationManager() {
             const getSubjectName = (subjectId: string) => subjects.find(s => s.id === subjectId)?.name || 'N/A';
 
             const doc = new jsPDF();
+            const primaryColor = '#4A90E2'; // A nice blue from the theme
+            const greyColor = '#7F8C8D';
+            const lightGreyColor = '#F2F2F2';
+            const pageWidth = doc.internal.pageSize.getWidth();
+
+            // Base64 for a simple bee logo. In a real app, this might come from a service.
+            const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${primaryColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.67 19.33a1 1 0 0 1-1.34 0l-1.33-1.33a1 1 0 0 0-1.41 0l-.63.63a1 1 0 0 1-1.41 0l-.63-.63a1 1 0 0 0-1.41 0l-1.33 1.33a1 1 0 0 1-1.34 0" /><path d="m14.33 15.66 1.33-1.33a1 1 0 0 0 0-1.41l-.63-.63a1 1 0 0 1 0-1.41l.63-.63a1 1 0 0 0 0-1.41l-1.33-1.33a1 1 0 0 0-1.41 0l-1.33 1.33a1 1 0 0 1-1.41 0l-.63-.63a1 1 0 0 0-1.41 0l-.63.63a1 1 0 0 1-1.41 0L4.34 7.66a1 1 0 0 1 0-1.34" /><path d="M10.33 9.66 9 8.33a1 1 0 0 0-1.41 0l-.63.63a1 1 0 0 1-1.41 0l-.63-.63a1 1 0 0 0-1.41 0l-1.33-1.33" /><path d="M18 11.5c.33.33.67.67 1 1a2 2 0 0 1-3 3c-1.33-1.33-2.67-2.67-4-4" /><path d="M20 7a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1Z" /><path d="M14 4a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1Z" /></svg>`;
+            const logoBase64 = `data:image/svg+xml;base64,${btoa(logoSvg)}`;
+
+            const addHeaderAndFooter = (pageNumber: number) => {
+                // Watermark
+                doc.saveGraphicsState();
+                doc.setGState(new (doc as any).GState({opacity: 0.05}));
+                doc.addImage(logoBase64, 'SVG', pageWidth / 2 - 50, doc.internal.pageSize.getHeight() / 2 - 50, 100, 100);
+                doc.restoreGraphicsState();
+
+                // Header
+                doc.addImage(logoBase64, 'SVG', 15, 12, 12, 12);
+                doc.setFontSize(22);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(primaryColor);
+                doc.text("BusyBee Preschool", 30, 20);
+                doc.setDrawColor(primaryColor);
+                doc.setLineWidth(0.5);
+                doc.line(15, 25, pageWidth - 15, 25);
+                
+                // Footer
+                doc.setFontSize(8);
+                doc.setTextColor(greyColor);
+                doc.text(`Page ${pageNumber}`, pageWidth / 2, 290, { align: 'center' });
+            };
             
-            // Page 1: Application Form
+            // --- Page 1: Profile Summary ---
+            addHeaderAndFooter(1);
+            let y = 45;
+
             doc.setFontSize(18);
             doc.setFont('helvetica', 'bold');
-            doc.text('Student Application Summary', 20, 20);
+            doc.setTextColor('#000000');
+            doc.text("Graduated Student Profile", pageWidth / 2, y, { align: 'center' });
+            y += 15;
+
+            // Student Info Section
+            doc.setFontSize(14);
+            doc.text("Student Information", 15, y);
+            y += 8;
+            doc.setFillColor(lightGreyColor);
+            doc.rect(15, y, pageWidth - 30, 35, 'F');
+            doc.setFontSize(10);
+            doc.setTextColor(greyColor);
+            doc.text("Full Name", 20, y + 7);
+            doc.text("Date of Birth", 90, y + 7);
+            doc.text("Student ID", 150, y + 7);
             doc.setFontSize(12);
-            doc.setFont('helvetica', 'normal');
-
-            let y = 40;
-            doc.text(`Name: ${student.name}`, 20, y);
-            doc.text(`DOB: ${format(new Date(student.dob), 'PPP')}`, 130, y);
-            y += 10;
-            doc.text(`Parent: ${student.parentFirstName} ${student.parentLastName}`, 20, y);
-            doc.text(`Contact: ${student.parentContact}`, 130, y);
-            y += 10;
-            doc.text(`Address: ${student.address}, ${student.city}, ${student.state}`, 20, y);
-            y += 20;
-
-            doc.setFontSize(16);
+            doc.setTextColor('#000000');
+            doc.text(student.name, 20, y + 14);
+            doc.text(format(new Date(student.dob), 'PPP'), 90, y + 14);
+            doc.text(student.id, 150, y + 14);
+            y += 45;
+            
+            // Parent Info
+            doc.setFontSize(14);
             doc.setFont('helvetica', 'bold');
-            doc.text('Emergency & Health Info', 20, y);
-            y += 10;
+            doc.text("Parent/Guardian Information", 15, y);
+            y += 8;
+            doc.setFillColor(lightGreyColor);
+            doc.rect(15, y, pageWidth - 30, 50, 'F');
+            doc.setFontSize(10);
+            doc.setTextColor(greyColor);
+            doc.text("Parent Name", 20, y + 7);
+            doc.text("Contact Email", 90, y + 7);
+            doc.text("Contact Phone", 150, y + 7);
             doc.setFontSize(12);
-            doc.setFont('helvetica', 'normal');
-            doc.text(`Contact: ${student.emergencyContactName} (${student.emergencyContactPhone})`, 20, y);
-            y += 10;
-            doc.text('Medical Conditions:', 20, y);
-            const medicalLines = doc.splitTextToSize(student.medicalConditions || 'None', 170);
-            doc.text(medicalLines, 20, y + 7);
-            y += (medicalLines.length * 7) + 10;
+            doc.setTextColor('#000000');
+            doc.text(`${student.parentFirstName} ${student.parentLastName}`, 20, y + 14);
+            doc.text(student.parentContact, 90, y + 14);
+            doc.text(student.parentPhone || 'N/A', 150, y + 14);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(greyColor);
+            doc.text("Home Address", 20, y + 26);
+            doc.setFontSize(12);
+            doc.setTextColor('#000000');
+            const address = `${student.address || ''}, ${student.city || ''}, ${student.state || ''}`;
+            doc.text(address, 20, y + 33);
+            y += 60;
+            
+            // Emergency/Health Info
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text("Health & Emergency Information", 15, y);
+            y += 8;
+            doc.setFillColor(lightGreyColor);
+            doc.rect(15, y, pageWidth - 30, 45, 'F');
+            doc.setFontSize(10);
+            doc.setTextColor(greyColor);
+            doc.text("Emergency Contact", 20, y + 7);
+            doc.text("Emergency Phone", 120, y + 7);
+            doc.setFontSize(12);
+            doc.setTextColor('#000000');
+            doc.text(student.emergencyContactName || 'N/A', 20, y + 14);
+            doc.text(student.emergencyContactPhone || 'N/A', 120, y + 14);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(greyColor);
+            doc.text("Medical Conditions / Allergies", 20, y + 26);
+            doc.setFontSize(12);
+            doc.setTextColor('#000000');
+            const medicalLines = doc.splitTextToSize(student.medicalConditions || 'None provided', pageWidth - 40);
+            doc.text(medicalLines, 20, y + 33);
 
-            // Page 2: Grade Sheet
+
+            // --- Page 2: Grade Sheet ---
             doc.addPage();
+            addHeaderAndFooter(2);
+            y = 45;
+
             doc.setFontSize(18);
             doc.setFont('helvetica', 'bold');
-            doc.text('Final Grade Report', 20, 20);
-            
+            doc.text('Final Academic Report', pageWidth / 2, y, { align: 'center' });
+            y += 15;
+
             (doc as any).autoTable({
-                startY: 30,
-                head: [['Subject', 'Grade', 'Notes']],
+                startY: y,
+                head: [['Subject', 'Final Grade', 'Notes']],
                 body: grades.map(g => [
                     getSubjectName(g.subject),
-                    g.grade,
+                    g.grade || 'Incomplete',
                     g.notes || ''
                 ]),
+                theme: 'grid',
+                headStyles: {
+                    fillColor: primaryColor,
+                    textColor: '#FFFFFF',
+                    fontStyle: 'bold'
+                },
+                styles: {
+                    cellPadding: 3,
+                    fontSize: 11,
+                },
+                alternateRowStyles: {
+                    fillColor: lightGreyColor,
+                }
             });
 
             doc.save(`${student.name}_Full_Profile.pdf`);
@@ -405,3 +503,5 @@ export default function GraduationManager() {
     </div>
   );
 }
+
+    
