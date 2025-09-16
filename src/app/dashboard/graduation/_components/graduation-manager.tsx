@@ -20,12 +20,13 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import type { Student, Grade } from '@/lib/types';
+import type { Student, Grade, Subject } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { getStudents, getArchivedStudents, updateStudent } from '@/services/students';
 import { getGradesByStudent } from '@/services/grades';
+import { getSubjects } from '@/services/subjects';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Award, GraduationCap } from 'lucide-react';
+import { Award, GraduationCap, Download } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format, getYear } from 'date-fns';
 import jsPDF from 'jspdf';
@@ -172,6 +173,75 @@ export default function GraduationManager() {
     }
   };
   
+    const downloadFullProfile = async (student: Student) => {
+        try {
+            const grades = await getGradesByStudent(student.id);
+            const subjects = await getSubjects();
+            const getSubjectName = (subjectId: string) => subjects.find(s => s.id === subjectId)?.name || 'N/A';
+
+            const doc = new jsPDF();
+            
+            // Page 1: Application Form
+            doc.setFontSize(18);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Student Application Summary', 20, 20);
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'normal');
+
+            let y = 40;
+            doc.text(`Name: ${student.name}`, 20, y);
+            doc.text(`DOB: ${format(new Date(student.dob), 'PPP')}`, 130, y);
+            y += 10;
+            doc.text(`Parent: ${student.parentFirstName} ${student.parentLastName}`, 20, y);
+            doc.text(`Contact: ${student.parentContact}`, 130, y);
+            y += 10;
+            doc.text(`Address: ${student.address}, ${student.city}, ${student.state}`, 20, y);
+            y += 20;
+
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Emergency & Health Info', 20, y);
+            y += 10;
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Contact: ${student.emergencyContactName} (${student.emergencyContactPhone})`, 20, y);
+            y += 10;
+            doc.text('Medical Conditions:', 20, y);
+            const medicalLines = doc.splitTextToSize(student.medicalConditions || 'None', 170);
+            doc.text(medicalLines, 20, y + 7);
+            y += (medicalLines.length * 7) + 10;
+
+            // Page 2: Grade Sheet
+            doc.addPage();
+            doc.setFontSize(18);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Final Grade Report', 20, 20);
+            
+            (doc as any).autoTable({
+                startY: 30,
+                head: [['Subject', 'Grade', 'Notes']],
+                body: grades.map(g => [
+                    getSubjectName(g.subject),
+                    g.grade,
+                    g.notes || ''
+                ]),
+            });
+
+            doc.save(`${student.name}_Full_Profile.pdf`);
+            toast({
+                title: "Profile Downloaded",
+                description: `Full profile for ${student.name} has been downloaded.`,
+            });
+        } catch (error) {
+            console.error("Failed to generate full profile:", error);
+            toast({
+                variant: 'destructive',
+                title: "Download Failed",
+                description: "Could not generate the full student profile.",
+            });
+        }
+    };
+    
   const groupedGraduates = React.useMemo(() => {
     return graduatedStudents.reduce((acc, student) => {
       const year = student.graduationDate ? getYear(new Date(student.graduationDate)) : 'Unknown';
@@ -282,7 +352,7 @@ export default function GraduationManager() {
                         <TableHead>Student</TableHead>
                         <TableHead>Age at Graduation</TableHead>
                         <TableHead>Graduation Date</TableHead>
-                        <TableHead className="text-right">Action</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -307,10 +377,14 @@ export default function GraduationManager() {
                           <TableCell>
                             {student.graduationDate ? format(new Date(student.graduationDate), 'PPP') : 'N/A'}
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right space-x-2">
+                             <Button onClick={() => downloadFullProfile(student)} size="sm" variant="outline">
+                                <Download className="mr-2 h-4 w-4" />
+                                Full Profile
+                            </Button>
                             <Button onClick={() => generateCertificate(student)} size="sm" variant="secondary">
                               <Award className="mr-2 h-4 w-4" />
-                              Generate Certificate
+                              Certificate
                             </Button>
                           </TableCell>
                         </TableRow>

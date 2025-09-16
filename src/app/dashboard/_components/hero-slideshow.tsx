@@ -16,7 +16,7 @@ import { BusyBeeLogo } from '@/components/icons';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Upload, Trash2, Wand2 } from 'lucide-react';
+import { Upload, Trash2, Wand2, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { resizeImage } from '@/ai/flows/resize-image';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -179,6 +179,13 @@ export default function HeroSlideshow({ title }: HeroSlideshowProps) {
       <CarouselPrevious className="absolute left-4" />
       <CarouselNext className="absolute right-4" />
     </Carousel>
+      {user?.role === 'Admin' && (
+        <DialogTrigger asChild>
+          <Button variant="secondary" className="absolute top-4 right-4 z-10">
+            <ImageIcon className="mr-2 h-4 w-4" /> Manage Images
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
               <DialogTitle>Manage Slideshow Images</DialogTitle>
