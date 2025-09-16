@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { AuthProvider } from '@/hooks/use-auth';
+import { LogoProvider } from '@/hooks/use-logo';
 
 export const metadata: Metadata = {
   title: 'BusyBee',
@@ -27,8 +28,10 @@ export default function RootLayout({
       </head>
       <body className={cn('font-sans antialiased')} suppressHydrationWarning>
         <AuthProvider>
+          <LogoProvider>
             {children}
             <Toaster />
+          </LogoProvider>
         </AuthProvider>
       </body>
     </html>

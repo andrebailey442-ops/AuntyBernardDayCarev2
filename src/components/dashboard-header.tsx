@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from './ui/button';
-import { Bell, LogOut, Settings, Menu, Users, BookOpen, Image } from 'lucide-react';
+import { Bell, LogOut, Settings, Menu, Users, BookOpen, Image as ImageIcon, Upload, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { BusyBeeLogo } from './icons';
 import { DashboardNav } from './dashboard-nav';
@@ -20,9 +20,11 @@ import { useAuth } from '@/hooks/use-auth';
 import { useRouter, usePathname } from 'next/navigation';
 import jsPDF from 'jspdf';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import HeroSlideshow from '@/app/dashboard/_components/hero-slideshow';
 import { useIsMobile } from '@/hooks/use-mobile';
+import React from 'react';
+import { useLogo } from '@/hooks/use-logo';
 
 
 const handbookContent = `
@@ -145,6 +147,77 @@ This page is for managing students in the after-care program.
 This handbook should help you get comfortable with the BusyBee application. For administrator-only features, please see the **Administrator User Manual**.
 `;
 
+function LogoUpdateDialog() {
+    const { logoUrl, setLogoUrl, clearLogo } = useLogo();
+    const { toast } = useToast();
+    const uploadInputRef = React.useRef<HTMLInputElement>(null);
+  
+    const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+  
+      if (file.size > 1024 * 1024) { // 1MB limit
+        toast({
+          variant: 'destructive',
+          title: 'File Too Large',
+          description: 'Please upload a logo smaller than 1MB.',
+        });
+        return;
+      }
+  
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUri = e.target?.result as string;
+        setLogoUrl(dataUri);
+        toast({
+          title: 'Logo Updated',
+          description: 'Your new application logo has been saved.',
+        });
+      };
+      reader.readAsDataURL(file);
+    };
+  
+    const handleResetLogo = () => {
+      clearLogo();
+      toast({
+        title: 'Logo Reset',
+        description: 'The application logo has been reset to the default.',
+      });
+    };
+  
+    return (
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Update Application Logo</DialogTitle>
+          <DialogDescription>
+            Upload a new logo for the application. The recommended size is 128x128 pixels.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4 space-y-4">
+          <div className="flex flex-col items-center justify-center gap-4">
+            <p className="text-sm text-muted-foreground">Current Logo</p>
+            <BusyBeeLogo className="h-24 w-24 text-primary" />
+          </div>
+          <input
+            type="file"
+            ref={uploadInputRef}
+            className="hidden"
+            onChange={handleLogoUpload}
+            accept="image/png, image/jpeg, image/webp, image/gif"
+          />
+          <Button onClick={() => uploadInputRef.current?.click()} className="w-full">
+            <Upload className="mr-2 h-4 w-4" />
+            Upload New Logo
+          </Button>
+          <Button onClick={handleResetLogo} variant="outline" className="w-full">
+            <Trash2 className="mr-2 h-4 w-4" />
+            Reset to Default
+          </Button>
+        </div>
+      </DialogContent>
+    );
+  }
+
 export function DashboardHeader() {
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -219,68 +292,79 @@ export function DashboardHeader() {
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
-      <div className="flex items-center gap-2">
-        <Link
-            href="/dashboard"
-            className="flex items-center gap-2 text-lg font-semibold"
-          >
-            <BusyBeeLogo className="h-6 w-6 text-primary" />
-            <span className="font-bold">BusyBee</span>
-          </Link>
-      </div>
+        <Dialog>
+            <div className="flex items-center gap-2">
+                <Link
+                    href="/dashboard"
+                    className="flex items-center gap-2 text-lg font-semibold"
+                >
+                    <BusyBeeLogo className="h-6 w-6 text-primary" />
+                    <span className="font-bold">BusyBee</span>
+                </Link>
+            </div>
 
-      <div className="flex w-full items-center gap-4 justify-end">
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <Bell className="h-5 w-5" />
-          <span className="sr-only">Toggle notifications</span>
-        </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-              <Avatar className="h-9 w-9">
-                <AvatarImage
-                  src={user?.avatarUrl}
-                  alt={user?.username}
-                />
-                <AvatarFallback>{user?.username.charAt(0).toUpperCase()}</AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{user?.username}</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </DropdownMenuItem>
-             {user?.role === 'Admin' && (
-                <DropdownMenuItem asChild>
-                    <Link href="/dashboard/manage-users">
-                    <Users className="mr-2 h-4 w-4" />
-                    <span>Manage Users</span>
-                    </Link>
-                </DropdownMenuItem>
-             )}
-             {user?.role === 'Admin' && showSlideshow && (
-                <DialogTrigger asChild>
+            <div className="flex w-full items-center gap-4 justify-end">
+                <Button variant="ghost" size="icon" className="rounded-full">
+                <Bell className="h-5 w-5" />
+                <span className="sr-only">Toggle notifications</span>
+                </Button>
+                <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-9 w-9">
+                        <AvatarImage
+                        src={user?.avatarUrl}
+                        alt={user?.username}
+                        />
+                        <AvatarFallback>{user?.username.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>{user?.username}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem>
-                        <Image className="mr-2 h-4 w-4" />
-                        <span>Manage Images</span>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
                     </DropdownMenuItem>
-                </DialogTrigger>
-             )}
-             <DropdownMenuItem onClick={downloadHandbook}>
-              <BookOpen className="mr-2 h-4 w-4" />
-              <span>Handbook</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+                    {user?.role === 'Admin' && (
+                        <DropdownMenuItem asChild>
+                            <Link href="/dashboard/manage-users">
+                            <Users className="mr-2 h-4 w-4" />
+                            <span>Manage Users</span>
+                            </Link>
+                        </DropdownMenuItem>
+                    )}
+                    {user?.role === 'Admin' && showSlideshow && (
+                        <DialogTrigger asChild>
+                            <DropdownMenuItem>
+                                <ImageIcon className="mr-2 h-4 w-4" />
+                                <span>Manage Images</span>
+                            </DropdownMenuItem>
+                        </DialogTrigger>
+                    )}
+                     {user?.role === 'Admin' && (
+                        <DialogTrigger asChild>
+                            <DropdownMenuItem>
+                                <ImageIcon className="mr-2 h-4 w-4" />
+                                <span>Update Logo</span>
+                            </DropdownMenuItem>
+                        </DialogTrigger>
+                     )}
+                    <DropdownMenuItem onClick={downloadHandbook}>
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    <span>Handbook</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+            <LogoUpdateDialog />
+      </Dialog>
     </header>
   );
 }
