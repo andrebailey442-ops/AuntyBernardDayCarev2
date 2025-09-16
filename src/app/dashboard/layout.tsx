@@ -60,6 +60,7 @@ export default function DashboardLayout({
   }
   
   const showSlideshow = pathname.startsWith('/dashboard/preschool') || pathname.startsWith('/dashboard/after-care');
+  const slideshowTitle = pathname.includes('preschool') ? 'BusyBee Preschool' : 'BusyBee AfterCare';
 
   return (
     <Dialog>
@@ -68,7 +69,7 @@ export default function DashboardLayout({
       <main className="relative flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8 overflow-hidden">
         <WallArt />
         <div className="relative z-10">
-            {showSlideshow && <HeroSlideshow title={pathname.includes('preschool') ? 'BusyBee Preschool' : 'BusyBee AfterCare'} />}
+            {showSlideshow && <HeroSlideshow key={pathname} title={slideshowTitle} />}
             {children}
         </div>
       </main>
