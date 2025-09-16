@@ -3,3 +3,4 @@ config();
 
 import '@/ai/flows/suggest-attendance.ts';
 import '@/ai/flows/analyze-student-import.ts';
+import '@/ai/flows/resize-image.ts';
