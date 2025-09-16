@@ -61,7 +61,7 @@ export default function ReportManager() {
   };
 
   return (
-    <Card>
+    <Card className="backdrop-blur-sm bg-card/80">
       <CardHeader>
         <CardTitle>Student Reports</CardTitle>
         <CardDescription>

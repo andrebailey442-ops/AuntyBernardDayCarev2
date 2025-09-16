@@ -183,7 +183,7 @@ export default function ReportCard({ studentId }: ReportCardProps) {
           Back to Reports
         </Button>
       </div>
-    <Card className="max-w-4xl mx-auto">
+    <Card className="max-w-4xl mx-auto backdrop-blur-sm bg-card/80">
       <CardHeader className="text-center bg-muted/30">
         <div className="flex flex-col items-center gap-4">
             <BusyBeeLogo className="h-12 w-12 text-primary" />

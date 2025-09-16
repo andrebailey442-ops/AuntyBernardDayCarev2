@@ -237,7 +237,7 @@ export default function AfterCareManager() {
   return (
     <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Card>
+            <Card className="backdrop-blur-sm bg-card/80">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Students</CardTitle>
                     <Users className="h-4 w-4 text-muted-foreground" />
@@ -249,7 +249,7 @@ export default function AfterCareManager() {
                     </p>
                 </CardContent>
             </Card>
-             <Card>
+             <Card className="backdrop-blur-sm bg-card/80">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Students Checked In</CardTitle>
                     <LogIn className="h-4 w-4 text-green-500" />
@@ -261,7 +261,7 @@ export default function AfterCareManager() {
                     </p>
                 </CardContent>
             </Card>
-             <Card>
+             <Card className="backdrop-blur-sm bg-card/80">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Students Checked Out</CardTitle>
                     <LogOut className="h-4 w-4 text-red-500" />
@@ -274,7 +274,7 @@ export default function AfterCareManager() {
                 </CardContent>
             </Card>
         </div>
-        <Card>
+        <Card className="backdrop-blur-sm bg-card/80">
         <CardHeader>
             <CardTitle>After Care Check-in/Check-out</CardTitle>
             <CardDescription>
@@ -363,7 +363,7 @@ export default function AfterCareManager() {
         </CardContent>
         </Card>
         
-        <Card>
+        <Card className="backdrop-blur-sm bg-card/80">
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
                     <CardTitle>Today's Checked-Out Log</CardTitle>
@@ -446,7 +446,7 @@ export default function AfterCareManager() {
                 </Table>
             </CardContent>
         </Card>
-         <Card>
+         <Card className="backdrop-blur-sm bg-card/80">
             <CardHeader>
                 <CardTitle>Log History</CardTitle>
                 <CardDescription>
@@ -516,5 +516,3 @@ export default function AfterCareManager() {
     </div>
   );
 }
-
-    

@@ -21,7 +21,7 @@ const links = [
 
 export default function QuickLinks() {
   return (
-    <Card>
+    <Card className="backdrop-blur-sm bg-card/80">
       <CardHeader>
         <CardTitle>Actions</CardTitle>
         <CardDescription>Fast access to common tasks.</CardDescription>

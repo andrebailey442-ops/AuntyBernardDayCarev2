@@ -32,16 +32,16 @@ export default function DashboardStats({ students, attendance, loading }: Dashbo
     if (loading) {
         return (
             <>
-                <Card><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
-                <Card><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
-                <Card><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
+                <Card className="backdrop-blur-sm bg-card/80"><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
+                <Card className="backdrop-blur-sm bg-card/80"><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
+                <Card className="backdrop-blur-sm bg-card/80"><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
             </>
         )
     }
 
     return (
         <>
-            <Card>
+            <Card className="backdrop-blur-sm bg-card/80">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Students</CardTitle>
                     <Users className="h-4 w-4 text-muted-foreground" />
@@ -53,7 +53,7 @@ export default function DashboardStats({ students, attendance, loading }: Dashbo
                     </p>
                 </CardContent>
             </Card>
-            <Card>
+            <Card className="backdrop-blur-sm bg-card/80">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Attendance Rate</CardTitle>
                     <CheckCircle className="h-4 w-4 text-muted-foreground" />
@@ -65,7 +65,7 @@ export default function DashboardStats({ students, attendance, loading }: Dashbo
                     </p>
                 </CardContent>
             </Card>
-            <Card>
+            <Card className="backdrop-blur-sm bg-card/80">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Active Forms</CardTitle>
                     <FileText className="h-4 w-4 text-muted-foreground" />

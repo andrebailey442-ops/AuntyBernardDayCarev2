@@ -361,7 +361,7 @@ export default function StudentManager() {
   };
 
   return (
-    <Card>
+    <Card className="backdrop-blur-sm bg-card/80">
       <CardHeader>
         <CardTitle>Student Management</CardTitle>
         <CardDescription>

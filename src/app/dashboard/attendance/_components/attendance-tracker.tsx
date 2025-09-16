@@ -125,7 +125,7 @@ export default function AttendanceTracker() {
   };
 
   return (
-    <Card>
+    <Card className="backdrop-blur-sm bg-card/80">
       <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div className="mb-4 md:mb-0">
           <CardTitle>Daily Attendance</CardTitle>
@@ -165,7 +165,7 @@ export default function AttendanceTracker() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[200px] sticky left-0 bg-background">Student</TableHead>
+              <TableHead className="w-[200px] sticky left-0 bg-background/80 backdrop-blur-sm">Student</TableHead>
               {subjects.map(subject => (
                   <TableHead key={subject.id} className="min-w-[150px] text-center">{subject.name}</TableHead>
               ))}
@@ -175,7 +175,7 @@ export default function AttendanceTracker() {
             {loading ? (
                 Array.from({length: 5}).map((_, i) => (
                     <TableRow key={i}>
-                        <TableCell className="sticky left-0 bg-background">
+                        <TableCell className="sticky left-0 bg-background/80 backdrop-blur-sm">
                             <div className="flex items-center gap-3">
                                 <Skeleton className="h-10 w-10 rounded-full" />
                                 <Skeleton className="h-4 w-[120px]" />
@@ -190,7 +190,7 @@ export default function AttendanceTracker() {
                 ))
             ) : students.map((student) => (
               <TableRow key={student.id}>
-                <TableCell className="font-medium sticky left-0 bg-background">
+                <TableCell className="font-medium sticky left-0 bg-background/80 backdrop-blur-sm">
                   <div className="flex items-center gap-3">
                     <Image
                       alt="Student avatar"

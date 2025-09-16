@@ -132,7 +132,7 @@ export default function UserManager() {
   }
 
   return (
-    <Card>
+    <Card className="backdrop-blur-sm bg-card/80">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
             <CardTitle>User Management</CardTitle>

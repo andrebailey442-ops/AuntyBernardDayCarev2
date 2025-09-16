@@ -223,7 +223,7 @@ export default function FormList() {
     }
 
     return (
-        <Card>
+        <Card className="backdrop-blur-sm bg-card/80">
             <CardHeader>
                 <CardTitle>Forms Repository</CardTitle>
                 <CardDescription>Centralized storage for all student-related documents.</CardDescription>
@@ -232,7 +232,7 @@ export default function FormList() {
                 {FORMS.map(form => {
                     const Icon = icons[form.icon];
                     return (
-                        <Card key={form.id}>
+                        <Card key={form.id} className="backdrop-blur-sm bg-card/80">
                             <CardHeader className="flex flex-row items-center gap-4">
                                 <Icon className="w-8 h-8 text-primary" />
                                 <CardTitle>{form.title}</CardTitle>

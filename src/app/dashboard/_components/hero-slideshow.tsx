@@ -150,7 +150,7 @@ export default function HeroSlideshow({ title }: HeroSlideshowProps) {
       <CarouselContent>
         {slideImages.map((image, index) => (
           <CarouselItem key={index}>
-            <Card className="overflow-hidden relative">
+            <Card className="overflow-hidden relative backdrop-blur-sm bg-card/80">
               <CardContent className="p-0">
                 <Image
                   alt={image.alt}

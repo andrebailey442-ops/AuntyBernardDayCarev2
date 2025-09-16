@@ -72,7 +72,7 @@ export default function PermissionManager() {
 
   if (loading) {
       return (
-          <Card>
+          <Card className="backdrop-blur-sm bg-card/80">
               <CardHeader>
                   <CardTitle>Loading Permissions...</CardTitle>
               </CardHeader>
@@ -84,7 +84,7 @@ export default function PermissionManager() {
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {PERMISSIONS.map(permission => (
-              <div key={permission.id} className="flex items-center space-x-2 p-4 border rounded-lg">
+              <div key={permission.id} className="flex items-center space-x-2 p-4 border rounded-lg bg-background/50">
                   <Checkbox
                       id={`${activeTab}-${permission.id}`}
                       checked={permissions.includes(permission.id)}
@@ -106,7 +106,7 @@ export default function PermissionManager() {
   )
 
   return (
-    <Card>
+    <Card className="backdrop-blur-sm bg-card/80">
       <CardHeader>
         <CardTitle>Role Permissions</CardTitle>
         <CardDescription>

@@ -58,7 +58,7 @@ export default function AttendanceChart({ attendance }: AttendanceChartProps) {
   }, [attendance]);
   
   return (
-    <Card>
+    <Card className="backdrop-blur-sm bg-card/80">
       <CardHeader>
         <CardTitle>Attendance - This Week</CardTitle>
         <CardDescription>A summary of student attendance for the current week.</CardDescription>

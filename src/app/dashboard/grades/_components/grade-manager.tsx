@@ -122,7 +122,7 @@ export default function GradeManager() {
 
   return (
     <>
-      <Card>
+      <Card className="backdrop-blur-sm bg-card/80">
         <CardHeader className="flex flex-col md:flex-row md:items-start md:justify-between">
           <div className="mb-4 md:mb-0">
             <CardTitle>Grade Management</CardTitle>

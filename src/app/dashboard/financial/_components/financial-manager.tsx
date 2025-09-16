@@ -214,7 +214,7 @@ export default function FinancialManager() {
   return (
     <>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <Card>
+        <Card className="backdrop-blur-sm bg-card/80">
             <CardHeader>
                 <CardTitle>Semester Tuition</CardTitle>
             </CardHeader>
@@ -223,7 +223,7 @@ export default function FinancialManager() {
                 <p className="text-sm text-muted-foreground">Base tuition for the Fall semester.</p>
             </CardContent>
         </Card>
-         <Card>
+         <Card className="backdrop-blur-sm bg-card/80">
             <CardHeader>
                 <CardTitle>After-Care Program</CardTitle>
             </CardHeader>
@@ -232,7 +232,7 @@ export default function FinancialManager() {
                 <p className="text-sm text-muted-foreground">Additional fee per semester.</p>
             </CardContent>
         </Card>
-        <Card>
+        <Card className="backdrop-blur-sm bg-card/80">
             <CardHeader>
                 <CardTitle>Payment Plans</CardTitle>
                  <CardDescription>Flexible options for base tuition.</CardDescription>
@@ -246,7 +246,7 @@ export default function FinancialManager() {
             </CardContent>
         </Card>
     </div>
-    <Card>
+    <Card className="backdrop-blur-sm bg-card/80">
       <CardHeader>
         <CardTitle>Student Fee Status</CardTitle>
         <CardDescription>
@@ -447,4 +447,3 @@ export default function FinancialManager() {
     </>
   );
 }
-

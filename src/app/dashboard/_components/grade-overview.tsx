@@ -73,7 +73,7 @@ export default function GradeOverview({ grades }: GradeOverviewProps) {
   }, [grades]);
   
   return (
-    <Card>
+    <Card className="backdrop-blur-sm bg-card/80">
       <CardHeader>
         <CardTitle>Grade Distribution</CardTitle>
         <CardDescription>Overall performance snapshot.</CardDescription>

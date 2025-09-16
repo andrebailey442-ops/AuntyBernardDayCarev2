@@ -35,7 +35,7 @@ export default function StudentList({ students, loading }: StudentListProps) {
   }, [students]);
 
   return (
-    <Card>
+    <Card className="backdrop-blur-sm bg-card/80">
       <CardHeader>
         <CardTitle>Students</CardTitle>
         <CardDescription>An overview of all enrolled students.</CardDescription>

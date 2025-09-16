@@ -23,7 +23,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Download, Info } from 'lucide-react';
+import { Download, Info, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 import { BusyBeeLogo } from '@/components/icons';
@@ -315,7 +315,14 @@ export function NewStudentForm() {
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
 
   return (
-    <Card className="max-w-4xl mx-auto border-4 border-primary/10 shadow-lg">
+    <>
+    <div className="mb-4">
+        <Button variant="outline" onClick={() => router.back()}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+        </Button>
+    </div>
+    <Card className="max-w-4xl mx-auto backdrop-blur-sm bg-card/80">
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
             <div className="flex items-center gap-4">
@@ -568,6 +575,6 @@ export function NewStudentForm() {
         </Form>
       </CardContent>
     </Card>
+    </>
   );
 }
-

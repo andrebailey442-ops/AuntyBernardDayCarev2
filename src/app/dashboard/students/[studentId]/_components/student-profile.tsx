@@ -58,7 +58,7 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                     Back
                 </Button>
             </div>
-            <Card className="max-w-4xl mx-auto">
+            <Card className="max-w-4xl mx-auto backdrop-blur-sm bg-card/80">
                 <CardHeader className="text-center">
                     <div className="flex flex-col items-center gap-4 mb-4">
                         <Skeleton className="h-24 w-24 rounded-full" />
@@ -92,7 +92,7 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
             Back
         </Button>
     </div>
-    <Card className="max-w-4xl mx-auto">
+    <Card className="max-w-4xl mx-auto backdrop-blur-sm bg-card/80">
       <CardHeader className="text-center">
         <div className="flex flex-col items-center gap-4 mb-4">
             <Avatar className="h-24 w-24">

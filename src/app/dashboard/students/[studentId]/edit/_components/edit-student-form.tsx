@@ -205,7 +205,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
             <div className="mb-4">
                 <Skeleton className="h-10 w-36" />
             </div>
-            <Card className="max-w-4xl mx-auto">
+            <Card className="max-w-4xl mx-auto backdrop-blur-sm bg-card/80">
                 <CardHeader className="text-center">
                     <div className="flex flex-col items-center gap-4 mb-4">
                         <Skeleton className="h-24 w-24 rounded-full" />
@@ -239,10 +239,10 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     <div className="mb-4">
         <Button variant="outline" onClick={() => router.back()}>
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
+            Back
         </Button>
     </div>
-    <Card className="max-w-4xl mx-auto">
+    <Card className="max-w-4xl mx-auto backdrop-blur-sm bg-card/80">
       <CardHeader className="text-center">
         <div className="flex items-center justify-center gap-4 mb-4">
             <BusyBeeLogo className="h-12 w-12 text-primary" />
@@ -445,5 +445,3 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     </>
   );
 }
-
-    
