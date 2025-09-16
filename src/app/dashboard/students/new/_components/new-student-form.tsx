@@ -174,7 +174,7 @@ export function NewStudentForm() {
         description: `The registration form for ${data.firstName} ${data.lastName} has been submitted.`,
         });
         setIsDialogOpen(false);
-        router.push('/dashboard/student-management');
+        router.push('/dashboard/preschool');
     } catch (error) {
         console.error('Failed to add student:', error);
         toast({
@@ -571,4 +571,3 @@ export function NewStudentForm() {
   );
 }
 
-    
