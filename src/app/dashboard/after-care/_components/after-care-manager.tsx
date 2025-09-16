@@ -92,7 +92,7 @@ export default function AfterCareManager() {
   }, []);
 
   const handleToggleStatus = (studentId: string) => {
-    const currentRecord = studentStatuses[studentId];
+    const currentRecord = studentStatuses[studentId] || { status: 'Checked-Out' };
     const now = new Date();
     const currentUsername = user?.username || 'Unknown';
     
@@ -516,3 +516,5 @@ export default function AfterCareManager() {
     </div>
   );
 }
+
+    
