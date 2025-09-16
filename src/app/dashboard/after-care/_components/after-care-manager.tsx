@@ -46,7 +46,7 @@ type StudentStatus = {
 };
 
 type ArchivedLog = {
-    date: string;
+    date: string; // YYYY-MM-DD
     records: (Student & { log: AfterCareRecord })[];
 }
 
@@ -141,24 +141,41 @@ export default function AfterCareManager() {
         return;
     }
 
-    const newArchive: ArchivedLog = {
-        date: format(new Date(), 'yyyy-MM-dd HH:mm'),
-        records: recordsToArchive
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    const existingLogIndex = archivedLogs.findIndex(log => log.date === todayStr);
+    
+    let updatedArchivedLogs: ArchivedLog[];
+
+    if (existingLogIndex > -1) {
+        // Append to existing log for today
+        updatedArchivedLogs = [...archivedLogs];
+        const existingRecords = updatedArchivedLogs[existingLogIndex].records;
+        const newRecordIds = new Set(recordsToArchive.map(r => r.id));
+        // Filter out any students that might already be in the log for today to prevent duplicates
+        const updatedRecords = existingRecords.filter(r => !newRecordIds.has(r.id));
+        updatedArchivedLogs[existingLogIndex].records = [...updatedRecords, ...recordsToArchive];
+
+    } else {
+        // Create a new log for today
+        const newArchive: ArchivedLog = {
+            date: todayStr,
+            records: recordsToArchive
+        }
+        updatedArchivedLogs = [newArchive, ...archivedLogs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }
 
-    const updatedArchivedLogs = [newArchive, ...archivedLogs];
     setArchivedLogs(updatedArchivedLogs);
     localStorage.setItem(ARCHIVED_LOGS_STORAGE_KEY, JSON.stringify(updatedArchivedLogs));
 
-    // Reset student statuses
-    const newStatuses: StudentStatus = {};
-    students.forEach(student => {
-      newStatuses[student.id] = { status: 'Checked-Out' };
+    // Reset student statuses for checked out students
+    const newStatuses = { ...studentStatuses };
+    checkedOutStudents.forEach(student => {
+      newStatuses[student.id] = { status: 'Checked-Out' }; // Reset their record
     });
     setStudentStatuses(newStatuses);
     localStorage.setItem(AFTER_CARE_STORAGE_KEY, JSON.stringify(newStatuses));
 
-    toast({ title: 'Log Archived', description: 'Today\'s checkout log has been archived and the system is reset for the next day.'});
+    toast({ title: 'Log Archived', description: 'Today\'s checkout log has been archived.'});
   }
 
 
