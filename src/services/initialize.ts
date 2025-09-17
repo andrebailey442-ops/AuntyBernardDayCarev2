@@ -4,7 +4,6 @@
 import { getDb } from '@/lib/firebase';
 import { USERS, STUDENTS, FEES, SUBJECTS } from '@/lib/data';
 import { addUser } from './users';
-import { addFee } from './fees';
 
 // This function will check if data exists and initialize it if it doesn't.
 // It's a single entry point to avoid multiple checks across different services.
@@ -48,7 +47,7 @@ export const initializeData = async () => {
             batch.set(docRef, { name: subject.name });
         });
 
-        // Initialize Fees - Use addFee to be consistent, but batching is fine
+        // Initialize Fees
         FEES.forEach(fee => {
             const { id, ...feeData } = fee;
             const docRef = db.collection('fees').doc(id); // Use specific ID for consistency

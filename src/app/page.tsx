@@ -40,35 +40,31 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(true); // Set initial loading to true
-  const { login, user } = useAuth();
+  const { login, user, loading: authLoading } = useAuth();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      emailOrUsername: '',
-      password: '',
+      emailOrUsername: 'Admin',
+      password: 'admin',
     },
   });
 
-  const completeLogin = (user: User) => {
-    toast({
-      title: 'Login Successful',
-      description: `Welcome, ${user.username}!`,
-    });
-    router.push('/dashboard');
-  }
-
-  const handleLogin = async (data: LoginFormValues) => {
+  const handleLogin = React.useCallback(async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
-      const user = await login(data.emailOrUsername, data.password);
-      if (user) {
-        completeLogin(user);
+      const loggedInUser = await login(data.emailOrUsername, data.password);
+      if (loggedInUser) {
+        toast({
+          title: 'Login Successful',
+          description: `Welcome back, ${loggedInUser.username}!`,
+        });
+        router.push('/dashboard');
       } else {
         throw new Error('Invalid credentials');
       }
     } catch (error) {
-      toast({
+       toast({
         variant: 'destructive',
         title: 'Login Failed',
         description: 'Invalid email/username or password.',
@@ -76,18 +72,24 @@ export default function LoginPage() {
     } finally {
         setIsLoading(false);
     }
-  };
+  }, [login, router, toast]);
 
   React.useEffect(() => {
-    // If a user is already logged in, redirect to dashboard
+    // If a user is already logged in from a previous session, redirect.
     if (user) {
       router.push('/dashboard');
       return;
     }
-
-    // Automatically log in as Admin
-    handleLogin({ emailOrUsername: 'Admin', password: 'admin' });
-  }, [user]);
+    
+    // Once auth is done loading and there's no user, attempt auto-login.
+    if (!authLoading && !user) {
+        // Use a small timeout to ensure all services are ready.
+        const timer = setTimeout(() => {
+            handleLogin({ emailOrUsername: 'Admin', password: 'admin' });
+        }, 500);
+        return () => clearTimeout(timer);
+    }
+  }, [user, authLoading, router, handleLogin]);
 
 
   return (
