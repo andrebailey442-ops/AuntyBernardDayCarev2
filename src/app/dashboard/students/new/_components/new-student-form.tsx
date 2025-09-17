@@ -52,30 +52,35 @@ import {
 } from '@/components/ui/select';
 import { addFee } from '@/services/fees';
 import { Switch } from '@/components/ui/switch';
+import { JAMAICAN_PARISHES } from '@/lib/data';
 
+
+const phoneRegex = new RegExp(
+  /^(\+\d{1,3})?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/
+);
 
 const guardianSchema = z.object({
-    firstName: z.string().min(1, 'First name is required'),
-    lastName: z.string().min(1, 'Last name is required'),
-    relationship: z.string().min(1, 'Relationship is required'),
-    contact: z.string().email('Invalid email address'),
-    phone: z.string().min(1, 'Phone number is required'),
+    firstName: z.string().min(2, 'First name must be at least 2 characters.').max(50, 'First name cannot exceed 50 characters.'),
+    lastName: z.string().min(2, 'Last name must be at least 2 characters.').max(50, 'Last name cannot exceed 50 characters.'),
+    relationship: z.string().min(2, 'Relationship is required.'),
+    contact: z.string().email('Invalid email address.'),
+    phone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
 });
 
 const newStudentSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
+  firstName: z.string().min(2, 'First name must be at least 2 characters.').max(50, 'First name cannot exceed 50 characters.'),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters.').max(50, 'Last name cannot exceed 50 characters.'),
   dob: z.date({ required_error: 'Date of birth is required' }),
   age: z.number().optional(),
   guardian1: guardianSchema,
   guardian2: guardianSchema.partial().optional(),
-  address: z.string().min(1, 'Address is required'),
-  city: z.string().min(1, 'City is required'),
-  state: z.string().min(1, 'State is required'),
+  address: z.string().min(5, 'Address is required and must be at least 5 characters.'),
+  city: z.string().min(2, 'City is required.'),
+  state: z.string({ required_error: 'Parish is required.' }).min(1, 'Parish is required.'),
   afterCare: z.boolean().default(false),
-  emergencyContactName: z.string().min(1, 'Emergency contact name is required'),
-  emergencyContactPhone: z.string().min(1, 'Emergency contact phone is required'),
-  medicalConditions: z.string().optional(),
+  emergencyContactName: z.string().min(2, 'Emergency contact name is required.').max(100, 'Name is too long'),
+  emergencyContactPhone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
+  medicalConditions: z.string().max(500, 'Medical conditions cannot exceed 500 characters.').optional(),
 });
 
 type NewStudentFormValues = z.infer<typeof newStudentSchema>;
@@ -194,6 +199,12 @@ export function NewStudentForm() {
     const isValid = await form.trigger();
     if (isValid) {
       setIsDialogOpen(true);
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Validation Error',
+        description: 'Please correct the errors on the form before submitting.',
+      })
     }
   }
 
@@ -289,9 +300,7 @@ export function NewStudentForm() {
         y += 15;
         addFormField(doc, 'City:', y);
         y += 15;
-        addFormField(doc, 'State:', y);
-        y += 15;
-        addFormField(doc, 'ZIP Code:', y);
+        addFormField(doc, 'Parish:', y);
         y += 25;
         
         doc.setFontSize(14);
@@ -478,7 +487,7 @@ export function NewStudentForm() {
                         <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="guardian1@example.com" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                     <FormField control={form.control} name="guardian1.phone" render={({ field }) => (
-                        <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="(555) 555-5555" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="876-555-5555" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
             </div>
@@ -504,7 +513,7 @@ export function NewStudentForm() {
                         <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="guardian2@example.com" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                     <FormField control={form.control} name="guardian2.phone" render={({ field }) => (
-                        <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="(555) 555-5555" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="876-555-5555" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
             </div>
@@ -522,9 +531,30 @@ export function NewStudentForm() {
                     )} />
                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="state" render={({ field }) => (
-                        <FormItem><FormLabel>State</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
+                    <FormField
+                        control={form.control}
+                        name="state"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Parish</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a parish" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {JAMAICAN_PARISHES.map((parish) => (
+                                    <SelectItem key={parish.value} value={parish.value}>
+                                    {parish.label}
+                                    </SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
                 </div>
             </div>
 
@@ -568,7 +598,7 @@ export function NewStudentForm() {
                         <FormItem><FormLabel>Emergency Contact Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                      <FormField control={form.control} name="emergencyContactPhone" render={({ field }) => (
-                        <FormItem><FormLabel>Emergency Contact Phone</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem><FormLabel>Emergency Contact Phone</FormLabel><FormControl><Input {...field} placeholder="876-555-5555" /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
                  <FormField control={form.control} name="medicalConditions" render={({ field }) => (
