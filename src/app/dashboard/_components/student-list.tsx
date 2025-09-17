@@ -100,10 +100,14 @@ export default function StudentList({ students, loading }: StudentListProps) {
                     <Badge variant="outline">{student.age}</Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    <div>
-                        <div className="font-medium">{student.guardian1.firstName} {student.guardian1.lastName}</div>
-                        <div className="text-sm text-muted-foreground">{student.guardian1.phone}</div>
-                    </div>
+                    {student.guardian1 ? (
+                      <div>
+                          <div className="font-medium">{student.guardian1.firstName} {student.guardian1.lastName}</div>
+                          <div className="text-sm text-muted-foreground">{student.guardian1.phone}</div>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground">N/A</div>
+                    )}
                   </TableCell>
                   <TableCell>
                     <StudentListActions studentId={student.id} />
