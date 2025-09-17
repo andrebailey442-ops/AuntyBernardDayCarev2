@@ -1,25 +1,18 @@
 
-'use server';
-
 import type { Subject } from '@/lib/types';
-import { getDb } from '@/lib/firebase';
 import { SUBJECTS } from '@/lib/data';
 
-export const getSubjects = async (): Promise<Subject[]> => {
-    const db = getDb();
-    if (!db) return SUBJECTS;
+const SUBJECTS_STORAGE_KEY = 'subjects';
+
+export const getSubjects = (): Subject[] => {
+    if (typeof window === 'undefined') return SUBJECTS;
     
-    const snapshot = await db.collection('subjects').get();
-    if (snapshot.empty) {
+    const storedSubjects = localStorage.getItem(SUBJECTS_STORAGE_KEY);
+    if (storedSubjects) {
+        return JSON.parse(storedSubjects);
+    } else {
         // Initialize subjects if they don't exist
-        const batch = db.batch();
-        SUBJECTS.forEach(subject => {
-            const docRef = db.collection('subjects').doc(subject.id);
-            batch.set(docRef, { name: subject.name });
-        });
-        await batch.commit();
+        localStorage.setItem(SUBJECTS_STORAGE_KEY, JSON.stringify(SUBJECTS));
         return SUBJECTS;
     }
-
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Subject));
 };

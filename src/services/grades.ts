@@ -1,49 +1,52 @@
 
-'use server';
-
 import type { Grade } from '@/lib/types';
-import { getDb } from '@/lib/firebase';
 import { format } from 'date-fns';
 
-export const getGrades = async (): Promise<Grade[]> => {
-    const db = getDb();
-    if (!db) return [];
-    const snapshot = await db.collection('grades').get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Grade));
+const GRADES_STORAGE_KEY = 'grades';
+
+const getStoredGrades = (): Grade[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem(GRADES_STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
 };
 
-export const getGradesByStudent = async (studentId: string): Promise<Grade[]> => {
-    const db = getDb();
-    if (!db) return [];
-    const snapshot = await db.collection('grades').where('studentId', '==', studentId).get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Grade));
+const setStoredGrades = (grades: Grade[]) => {
+    localStorage.setItem(GRADES_STORAGE_KEY, JSON.stringify(grades));
 };
 
-export const upsertGrade = async (studentId: string, subject: string, grade: string) => {
-    const db = getDb();
-    if (!db) return;
+export const getGrades = (): Grade[] => {
+    return getStoredGrades();
+};
+
+export const getGradesByStudent = (studentId: string): Grade[] => {
+    const allGrades = getStoredGrades();
+    return allGrades.filter(g => g.studentId === studentId);
+};
+
+export const upsertGrade = (studentId: string, subject: string, gradeValue: string) => {
+    const allGrades = getStoredGrades();
     const gradeId = `${studentId}_${subject}`;
-    const gradeRef = db.collection('grades').doc(gradeId);
-    
-    const newGrade: Partial<Grade> = {
-        studentId,
-        subject,
-        grade: grade as Grade['grade'],
-        category: 'daily',
-        date: format(new Date(), 'yyyy-MM-dd'),
-    };
+    const existingIndex = allGrades.findIndex(g => g.id === gradeId);
 
-    await gradeRef.set(newGrade, { merge: true });
+    if (existingIndex > -1) {
+        allGrades[existingIndex].grade = gradeValue as Grade['grade'];
+    } else {
+        const newGrade: Grade = {
+            id: gradeId,
+            studentId,
+            subject,
+            grade: gradeValue as Grade['grade'],
+            category: 'daily',
+            date: format(new Date(), 'yyyy-MM-dd'),
+        };
+        allGrades.push(newGrade);
+    }
+
+    setStoredGrades(allGrades);
 };
 
-
-export const deleteGradesByStudentId = async (studentId: string) => {
-    const db = getDb();
-    if (!db) return;
-    const snapshot = await db.collection('grades').where('studentId', '==', studentId).get();
-    const batch = db.batch();
-    snapshot.docs.forEach(doc => {
-        batch.delete(doc.ref);
-    });
-    await batch.commit();
+export const deleteGradesByStudentId = (studentId: string) => {
+    let allGrades = getStoredGrades();
+    allGrades = allGrades.filter(g => g.studentId !== studentId);
+    setStoredGrades(allGrades);
 };

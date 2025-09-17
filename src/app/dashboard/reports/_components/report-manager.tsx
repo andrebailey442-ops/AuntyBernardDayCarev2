@@ -35,12 +35,10 @@ export default function ReportManager() {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchStudents = () => {
         setLoading(true);
-        const [studentList, archivedList] = await Promise.all([
-          getStudents(),
-          getArchivedStudents()
-        ]);
+        const studentList = getStudents();
+        const archivedList = getArchivedStudents();
         const allStudents = [...studentList, ...archivedList];
         setStudents(allStudents);
         setFilteredStudents(allStudents);

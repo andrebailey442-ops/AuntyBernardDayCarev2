@@ -4,14 +4,11 @@
 import * as React from 'react';
 import type { User } from '@/lib/types';
 import { authenticateUser, findUserByUsername, addUser } from '@/services/users';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '@/lib/firebase-client';
 
 type AuthContextType = {
   user: User | null;
   loading: boolean;
   login: (emailOrUsername: string, password?: string) => Promise<User | null>;
-  loginWithGoogle: () => Promise<User | null>;
   logout: () => void;
 };
 
@@ -23,7 +20,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const AUTH_STORAGE_KEY = 'currentUser';
 
   React.useEffect(() => {
-    const initialize = async () => {
+    const initialize = () => {
       try {
         const storedUser = localStorage.getItem(AUTH_STORAGE_KEY);
         if (storedUser) {
@@ -41,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (emailOrUsername: string, password?: string) => {
     setLoading(true);
     try {
-      const authenticatedUser = await authenticateUser(emailOrUsername, password);
+      const authenticatedUser = authenticateUser(emailOrUsername, password);
       if (authenticatedUser) {
         setUser(authenticatedUser);
         localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authenticatedUser));
@@ -56,50 +53,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const loginWithGoogle = async () => {
-    // Note: this function doesn't set loading(true) because the page does.
-    const provider = new GoogleAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const googleUser = result.user;
-
-      if (googleUser && googleUser.email) {
-        let appUser = await findUserByUsername(googleUser.email);
-
-        if (!appUser) {
-          // If user doesn't exist, create a new one without a password
-          const newUser = await addUser(
-            googleUser.email,
-            'Teacher', // Default role
-            undefined, // No password for Google-created users
-            googleUser.photoURL || `https://picsum.photos/seed/${googleUser.uid}/100/100`,
-            googleUser.displayName || googleUser.email
-          );
-          appUser = newUser;
-        }
-        
-        // If appUser has a password, the UI will prompt for it.
-        // Otherwise, we can log them in directly.
-        if (!appUser.password) {
-          setUser(appUser);
-          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(appUser));
-        }
-        return appUser;
-      }
-      return null;
-    } catch (error) {
-      console.error("Google login failed", error);
-      throw error; // Re-throw to be caught by the UI
-    }
-  };
-
   const logout = () => {
     setUser(null);
     localStorage.removeItem(AUTH_STORAGE_KEY);
-    auth.signOut();
   };
 
-  const value = { user, loading, login, loginWithGoogle, logout };
+  const value = { user, loading, login, logout };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

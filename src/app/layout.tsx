@@ -12,12 +12,12 @@ export const metadata: Metadata = {
   description: 'Preschool Admin Management',
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  await initializeData();
+  initializeData();
   
   return (
     <html lang="en" suppressHydrationWarning>

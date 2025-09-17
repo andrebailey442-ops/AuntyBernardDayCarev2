@@ -64,9 +64,9 @@ export default function AfterCareManager() {
   const [archivedLogs, setArchivedLogs] = React.useState<ArchivedLog[]>([]);
 
   React.useEffect(() => {
-    const fetchStudentsAndLogs = async () => {
+    const fetchStudentsAndLogs = () => {
       setLoading(true);
-      const allStudents = await getStudents();
+      const allStudents = getStudents();
       const afterCareStudents = allStudents.filter(student => student.afterCare);
       setStudents(afterCareStudents);
       

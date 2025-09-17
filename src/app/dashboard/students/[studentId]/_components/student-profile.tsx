@@ -32,12 +32,12 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = () => {
         setLoading(true);
-        const studentData = await getStudent(studentId);
+        const studentData = getStudent(studentId);
         if (studentData) {
             setStudent(studentData);
-            const feeData = await getFeeByStudentId(studentId);
+            const feeData = getFeeByStudentId(studentId);
             if (feeData) {
             setFee(feeData);
             }

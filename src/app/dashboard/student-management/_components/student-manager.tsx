@@ -73,9 +73,9 @@ export default function StudentManager() {
   const [isDownloading, setIsDownloading] = React.useState(false);
   const importInputRef = React.useRef<HTMLInputElement>(null);
 
-  const fetchStudents = React.useCallback(async () => {
+  const fetchStudents = React.useCallback(() => {
     setLoading(true);
-    const studentList = await getStudents();
+    const studentList = getStudents();
     setAllStudents(studentList);
     setLoading(false);
   }, []);
@@ -119,9 +119,9 @@ export default function StudentManager() {
     router.push(`/dashboard/reports/${studentId}`);
   };
 
-  const handleGraduate = async (studentId: string) => {
+  const handleGraduate = (studentId: string) => {
     try {
-      await updateStudent(studentId, { status: 'graduated' });
+      updateStudent(studentId, { status: 'graduated' });
       setAllStudents(prev =>
         prev.filter(s => s.id !== studentId)
       );
@@ -139,12 +139,12 @@ export default function StudentManager() {
     }
   };
 
-  const handleRemoveStudent = async (studentId: string) => {
+  const handleRemoveStudent = (studentId: string) => {
     const studentToRemove = allStudents.find(s => s.id === studentId);
     if (!studentToRemove) return;
 
     try {
-      await deleteStudent(studentId);
+      deleteStudent(studentId);
       setAllStudents(prevStudents => prevStudents.filter(s => s.id !== studentId));
       toast({
           title: 'Student Removed',
@@ -215,7 +215,7 @@ export default function StudentManager() {
                 throw new Error("AI analysis did not return any student data.");
             }
 
-            const importPromises = mappedStudents.map(studentData => {
+            mappedStudents.forEach(studentData => {
                 const newId = `SID-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
                 const [firstName, ...lastName] = studentData.name.split(' ');
 
@@ -237,10 +237,9 @@ export default function StudentManager() {
                     emergencyContactPhone: studentData.emergencyContactPhone || '',
                     medicalConditions: studentData.medicalConditions || ''
                 };
-                return addStudent(newId, finalStudentData);
+                addStudent(newId, finalStudentData);
             });
 
-            await Promise.all(importPromises);
             
             toast({
                 title: 'Import Successful',
@@ -265,7 +264,7 @@ export default function StudentManager() {
   }
 
 
-  const handleDownloadReports = async () => {
+  const handleDownloadReports = () => {
     setIsDownloading(true);
     toast({
       title: 'Generating Reports',
@@ -277,11 +276,9 @@ export default function StudentManager() {
       if (!student) continue;
 
       try {
-        const [grades, attendanceRecords, subjects] = await Promise.all([
-          getGradesByStudent(studentId),
-          getAttendanceByStudent(studentId),
-          getSubjects(),
-        ]);
+        const grades = getGradesByStudent(studentId);
+        const attendanceRecords = getAttendanceByStudent(studentId);
+        const subjects = getSubjects();
 
         const attendanceSummary = { present: 0, absent: 0, tardy: 0 };
         attendanceRecords.forEach(a => {

@@ -48,13 +48,12 @@ export default function GradeManager() {
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = () => {
         setLoading(true);
-        const [studentList, subjectList, gradeList] = await Promise.all([
-            getStudents(),
-            getSubjects(),
-            getGrades()
-        ]);
+        const studentList = getStudents();
+        const subjectList = getSubjects();
+        const gradeList = getGrades();
+        
         setAllStudents(studentList);
         setFilteredStudents(studentList);
         setSubjects(subjectList);
@@ -91,19 +90,17 @@ export default function GradeManager() {
     }));
   };
 
-  const handleSaveAll = async () => {
+  const handleSaveAll = () => {
     setSaving(true);
     try {
-      const promises: Promise<void>[] = [];
       for (const studentId in grades) {
         for (const subjectId in grades[studentId]) {
           const grade = grades[studentId][subjectId];
           if (grade) { // Only save if a grade is selected
-            promises.push(upsertGrade(studentId, subjectId, grade));
+            upsertGrade(studentId, subjectId, grade);
           }
         }
       }
-      await Promise.all(promises);
       toast({
         title: 'Grades Saved',
         description: 'All student grades have been successfully updated.',

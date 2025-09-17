@@ -65,9 +65,10 @@ export default function FinancialManager() {
   const [loading, setLoading] = React.useState(true);
 
 
-  const fetchData = React.useCallback(async () => {
+  const fetchData = React.useCallback(() => {
     setLoading(true);
-    const [studentList, feeList] = await Promise.all([getStudents(), getFees()]);
+    const studentList = getStudents();
+    const feeList = getFees();
     setStudents(studentList);
     setFees(feeList);
     setLoading(false);
@@ -97,14 +98,14 @@ export default function FinancialManager() {
       }
   }
   
-  const handleMakePayment = async () => {
+  const handleMakePayment = () => {
     if (!paymentStudent || amountToPay === '' || amountToPay <= 0) {
         toast({ variant: 'destructive', title: 'Error', description: 'Please enter a valid payment amount.'});
         return;
     };
     
     try {
-        const feeToUpdate = await getFeeByStudentId(paymentStudent.id);
+        const feeToUpdate = getFeeByStudentId(paymentStudent.id);
         if (!feeToUpdate) {
             throw new Error('Fee record not found for student.');
         }
@@ -112,7 +113,7 @@ export default function FinancialManager() {
         const newAmountPaid = (feeToUpdate.amountPaid || 0) + Number(amountToPay);
         const newStatus = newAmountPaid >= feeToUpdate.amount ? 'Paid' : feeToUpdate.status;
 
-        await updateFee(feeToUpdate.id, { 
+        updateFee(feeToUpdate.id, { 
             amountPaid: newAmountPaid,
             status: newStatus 
         });
@@ -126,9 +127,9 @@ export default function FinancialManager() {
         );
 
         // Check for enrollment status update
-        const studentToUpdate = await getStudent(paymentStudent.id);
+        const studentToUpdate = getStudent(paymentStudent.id);
         if (studentToUpdate?.status === 'pending' && newAmountPaid >= (feeToUpdate.amount * 0.3)) {
-          await updateStudentStatus(paymentStudent.id, { status: 'enrolled' });
+          updateStudentStatus(paymentStudent.id, { status: 'enrolled' });
           setStudents(prev => prev.map(s => s.id === paymentStudent.id ? { ...s, status: 'enrolled'} : s));
           toast({
             title: 'Student Enrolled',
@@ -153,11 +154,11 @@ export default function FinancialManager() {
     }
   }
   
-  const handleUpdatePayment = async () => {
+  const handleUpdatePayment = () => {
     if (!updatePaymentStudentId || !newPaymentStatus) return;
     
     try {
-        const feeToUpdate = await getFeeByStudentId(updatePaymentStudentId);
+        const feeToUpdate = getFeeByStudentId(updatePaymentStudentId);
         if (!feeToUpdate) {
             throw new Error('Fee record not found for student.');
         }
@@ -167,7 +168,7 @@ export default function FinancialManager() {
             newAmountPaid = feeToUpdate.amount;
         }
         
-        await updateFee(feeToUpdate.id, { status: newPaymentStatus as 'Paid' | 'Pending' | 'Overdue', amountPaid: newAmountPaid });
+        updateFee(feeToUpdate.id, { status: newPaymentStatus as 'Paid' | 'Pending' | 'Overdue', amountPaid: newAmountPaid });
 
         setFees(prevFees =>
             prevFees.map(fee =>
@@ -177,9 +178,9 @@ export default function FinancialManager() {
             )
         );
         
-        const studentToUpdate = await getStudent(updatePaymentStudentId);
+        const studentToUpdate = getStudent(updatePaymentStudentId);
         if (studentToUpdate?.status === 'pending' && newAmountPaid >= (feeToUpdate.amount * 0.3)) {
-            await updateStudentStatus(updatePaymentStudentId, { status: 'enrolled' });
+            updateStudentStatus(updatePaymentStudentId, { status: 'enrolled' });
             setStudents(prev => prev.map(s => s.id === updatePaymentStudentId ? { ...s, status: 'enrolled'} : s));
         }
 

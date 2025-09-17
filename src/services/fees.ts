@@ -1,48 +1,49 @@
 
-'use server';
-
 import type { Fee } from '@/lib/types';
-import { getDb } from '@/lib/firebase';
+import { FEES } from '@/lib/data';
 
-export const getFees = async (): Promise<Fee[]> => {
-    const db = getDb();
-    if (!db) return [];
-    const snapshot = await db.collection('fees').get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Fee));
+const FEES_STORAGE_KEY = 'fees';
+
+const getStoredFees = (): Fee[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem(FEES_STORAGE_KEY);
+    return data ? JSON.parse(data) : FEES;
 };
 
-export const getFeeByStudentId = async (studentId: string): Promise<Fee | null> => {
-    const db = getDb();
-    if (!db) return null;
-    const snapshot = await db.collection('fees').where('studentId', '==', studentId).limit(1).get();
-    if (snapshot.empty) {
-        return null;
+const setStoredFees = (fees: Fee[]) => {
+    localStorage.setItem(FEES_STORAGE_KEY, JSON.stringify(fees));
+};
+
+export const getFees = (): Fee[] => {
+    return getStoredFees();
+};
+
+export const getFeeByStudentId = (studentId: string): Fee | null => {
+    const fees = getStoredFees();
+    const fee = fees.find(f => f.studentId === studentId);
+    return fee || null;
+};
+
+export const addFee = (fee: Omit<Fee, 'id'>): string => {
+    const fees = getStoredFees();
+    const newId = `fee-${Date.now()}`;
+    const newFee = { ...fee, id: newId };
+    fees.push(newFee);
+    setStoredFees(fees);
+    return newId;
+};
+
+export const updateFee = (id: string, feeUpdate: Partial<Fee>) => {
+    const fees = getStoredFees();
+    const index = fees.findIndex(f => f.id === id);
+    if (index > -1) {
+        fees[index] = { ...fees[index], ...feeUpdate };
+        setStoredFees(fees);
     }
-    const doc = snapshot.docs[0];
-    return { id: doc.id, ...doc.data() } as Fee;
-}
-
-export const addFee = async (fee: Omit<Fee, 'id'>): Promise<string> => {
-    const db = getDb();
-    if (!db) throw new Error("Database not initialized");
-    const docRef = await db.collection('fees').add(fee);
-    return docRef.id;
-}
-
-export const updateFee = async (id: string, feeUpdate: Partial<Fee>) => {
-    const db = getDb();
-    if (!db) return;
-    const feeRef = db.collection('fees').doc(id);
-    await feeRef.update(feeUpdate);
 };
 
-export const deleteFeeByStudentId = async (studentId: string) => {
-    const db = getDb();
-    if (!db) return;
-    const snapshot = await db.collection('fees').where('studentId', '==', studentId).get();
-    const batch = db.batch();
-    snapshot.docs.forEach(doc => {
-        batch.delete(doc.ref);
-    });
-    await batch.commit();
+export const deleteFeeByStudentId = (studentId: string) => {
+    let fees = getStoredFees();
+    fees = fees.filter(f => f.studentId !== studentId);
+    setStoredFees(fees);
 };

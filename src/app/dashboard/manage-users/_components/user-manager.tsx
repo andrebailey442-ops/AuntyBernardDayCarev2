@@ -77,16 +77,16 @@ export default function UserManager() {
   const [userToRemove, setUserToRemove] = React.useState<User | null>(null);
 
   React.useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchUsers = () => {
       setLoading(true);
-      const userList = await getUsers();
+      const userList = getUsers();
       setUsers(userList);
       setLoading(false);
     };
     fetchUsers();
   }, []);
 
-  const handleAddUser = async () => {
+  const handleAddUser = () => {
     if (!newName || !newEmail || !newPassword) {
         toast({ variant: 'destructive', title: 'Error', description: 'Name, email and password are required.'});
         return;
@@ -97,7 +97,7 @@ export default function UserManager() {
         return;
     }
     try {
-        const newUser = await addUser(newEmail, newRole, newPassword, undefined, newName);
+        const newUser = addUser(newEmail, newRole, newPassword, undefined, newName);
         setUsers(prev => [...prev, newUser]);
         toast({ title: 'User Added', description: `${newName} has been added.`});
         setIsAddUserDialogOpen(false);
@@ -111,10 +111,10 @@ export default function UserManager() {
     }
   };
   
-  const handleRemoveUser = async () => {
+  const handleRemoveUser = () => {
     if (!userToRemove) return;
     try {
-        await removeUser(userToRemove.id);
+        removeUser(userToRemove.id);
         setUsers(prev => prev.filter(u => u.id !== userToRemove.id));
         toast({ title: 'User Removed', description: `${userToRemove.username} has been removed.`});
     } catch(error) {

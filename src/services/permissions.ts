@@ -1,37 +1,29 @@
 
-'use server';
-
 import { DEFAULT_TEACHER_PERMISSIONS, PERMISSIONS } from '@/lib/data';
 import type { UserRole } from '@/lib/types';
-import { getDb } from '@/lib/firebase';
 
 const getPermissionsKey = (role: UserRole) => `${role.toLowerCase()}_permissions`;
 
-export const getPermissionsByRole = async (role: UserRole): Promise<string[]> => {
-    const db = getDb();
-    if (!db) return role === 'Teacher' ? DEFAULT_TEACHER_PERMISSIONS : PERMISSIONS.map(p => p.id);
+export const getPermissionsByRole = (role: UserRole): string[] => {
+    if (typeof window === 'undefined') return [];
+    
+    const key = getPermissionsKey(role);
+    const storedPermissions = localStorage.getItem(key);
 
-    const docRef = db.collection('settings').doc(getPermissionsKey(role));
-    const doc = await docRef.get();
-
-    if (doc.exists) {
-        return doc.data()?.permissions || [];
-    } else {
-        // Set default permissions if not found
-        let defaultPermissions: string[];
-        if (role === 'Teacher') {
-            defaultPermissions = DEFAULT_TEACHER_PERMISSIONS;
-        } else { // Admin
-            defaultPermissions = PERMISSIONS.map(p => p.id);
-        }
-        await docRef.set({ permissions: defaultPermissions });
-        return defaultPermissions;
+    if (storedPermissions) {
+        return JSON.parse(storedPermissions);
     }
+
+    // Return defaults if nothing is in local storage
+    if (role === 'Teacher') {
+        return DEFAULT_TEACHER_PERMISSIONS;
+    }
+    // Admin gets all permissions by default
+    return PERMISSIONS.map(p => p.id);
 };
 
-export const savePermissionsByRole = async (role: UserRole, permissions: string[]): Promise<void> => {
-     const db = getDb();
-     if (!db) return;
-     const docRef = db.collection('settings').doc(getPermissionsKey(role));
-     await docRef.set({ permissions });
+export const savePermissionsByRole = (role: UserRole, permissions: string[]): void => {
+     if (typeof window === 'undefined') return;
+     const key = getPermissionsKey(role);
+     localStorage.setItem(key, JSON.stringify(permissions));
 };

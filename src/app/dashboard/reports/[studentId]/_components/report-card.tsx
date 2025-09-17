@@ -39,16 +39,14 @@ export default function ReportCard({ studentId }: ReportCardProps) {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = () => {
       setLoading(true);
-      const studentData = await getStudent(studentId);
+      const studentData = getStudent(studentId);
       if (studentData) {
         setStudent(studentData);
-        const [studentGrades, studentAttendance, subjectData] = await Promise.all([
-          getGradesByStudent(studentId),
-          getAttendanceByStudent(studentId),
-          getSubjects(),
-        ]);
+        const studentGrades = getGradesByStudent(studentId);
+        const studentAttendance = getAttendanceByStudent(studentId);
+        const subjectData = getSubjects();
         setGrades(studentGrades);
         setSubjects(subjectData);
         

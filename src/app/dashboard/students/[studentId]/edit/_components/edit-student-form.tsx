@@ -99,9 +99,9 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
   });
 
   React.useEffect(() => {
-    const fetchStudent = async () => {
+    const fetchStudent = () => {
         setIsFetching(true);
-        const studentData = await getStudent(studentId);
+        const studentData = getStudent(studentId);
         if (studentData) {
             setStudent(studentData);
             const [firstName, ...lastName] = studentData.name.split(' ');
@@ -165,7 +165,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     }
   }, [dobState, form]);
 
-  const onSubmit = async (data: EditStudentFormValues) => {
+  const onSubmit = (data: EditStudentFormValues) => {
     setIsLoading(true);
     try {
         const updatedData: Partial<Student> = {
@@ -184,7 +184,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
             emergencyContactPhone: data.emergencyContactPhone,
             medicalConditions: data.medicalConditions,
         };
-        await updateStudent(studentId, updatedData);
+        updateStudent(studentId, updatedData);
 
         toast({
         title: 'Student Updated',

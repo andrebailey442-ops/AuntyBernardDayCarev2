@@ -35,13 +35,11 @@ export default function ReportCardDialog({ student }: ReportCardDialogProps) {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = () => {
         setLoading(true);
-        const [studentGrades, studentAttendance, subjectData] = await Promise.all([
-            getGradesByStudent(student.id),
-            getAttendanceByStudent(student.id),
-            getSubjects()
-        ]);
+        const studentGrades = getGradesByStudent(student.id);
+        const studentAttendance = getAttendanceByStudent(student.id);
+        const subjectData = getSubjects();
         
         setGrades(studentGrades);
         setSubjects(subjectData);

@@ -40,7 +40,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
-  const { login, loginWithGoogle, user, loading: authLoading } = useAuth();
+  const { login, user, loading: authLoading } = useAuth();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -50,7 +50,7 @@ export default function LoginPage() {
     },
   });
 
-  const handleLogin = React.useCallback(async (data: LoginFormValues) => {
+  const handleLogin = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
       const loggedInUser = await login(data.emailOrUsername, data.password);
@@ -71,39 +71,6 @@ export default function LoginPage() {
       });
     } finally {
         setIsLoading(false);
-    }
-  }, [login, router, toast]);
-
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    try {
-      const potentialUser = await loginWithGoogle();
-      if (potentialUser) {
-        if (!potentialUser.password) {
-          // If no password, login was successful in the hook
-          toast({
-            title: 'Google Login Successful',
-            description: `Welcome, ${potentialUser.username}!`,
-          });
-          router.push('/dashboard');
-        } else {
-          // A password exists, so the user should log in with it
-          form.setValue('emailOrUsername', potentialUser.email || '');
-          toast({
-            title: 'Account Found',
-            description: 'This Google account is associated with a password. Please log in normally.',
-          });
-        }
-      }
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: 'destructive',
-        title: 'Google Login Failed',
-        description: 'Could not sign in with Google. Please try again.',
-      });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -175,9 +142,6 @@ export default function LoginPage() {
                   <div className="flex flex-col gap-2">
                     <Button type="submit" className="w-full" disabled={pageLoading}>
                         {pageLoading ? 'Signing in...' : 'Sign In'}
-                    </Button>
-                    <Button type="button" variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={pageLoading}>
-                        Sign in with Google
                     </Button>
                   </div>
                 </form>

@@ -1,47 +1,52 @@
 
-'use server';
-
 import type { Attendance, AttendanceStatus } from '@/lib/types';
-import { getDb } from '@/lib/firebase';
 import { format } from 'date-fns';
 
-export const getAttendance = async (): Promise<Attendance[]> => {
-    const db = getDb();
-    if (!db) return [];
-    const snapshot = await db.collection('attendance').get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Attendance));
+const ATTENDANCE_STORAGE_KEY = 'attendance';
+
+const getStoredAttendance = (): Attendance[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem(ATTENDANCE_STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
 };
 
-export const getAttendanceByStudent = async (studentId: string): Promise<Attendance[]> => {
-    const db = getDb();
-    if (!db) return [];
-    const snapshot = await db.collection('attendance').where('studentId', '==', studentId).get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Attendance));
-}
+const setStoredAttendance = (attendance: Attendance[]) => {
+    localStorage.setItem(ATTENDANCE_STORAGE_KEY, JSON.stringify(attendance));
+};
 
-export const upsertAttendance = async (studentId: string, subject: string, date: Date, status: AttendanceStatus) => {
-    const db = getDb();
-    if (!db) return;
+export const getAttendance = (): Attendance[] => {
+    return getStoredAttendance();
+};
+
+export const getAttendanceByStudent = (studentId: string): Attendance[] => {
+    const allAttendance = getStoredAttendance();
+    return allAttendance.filter(a => a.studentId === studentId);
+};
+
+export const upsertAttendance = (studentId: string, subject: string, date: Date, status: AttendanceStatus) => {
+    const allAttendance = getStoredAttendance();
     const formattedDate = format(date, 'yyyy-MM-dd');
     const attendanceId = `${studentId}_${subject}_${formattedDate}`;
 
-    const attendanceRef = db.collection('attendance').doc(attendanceId);
-    
-    await attendanceRef.set({
-        studentId,
-        subject,
-        date: formattedDate,
-        status
-    }, { merge: true });
-}
+    const existingIndex = allAttendance.findIndex(a => a.id === attendanceId);
 
-export const deleteAttendanceByStudentId = async (studentId: string) => {
-    const db = getDb();
-    if (!db) return;
-    const snapshot = await db.collection('attendance').where('studentId', '==', studentId).get();
-    const batch = db.batch();
-    snapshot.docs.forEach(doc => {
-        batch.delete(doc.ref);
-    });
-    await batch.commit();
+    if (existingIndex > -1) {
+        allAttendance[existingIndex] = { ...allAttendance[existingIndex], status };
+    } else {
+        allAttendance.push({
+            id: attendanceId,
+            studentId,
+            subject,
+            date: formattedDate,
+            status,
+        });
+    }
+
+    setStoredAttendance(allAttendance);
+};
+
+export const deleteAttendanceByStudentId = (studentId: string) => {
+    let allAttendance = getStoredAttendance();
+    allAttendance = allAttendance.filter(a => a.studentId !== studentId);
+    setStoredAttendance(allAttendance);
 };
