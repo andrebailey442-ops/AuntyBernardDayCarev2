@@ -458,7 +458,7 @@ export default function AfterCareManager() {
                     <Tabs defaultValue={archivedLogs[0].date} className="w-full">
                         <TabsList>
                             {archivedLogs.map(log => (
-                                <TabsTrigger key={log.date} value={log.date}>{format(new Date(log.date), 'MMM d, yyyy')}</TabsTrigger>
+                                <TabsTrigger key={log.date} value={log.date}>{format(new Date(log.date), 'PPP')}</TabsTrigger>
                             ))}
                         </TabsList>
                         {archivedLogs.map(log => (

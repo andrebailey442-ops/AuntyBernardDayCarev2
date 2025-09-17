@@ -44,13 +44,10 @@ export default function StudentList({ students, loading }: StudentListProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="hidden w-[100px] sm:table-cell">
-                <span className="sr-only">Image</span>
-              </TableHead>
-              <TableHead>Name</TableHead>
+              <TableHead>Student</TableHead>
               <TableHead>Age</TableHead>
               <TableHead className="hidden md:table-cell">
-                Parent Contact
+                Parent
               </TableHead>
               <TableHead>
                 <span className="sr-only">Actions</span>
@@ -61,32 +58,52 @@ export default function StudentList({ students, loading }: StudentListProps) {
             {loading ? (
                 Array.from({length: 5}).map((_, i) => (
                     <TableRow key={i}>
-                        <TableCell className="hidden sm:table-cell"><Skeleton className="h-16 w-16 rounded-full" /></TableCell>
-                        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+                        <TableCell>
+                            <div className="flex items-center gap-3">
+                                <Skeleton className="h-10 w-10 rounded-full" />
+                                <div>
+                                    <Skeleton className="h-4 w-[150px]" />
+                                    <Skeleton className="h-3 w-[100px] mt-1" />
+                                </div>
+                            </div>
+                        </TableCell>
                         <TableCell><Skeleton className="h-6 w-12 rounded-full" /></TableCell>
-                        <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-40" /></TableCell>
+                        <TableCell className="hidden md:table-cell">
+                            <div>
+                                <Skeleton className="h-4 w-[120px]" />
+                                <Skeleton className="h-3 w-[180px] mt-1" />
+                            </div>
+                        </TableCell>
                         <TableCell><Skeleton className="h-8 w-8" /></TableCell>
                     </TableRow>
                 ))
             ) : enrolledStudents.length > 0 ? (
               enrolledStudents.map((student) => (
                 <TableRow key={student.id}>
-                  <TableCell className="hidden sm:table-cell">
-                    <Image
-                      alt="Student avatar"
-                      className="aspect-square rounded-full object-cover"
-                      height="64"
-                      src={student.avatarUrl}
-                      width="64"
-                      data-ai-hint={student.imageHint}
-                    />
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                        <Image
+                            alt="Student avatar"
+                            className="aspect-square rounded-full object-cover"
+                            height="40"
+                            src={student.avatarUrl}
+                            width="40"
+                            data-ai-hint={student.imageHint}
+                        />
+                        <div>
+                            <div className="font-medium">{student.name}</div>
+                            <div className="text-sm text-muted-foreground font-mono">{student.id}</div>
+                        </div>
+                    </div>
                   </TableCell>
-                  <TableCell className="font-medium">{student.name}</TableCell>
                   <TableCell>
                     <Badge variant="outline">{student.age}</Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {student.parentContact}
+                    <div>
+                        <div className="font-medium">{student.parentFirstName} {student.parentLastName}</div>
+                        <div className="text-sm text-muted-foreground">{student.parentContact}</div>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <StudentListActions studentId={student.id} />
