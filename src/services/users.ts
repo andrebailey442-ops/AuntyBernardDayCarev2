@@ -1,72 +1,88 @@
 
-'use client';
+'use server';
 
 import type { User, UserRole } from '@/lib/types';
-import { USERS } from '@/lib/data';
-
-const USERS_STORAGE_KEY = 'users';
-
-const getUsersFromStorage = (): User[] => {
-    if (typeof window !== 'undefined') {
-        const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
-        if (storedUsers) {
-            return JSON.parse(storedUsers);
-        } else {
-            // If no users in storage, initialize with default users
-            localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(USERS));
-            return USERS;
-        }
-    }
-    return USERS; // Fallback for SSR
-}
-
-const saveUsersToStorage = (users: User[]) => {
-    if (typeof window !== 'undefined') {
-        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-    }
-}
+import { db } from '@/lib/firebase';
+import bcrypt from 'bcryptjs';
 
 export const getUsers = async (): Promise<User[]> => {
-    return getUsersFromStorage();
+    if (!db) return [];
+    const snapshot = await db.collection('users').get();
+    return snapshot.docs.map(doc => {
+        const data = doc.data();
+        // Exclude password from the returned user object
+        const { password, ...user } = data;
+        return { id: doc.id, ...user } as User;
+    });
 };
 
 export const findUserByUsername = async (username: string): Promise<User | null> => {
-    const users = getUsersFromStorage();
+    if (!db) return null;
     const loginIdentifier = username.toLowerCase();
-    return users.find(u => u.username.toLowerCase() === loginIdentifier) || null;
+    const snapshot = await db.collection('users').where('email', '==', loginIdentifier).limit(1).get();
+    
+    if (!snapshot.empty) {
+        const doc = snapshot.docs[0];
+        return { id: doc.id, ...doc.data() } as User;
+    }
+    
+    const snapshotByUsername = await db.collection('users').where('username', '==', username).limit(1).get();
+    if(!snapshotByUsername.empty) {
+        const doc = snapshotByUsername.docs[0];
+        return { id: doc.id, ...doc.data() } as User;
+    }
+    
+    return null;
 }
 
 export const addUser = async (email: string, role: UserRole, password?: string, avatarUrl?: string, displayName?: string): Promise<User> => {
-    const users = getUsersFromStorage();
-    const existingUser = users.find(u => u.username.toLowerCase() === email.toLowerCase());
-    if (existingUser) {
+    if (!db) throw new Error("Database not initialized");
+
+    const usersRef = db.collection('users');
+    const existingUser = await usersRef.where('email', '==', email.toLowerCase()).get();
+    if (!existingUser.empty) {
         throw new Error('A user with this email already exists.');
     }
-    const newUser: User = {
-        id: `user-${Date.now()}`,
-        username: displayName || email, // Use displayName for display, fallback to email
-        email: email, // Store email for login
+
+    let hashedPassword = undefined;
+    if (password) {
+        const salt = await bcrypt.genSalt(10);
+        hashedPassword = await bcrypt.hash(password, salt);
+    }
+    
+    const newUser: Omit<User, 'id'> = {
+        username: displayName || email,
+        email: email,
         role,
-        password,
+        password: hashedPassword,
         avatarUrl: avatarUrl || `https://picsum.photos/seed/${email}/100/100`,
         imageHint: 'person avatar'
     };
-    users.push(newUser);
-    saveUsersToStorage(users);
-    return newUser;
+
+    const docRef = await usersRef.add(newUser);
+    
+    return { id: docRef.id, ...newUser };
 };
 
 export const removeUser = async (userId: string): Promise<void> => {
-    let users = getUsersFromStorage();
-    users = users.filter(u => u.id !== userId);
-    saveUsersToStorage(users);
+    if (!db) return;
+    await db.collection('users').doc(userId).delete();
 };
 
 export const authenticateUser = async (emailOrUsername: string, password?: string): Promise<User | null> => {
-    const users = getUsersFromStorage();
-    const loginIdentifier = emailOrUsername.toLowerCase();
-    const user = users.find(u => 
-        (u.email?.toLowerCase() === loginIdentifier || u.username.toLowerCase() === loginIdentifier) && u.password === password
-    );
-    return user || null;
+    if (!db) return null;
+    const user = await findUserByUsername(emailOrUsername);
+
+    if (user && user.password && password) {
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (isMatch) {
+            const { password, ...userWithoutPassword } = user;
+            return userWithoutPassword as User;
+        }
+    } else if (user && !user.password && !password) {
+        // For passwordless login (e.g. Google Sign-In)
+        return user;
+    }
+
+    return null;
 };

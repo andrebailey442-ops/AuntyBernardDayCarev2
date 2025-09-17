@@ -1,64 +1,43 @@
 
-'use client';
+'use server';
 
 import type { Attendance, AttendanceStatus } from '@/lib/types';
-import { ATTENDANCE } from '@/lib/data';
+import { db } from '@/lib/firebase';
 import { format } from 'date-fns';
 
-const ATTENDANCE_STORAGE_KEY = 'attendance';
-
-const getAttendanceFromStorage = (): Attendance[] => {
-    if (typeof window !== 'undefined') {
-        const storedData = localStorage.getItem(ATTENDANCE_STORAGE_KEY);
-        if (storedData) {
-            return JSON.parse(storedData);
-        } else {
-            // Initialize with default data if nothing is in storage
-            localStorage.setItem(ATTENDANCE_STORAGE_KEY, JSON.stringify(ATTENDANCE));
-            return ATTENDANCE;
-        }
-    }
-    return ATTENDANCE; // Fallback for server-side rendering
-}
-
-const saveAttendanceToStorage = (attendance: Attendance[]) => {
-    if (typeof window !== 'undefined') {
-        localStorage.setItem(ATTENDANCE_STORAGE_KEY, JSON.stringify(attendance));
-    }
-}
-
 export const getAttendance = async (): Promise<Attendance[]> => {
-    return getAttendanceFromStorage();
+    if (!db) return [];
+    const snapshot = await db.collection('attendance').get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Attendance));
 };
 
 export const getAttendanceByStudent = async (studentId: string): Promise<Attendance[]> => {
-    const allAttendance = getAttendanceFromStorage();
-    return allAttendance.filter(a => a.studentId === studentId);
+    if (!db) return [];
+    const snapshot = await db.collection('attendance').where('studentId', '==', studentId).get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Attendance));
 }
 
 export const upsertAttendance = async (studentId: string, subject: string, date: Date, status: AttendanceStatus) => {
-    const allAttendance = getAttendanceFromStorage();
+    if (!db) return;
     const formattedDate = format(date, 'yyyy-MM-dd');
     const attendanceId = `${studentId}_${subject}_${formattedDate}`;
 
-    const existingIndex = allAttendance.findIndex(a => a.id === attendanceId);
-
-    if (existingIndex !== -1) {
-        allAttendance[existingIndex] = { ...allAttendance[existingIndex], status };
-    } else {
-        allAttendance.push({
-            id: attendanceId,
-            studentId,
-            subject,
-            date: formattedDate,
-            status
-        });
-    }
-    saveAttendanceToStorage(allAttendance);
+    const attendanceRef = db.collection('attendance').doc(attendanceId);
+    
+    await attendanceRef.set({
+        studentId,
+        subject,
+        date: formattedDate,
+        status
+    }, { merge: true });
 }
 
 export const deleteAttendanceByStudentId = async (studentId: string) => {
-    let allAttendance = getAttendanceFromStorage();
-    allAttendance = allAttendance.filter(a => a.studentId !== studentId);
-    saveAttendanceToStorage(allAttendance);
+    if (!db) return;
+    const snapshot = await db.collection('attendance').where('studentId', '==', studentId).get();
+    const batch = db.batch();
+    snapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+    });
+    await batch.commit();
 };
