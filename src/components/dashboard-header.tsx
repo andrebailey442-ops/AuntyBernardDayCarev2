@@ -296,10 +296,10 @@ export function DashboardHeader() {
             <div className="flex items-center gap-2">
                 <Link
                     href="/dashboard"
-                    className="flex items-center gap-2 text-lg font-semibold"
+                    className="flex items-center gap-2 font-semibold"
                 >
                     <BusyBeeLogo className="h-6 w-6 text-primary" />
-                    <span className="font-bold">Aunty Bernard</span>
+                    <span className="font-bold text-sm md:text-base whitespace-nowrap">Aunty Bernard DayCare and Pre-school</span>
                 </Link>
             </div>
 
