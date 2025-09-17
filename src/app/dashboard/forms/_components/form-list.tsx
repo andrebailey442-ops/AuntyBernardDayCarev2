@@ -77,23 +77,46 @@ export default function FormList() {
 
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
-        doc.text('Parent/Guardian Information', 20, y);
+        doc.text('Guardian 1 Information', 20, y);
         y += 15;
-        addFormField(doc, "Parent's First Name:", y);
+        addFormField(doc, "First Name:", y);
         y += 15;
-        addFormField(doc, "Parent's Last Name:", y);
+        addFormField(doc, "Last Name:", y);
+        y += 15;
+        addFormField(doc, 'Relationship to child:', y);
         y += 15;
         addFormField(doc, 'Email Address:', y);
         y += 15;
         addFormField(doc, 'Phone Number:', y);
+        y += 25;
+
+        doc.addPage();
+        y = 30;
+
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Guardian 2 Information (Optional)', 20, y);
+        y += 15;
+        addFormField(doc, "First Name:", y);
+        y += 15;
+        addFormField(doc, "Last Name:", y);
+        y += 15;
+        addFormField(doc, 'Relationship to child:', y);
+        y += 15;
+        addFormField(doc, 'Email Address:', y);
+        y += 15;
+        addFormField(doc, 'Phone Number:', y);
+        y += 25;
+
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Address Information', 20, y);
         y += 15;
         addFormField(doc, 'Home Address:', y);
         y += 15;
         addFormField(doc, 'City:', y);
         y += 15;
-        addFormField(doc, 'State:', y);
-        y += 15;
-        addFormField(doc, 'ZIP Code:', y);
+        addFormField(doc, 'Parish:', y);
         y += 25;
         
         doc.addPage();
@@ -131,6 +154,15 @@ export default function FormList() {
         y += 15;
         addFormField(doc, 'Date of Birth:', y);
         y += 25;
+        
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Parent/Guardian Information", 20, y);
+        y += 15;
+        addFormField(doc, "Parent/Guardian Full Name:", y);
+        y += 15;
+        addFormField(doc, "Phone Number:", y);
+        y += 25;
 
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
@@ -148,10 +180,6 @@ export default function FormList() {
         addFormField(doc, "Physician's Name:", y);
         y += 15;
         addFormField(doc, "Physician's Phone Number:", y);
-        y += 15;
-        addFormField(doc, 'Insurance Provider:', y);
-        y += 15;
-        addFormField(doc, 'Policy Number:', y);
         y += 25;
         
         doc.addPage();
