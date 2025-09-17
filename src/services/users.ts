@@ -21,20 +21,19 @@ export const findUserByUsername = async (username: string): Promise<User | null>
     const db = getDb();
     if (!db) return null;
     const loginIdentifier = username.toLowerCase();
-    const snapshot = await db.collection('users').where('email', '==', loginIdentifier).limit(1).get();
     
-    if (!snapshot.empty) {
-        const doc = snapshot.docs[0];
-        return { id: doc.id, ...doc.data() } as User;
+    let snapshot = await db.collection('users').where('email', '==', loginIdentifier).limit(1).get();
+    
+    if (snapshot.empty) {
+        snapshot = await db.collection('users').where('username', '==', username).limit(1).get();
     }
     
-    const snapshotByUsername = await db.collection('users').where('username', '==', username).limit(1).get();
-    if(!snapshotByUsername.empty) {
-        const doc = snapshotByUsername.docs[0];
-        return { id: doc.id, ...doc.data() } as User;
+    if (snapshot.empty) {
+        return null;
     }
-    
-    return null;
+
+    const doc = snapshot.docs[0];
+    return { id: doc.id, ...doc.data() } as User;
 }
 
 export const addUser = async (email: string, role: UserRole, password?: string, avatarUrl?: string, displayName?: string): Promise<User> => {
@@ -55,7 +54,7 @@ export const addUser = async (email: string, role: UserRole, password?: string, 
     
     const newUser: Omit<User, 'id'> = {
         username: displayName || email,
-        email: email,
+        email: email.toLowerCase(),
         role,
         password: hashedPassword,
         avatarUrl: avatarUrl || `https://picsum.photos/seed/${email}/100/100`,
@@ -86,7 +85,8 @@ export const authenticateUser = async (emailOrUsername: string, password?: strin
         }
     } else if (user && !user.password && !password) {
         // For passwordless login (e.g. Google Sign-In)
-        return user;
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword as User;
     }
 
     return null;

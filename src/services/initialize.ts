@@ -2,7 +2,9 @@
 'use server';
 
 import { getDb } from '@/lib/firebase';
-import { USERS, STUDENTS, GRADES, ATTENDANCE, FEES, SUBJECTS, DEFAULT_TEACHER_PERMISSIONS } from '@/lib/data';
+import { USERS, STUDENTS, FEES, SUBJECTS } from '@/lib/data';
+import { addUser } from './users';
+import { addFee } from './fees';
 
 // This function will check if data exists and initialize it if it doesn't.
 // It's a single entry point to avoid multiple checks across different services.
@@ -17,68 +19,50 @@ export const initializeData = async () => {
     const initDoc = await settingsCollection.doc('initialization').get();
 
     if (initDoc.exists) {
+        console.log('Database already initialized.');
         return; // Data is already initialized
     }
 
     console.log('First time setup: Initializing all collections in Firestore...');
 
-    const batch = db.batch();
+    try {
+        // Initialize Users with hashed passwords
+        for (const user of USERS) {
+           if (user.password) {
+             await addUser(user.email!, user.role, user.password, user.avatarUrl, user.username);
+           }
+        }
 
-    // Initialize Users
-    USERS.forEach(user => {
-        const docRef = db.collection('users').doc();
-        batch.set(docRef, {
-            username: user.username,
-            role: user.role,
-            password: user.password, // In a real app, hash this
-            avatarUrl: user.avatarUrl,
-            imageHint: user.imageHint,
+        const batch = db.batch();
+
+        // Initialize Students
+        STUDENTS.forEach(student => {
+            const { id, ...studentData } = student;
+            const docRef = db.collection('students').doc(id);
+            batch.set(docRef, studentData);
         });
-    });
 
-    // Initialize Students
-    STUDENTS.forEach(student => {
-        const { id, ...studentData } = student;
-        const docRef = db.collection('students').doc(id);
-        batch.set(docRef, studentData);
-    });
+        // Initialize Subjects
+        SUBJECTS.forEach(subject => {
+            const docRef = db.collection('subjects').doc(subject.id);
+            batch.set(docRef, { name: subject.name });
+        });
 
-    // Initialize Subjects
-    SUBJECTS.forEach(subject => {
-        const docRef = db.collection('subjects').doc(subject.id);
-        batch.set(docRef, { name: subject.name });
-    });
+        // Initialize Fees - Use addFee to be consistent, but batching is fine
+        FEES.forEach(fee => {
+            const { id, ...feeData } = fee;
+            const docRef = db.collection('fees').doc(id); // Use specific ID for consistency
+            batch.set(docRef, feeData);
+        });
+        
+        // Mark initialization as complete
+        const initCompleteRef = settingsCollection.doc('initialization');
+        batch.set(initCompleteRef, { completedAt: new Date().toISOString() });
+        
+        await batch.commit();
 
-    // Initialize Grades
-    GRADES.forEach(grade => {
-        const { id, ...gradeData } = grade;
-        const docRef = db.collection('grades').doc(id);
-        batch.set(docRef, gradeData);
-    });
-
-    // Initialize Attendance
-    ATTENDANCE.forEach(att => {
-        const { id, ...attData } = att;
-        const docRef = db.collection('attendance').doc(id);
-        batch.set(docRef, attData);
-    });
-
-    // Initialize Fees
-    FEES.forEach(fee => {
-        const { id, ...feeData } = fee;
-        const docRef = db.collection('fees').doc(id);
-        batch.set(docRef, feeData);
-    });
-    
-    // Initialize Permissions
-    const permissionsRef = settingsCollection.doc('teacher_permissions');
-    batch.set(permissionsRef, { permissions: DEFAULT_TEACHER_PERMISSIONS });
-
-    // Mark initialization as complete
-    const initCompleteRef = settingsCollection.doc('initialization');
-    batch.set(initCompleteRef, { completedAt: new Date().toISOString() });
-    
-    await batch.commit();
-
-    console.log('Firestore data initialization complete.');
+        console.log('Firestore data initialization complete.');
+    } catch (error) {
+        console.error("Error during database initialization:", error);
+    }
 };

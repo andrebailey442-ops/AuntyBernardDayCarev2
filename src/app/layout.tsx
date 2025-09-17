@@ -5,17 +5,20 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { AuthProvider } from '@/hooks/use-auth';
 import { LogoProvider } from '@/hooks/use-logo';
+import { initializeData } from '@/services/initialize';
 
 export const metadata: Metadata = {
   title: 'Aunty Bernard DayCare and Pre-school',
   description: 'Preschool Admin Management',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  await initializeData();
+  
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
