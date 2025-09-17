@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -53,15 +54,21 @@ import { addFee } from '@/services/fees';
 import { Switch } from '@/components/ui/switch';
 
 
+const guardianSchema = z.object({
+    firstName: z.string().min(1, 'First name is required'),
+    lastName: z.string().min(1, 'Last name is required'),
+    relationship: z.string().min(1, 'Relationship is required'),
+    contact: z.string().email('Invalid email address'),
+    phone: z.string().min(1, 'Phone number is required'),
+});
+
 const newStudentSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   dob: z.date({ required_error: 'Date of birth is required' }),
   age: z.number().optional(),
-  parentFirstName: z.string().min(1, "Parent's first name is required"),
-  parentLastName: z.string().min(1, "Parent's last name is required"),
-  parentEmail: z.string().email('Invalid email address'),
-  parentPhone: z.string().min(1, 'Phone number is required'),
+  guardian1: guardianSchema,
+  guardian2: guardianSchema.partial().optional(),
   address: z.string().min(1, 'Address is required'),
   city: z.string().min(1, 'City is required'),
   state: z.string().min(1, 'State is required'),
@@ -98,10 +105,8 @@ export function NewStudentForm() {
         firstName: '',
         lastName: '',
         dob: undefined,
-        parentFirstName: '',
-        parentLastName: '',
-        parentEmail: '',
-        parentPhone: '',
+        guardian1: { firstName: '', lastName: '', relationship: '', contact: '', phone: '' },
+        guardian2: { firstName: '', lastName: '', relationship: '', contact: '', phone: '' },
         address: '',
         city: '',
         state: '',
@@ -152,13 +157,11 @@ export function NewStudentForm() {
         const studentData = {
             name: `${data.firstName} ${data.lastName}`,
             age: data.age || 0,
-            parentContact: data.parentEmail,
             avatarUrl: `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/100/100`,
             imageHint: 'child portrait',
             dob: data.dob.toISOString(),
-            parentFirstName: data.parentFirstName,
-            parentLastName: data.parentLastName,
-            parentPhone: data.parentPhone,
+            guardian1: data.guardian1,
+            guardian2: data.guardian2?.firstName ? data.guardian2 : undefined,
             address: data.address,
             city: data.city,
             state: data.state,
@@ -167,7 +170,7 @@ export function NewStudentForm() {
             emergencyContactPhone: data.emergencyContactPhone,
             medicalConditions: data.medicalConditions,
         };
-        await addStudent(data.studentId, studentData);
+        addStudent(data.studentId, studentData);
 
         toast({
         title: 'Registration Submitted',
@@ -248,15 +251,39 @@ export function NewStudentForm() {
 
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
-        doc.text('Parent/Guardian Information', 20, y);
+        doc.text('Guardian 1 Information', 20, y);
         y += 15;
-        addFormField(doc, "Parent's First Name:", y);
+        addFormField(doc, "Guardian 1: First Name:", y);
         y += 15;
-        addFormField(doc, "Parent's Last Name:", y);
+        addFormField(doc, "Guardian 1: Last Name:", y);
         y += 15;
-        addFormField(doc, 'Email Address:', y);
+        addFormField(doc, "Guardian 1: Relationship:", y);
         y += 15;
-        addFormField(doc, 'Phone Number:', y);
+        addFormField(doc, 'Guardian 1: Email Address:', y);
+        y += 15;
+        addFormField(doc, 'Guardian 1: Phone Number:', y);
+        y += 25;
+
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Guardian 2 Information', 20, y);
+        y += 15;
+        addFormField(doc, "Guardian 2: First Name:", y);
+        y += 15;
+        addFormField(doc, "Guardian 2: Last Name:", y);
+        y += 15;
+        addFormField(doc, "Guardian 2: Relationship:", y);
+        y += 15;
+        addFormField(doc, 'Guardian 2: Email Address:', y);
+        y += 15;
+        addFormField(doc, 'Guardian 2: Phone Number:', y);
+        y += 25;
+        
+        doc.addPage();
+        y = 30;
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Address Information', 20, y);
         y += 15;
         addFormField(doc, 'Home Address:', y);
         y += 15;
@@ -267,8 +294,6 @@ export function NewStudentForm() {
         addFormField(doc, 'ZIP Code:', y);
         y += 25;
         
-        doc.addPage();
-        y = 30;
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.text('Emergency and Health Information', 20, y);
@@ -432,24 +457,62 @@ export function NewStudentForm() {
                 </div>
             </div>
 
-             <div className="space-y-4">
-                <h3 className="text-xl font-semibold">Parent/Guardian Information</h3>
+            <Separator />
+            
+            {/* Guardian 1 */}
+            <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Guardian 1 Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="parentFirstName" render={({ field }) => (
+                    <FormField control={form.control} name="guardian1.firstName" render={({ field }) => (
                         <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
-                    <FormField control={form.control} name="parentLastName" render={({ field }) => (
+                    <FormField control={form.control} name="guardian1.lastName" render={({ field }) => (
                         <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="parentEmail" render={({ field }) => (
-                        <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="parent@example.com" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormField control={form.control} name="guardian1.relationship" render={({ field }) => (
+                        <FormItem><FormLabel>Relationship</FormLabel><FormControl><Input {...field} placeholder="e.g. Mother, Father, Guardian" /></FormControl><FormMessage /></FormItem>
+                )} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="guardian1.contact" render={({ field }) => (
+                        <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="guardian1@example.com" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
-                    <FormField control={form.control} name="parentPhone" render={({ field }) => (
+                    <FormField control={form.control} name="guardian1.phone" render={({ field }) => (
                         <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="(555) 555-5555" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
+            </div>
+
+            <Separator />
+
+            {/* Guardian 2 */}
+            <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Guardian 2 Information (Optional)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="guardian2.firstName" render={({ field }) => (
+                        <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="guardian2.lastName" render={({ field }) => (
+                        <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                </div>
+                 <FormField control={form.control} name="guardian2.relationship" render={({ field }) => (
+                        <FormItem><FormLabel>Relationship</FormLabel><FormControl><Input {...field} placeholder="e.g. Mother, Father, Guardian" /></FormControl><FormMessage /></FormItem>
+                )} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="guardian2.contact" render={({ field }) => (
+                        <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="guardian2@example.com" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="guardian2.phone" render={({ field }) => (
+                        <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="(555) 555-5555" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                </div>
+            </div>
+            
+            <Separator />
+
+             <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Address Information</h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField control={form.control} name="address" render={({ field }) => (
                         <FormItem><FormLabel>Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
@@ -545,11 +608,28 @@ export function NewStudentForm() {
                         </div>
                         <Separator />
                         <div>
-                            <h4 className="font-semibold mb-2">Parent/Guardian Information</h4>
-                            <p><strong>Name:</strong> {formValues.parentFirstName} {formValues.parentLastName}</p>
-                            <p><strong>Email:</strong> {formValues.parentEmail}</p>
-                            <p><strong>Phone:</strong> {formValues.parentPhone}</p>
-                            <p><strong>Address:</strong> {`${formValues.address}, ${formValues.city}, ${formValues.state}`}</p>
+                            <h4 className="font-semibold mb-2">Guardian 1 Information</h4>
+                            <p><strong>Name:</strong> {formValues.guardian1.firstName} {formValues.guardian1.lastName}</p>
+                            <p><strong>Relationship:</strong> {formValues.guardian1.relationship}</p>
+                            <p><strong>Email:</strong> {formValues.guardian1.contact}</p>
+                            <p><strong>Phone:</strong> {formValues.guardian1.phone}</p>
+                        </div>
+                        {formValues.guardian2?.firstName && (
+                             <>
+                                <Separator />
+                                <div>
+                                    <h4 className="font-semibold mb-2">Guardian 2 Information</h4>
+                                    <p><strong>Name:</strong> {formValues.guardian2.firstName} {formValues.guardian2.lastName}</p>
+                                    <p><strong>Relationship:</strong> {formValues.guardian2.relationship}</p>
+                                    <p><strong>Email:</strong> {formValues.guardian2.contact}</p>
+                                    <p><strong>Phone:</strong> {formValues.guardian2.phone}</p>
+                                </div>
+                            </>
+                        )}
+                        <Separator />
+                         <div>
+                            <h4 className="font-semibold mb-2">Address</h4>
+                            <p>{`${formValues.address}, ${formValues.city}, ${formValues.state}`}</p>
                         </div>
                         <Separator />
                         <div>

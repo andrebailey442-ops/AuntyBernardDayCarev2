@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -120,12 +121,32 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
             <Separator />
 
             <div>
-                <h3 className="text-xl font-semibold mb-4">Parent/Guardian Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><p className="text-sm text-muted-foreground">First Name</p><p>{student.parentFirstName || 'N/A'}</p></div>
-                    <div><p className="text-sm text-muted-foreground">Last Name</p><p>{student.parentLastName || 'N/A'}</p></div>
-                    <div><p className="text-sm text-muted-foreground">Email</p><p>{student.parentContact}</p></div>
-                    <div><p className="text-sm text-muted-foreground">Phone</p><p>{student.parentPhone || 'N/A'}</p></div>
+                <h3 className="text-xl font-semibold mb-4">Guardian Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    {/* Guardian 1 */}
+                    <div className="space-y-4 rounded-lg border p-4">
+                        <h4 className="font-medium">Guardian 1</h4>
+                        <Separator />
+                        <div><p className="text-sm text-muted-foreground">Name</p><p>{student.guardian1.firstName} {student.guardian1.lastName}</p></div>
+                        <div><p className="text-sm text-muted-foreground">Relationship</p><p>{student.guardian1.relationship}</p></div>
+                        <div><p className="text-sm text-muted-foreground">Email</p><p>{student.guardian1.contact}</p></div>
+                        <div><p className="text-sm text-muted-foreground">Phone</p><p>{student.guardian1.phone}</p></div>
+                    </div>
+                    {/* Guardian 2 */}
+                     <div className="space-y-4 rounded-lg border p-4">
+                        <h4 className="font-medium">Guardian 2</h4>
+                        <Separator />
+                        {student.guardian2 ? (
+                            <>
+                                <div><p className="text-sm text-muted-foreground">Name</p><p>{student.guardian2.firstName} {student.guardian2.lastName}</p></div>
+                                <div><p className="text-sm text-muted-foreground">Relationship</p><p>{student.guardian2.relationship}</p></div>
+                                <div><p className="text-sm text-muted-foreground">Email</p><p>{student.guardian2.contact}</p></div>
+                                <div><p className="text-sm text-muted-foreground">Phone</p><p>{student.guardian2.phone}</p></div>
+                            </>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">No information provided for a second guardian.</p>
+                        )}
+                    </div>
                     <div className="md:col-span-2"><p className="text-sm text-muted-foreground">Address</p><p>{`${student.address || ''}, ${student.city || ''}, ${student.state || ''}`}</p></div>
                 </div>
             </div>

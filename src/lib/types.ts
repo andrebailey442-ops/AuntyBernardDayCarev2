@@ -2,21 +2,27 @@
 
 import type { LucideIcon } from 'lucide-react';
 
+export type Guardian = {
+  firstName: string;
+  lastName: string;
+  relationship: string;
+  contact: string; // email
+  phone: string;
+};
+
 export type Student = {
   id: string;
   name: string;
   age: number;
   dob: string;
-  parentContact: string; // email
   avatarUrl: string;
   imageHint: string;
   afterCare?: boolean;
   status?: 'enrolled' | 'graduated' | 'pending';
   graduationDate?: string;
   // Extended details from form
-  parentFirstName?: string;
-  parentLastName?: string;
-  parentPhone?: string;
+  guardian1: Guardian;
+  guardian2?: Guardian;
   address?: string;
   city?: string;
   state?: string;

@@ -44,10 +44,29 @@ export const getStudent = (id: string): Student | null => {
     return allStudents.find(s => s.id === id) || archivedStudents.find(s => s.id === id) || null;
 }
 
-export const addStudent = (id: string, student: Omit<Student, 'id'>) => {
+export const addStudent = (id: string, student: Omit<Student, 'id' | 'status' | 'guardian1'> & { guardian1: any, guardian2?: any }) => {
     const students = getStoredStudents();
     const status = student.afterCare ? 'enrolled' : 'pending';
-    const newStudent = { ...student, id, status };
+    
+    const newStudent: Student = {
+        ...student,
+        id,
+        status,
+        guardian1: {
+            firstName: student.guardian1.firstName,
+            lastName: student.guardian1.lastName,
+            relationship: student.guardian1.relationship,
+            contact: student.guardian1.contact,
+            phone: student.guardian1.phone,
+        },
+        guardian2: student.guardian2?.firstName ? {
+            firstName: student.guardian2.firstName,
+            lastName: student.guardian2.lastName,
+            relationship: student.guardian2.relationship,
+            contact: student.guardian2.contact,
+            phone: student.guardian2.phone,
+        } : undefined,
+    };
     students.push(newStudent);
     setStoredStudents(students);
 };

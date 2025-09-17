@@ -5,14 +5,20 @@ const RowDataSchema = z.record(z.any());
 export const AnalyzeStudentImportInputSchema = z.array(RowDataSchema);
 export type AnalyzeStudentImportInput = z.infer<typeof AnalyzeStudentImportInputSchema>;
 
+const GuardianSchema = z.object({
+    firstName: z.string().describe("Guardian's first name."),
+    lastName: z.string().describe("Guardian's last name."),
+    relationship: z.string().describe("Guardian's relationship to the child."),
+    contact: z.string().email("Guardian's email address."),
+    phone: z.string().describe("Guardian's phone number."),
+});
+
 export const MappedStudentSchema = z.object({
     name: z.string().describe("The student's full name."),
     age: z.number().describe("The student's age, calculated from date of birth if possible."),
     dob: z.string().describe("The student's date of birth in ISO 8601 format (YYYY-MM-DD)."),
-    parentContact: z.string().email().describe("The parent's email address."),
-    parentFirstName: z.string().optional().describe("The parent's first name."),
-    parentLastName: z.string().optional().describe("The parent's last name."),
-    parentPhone: z.string().optional().describe("The parent's phone number."),
+    guardian1: GuardianSchema.describe("Information for the primary guardian."),
+    guardian2: GuardianSchema.optional().describe("Information for the secondary guardian."),
     address: z.string().optional().describe("The student's home address."),
     city: z.string().optional().describe("The city of the student's address."),
     state: z.string().optional().describe("The state of the student's address."),
@@ -41,4 +47,3 @@ export const ResizeImageOutputSchema = z.object({
     imageUrl: z.string().describe('The data URI of the resized image.'),
 });
 export type ResizeImageOutput = z.infer<typeof ResizeImageOutputSchema>;
-

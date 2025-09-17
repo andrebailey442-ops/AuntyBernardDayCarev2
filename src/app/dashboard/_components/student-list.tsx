@@ -101,8 +101,8 @@ export default function StudentList({ students, loading }: StudentListProps) {
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
                     <div>
-                        <div className="font-medium">{student.parentFirstName} {student.parentLastName}</div>
-                        <div className="text-sm text-muted-foreground">{student.parentPhone}</div>
+                        <div className="font-medium">{student.guardian1.firstName} {student.guardian1.lastName}</div>
+                        <div className="text-sm text-muted-foreground">{student.guardian1.phone}</div>
                     </div>
                   </TableCell>
                   <TableCell>

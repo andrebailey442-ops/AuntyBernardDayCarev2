@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -42,15 +43,21 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 
+const guardianSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  relationship: z.string().min(1, 'Relationship is required'),
+  contact: z.string().email('Invalid email address'),
+  phone: z.string().min(1, 'Phone number is required'),
+});
+
 const editStudentSchema = z.object({
     firstName: z.string().min(1, 'First name is required'),
     lastName: z.string().min(1, 'Last name is required'),
     dob: z.date({ required_error: 'Date of birth is required' }),
     age: z.number().optional(),
-    parentFirstName: z.string().min(1, "Parent's first name is required"),
-    parentLastName: z.string().min(1, "Parent's last name is required"),
-    parentEmail: z.string().email('Invalid email address'),
-    parentPhone: z.string().min(1, 'Phone number is required'),
+    guardian1: guardianSchema,
+    guardian2: guardianSchema.partial().optional(),
     address: z.string().min(1, 'Address is required'),
     city: z.string().min(1, 'City is required'),
     state: z.string().min(1, 'State is required'),
@@ -84,10 +91,8 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     defaultValues: {
         firstName: '',
         lastName: '',
-        parentFirstName: '',
-        parentLastName: '',
-        parentEmail: '',
-        parentPhone: '',
+        guardian1: { firstName: '', lastName: '', relationship: '', contact: '', phone: '' },
+        guardian2: { firstName: '', lastName: '', relationship: '', contact: '', phone: '' },
         address: '',
         city: '',
         state: '',
@@ -112,10 +117,8 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                 lastName: lastName.join(' '),
                 dob: dob,
                 age: studentData.age,
-                parentFirstName: studentData.parentFirstName || '',
-                parentLastName: studentData.parentLastName || '',
-                parentEmail: studentData.parentContact,
-                parentPhone: studentData.parentPhone || '',
+                guardian1: studentData.guardian1,
+                guardian2: studentData.guardian2 || { firstName: '', lastName: '', relationship: '', contact: '', phone: '' },
                 address: studentData.address || '',
                 city: studentData.city || '',
                 state: studentData.state || '',
@@ -172,10 +175,8 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
             name: `${data.firstName} ${data.lastName}`,
             age: data.age,
             dob: data.dob.toISOString(),
-            parentContact: data.parentEmail,
-            parentFirstName: data.parentFirstName,
-            parentLastName: data.parentLastName,
-            parentPhone: data.parentPhone,
+            guardian1: data.guardian1,
+            guardian2: data.guardian2?.firstName ? data.guardian2 : undefined,
             address: data.address,
             city: data.city,
             state: data.state,
@@ -348,24 +349,62 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                 </div>
             </div>
 
-             <div className="space-y-4">
-                <h3 className="text-xl font-semibold">Parent/Guardian Information</h3>
+            <Separator />
+            
+            {/* Guardian 1 */}
+            <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Guardian 1 Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="parentFirstName" render={({ field }) => (
+                    <FormField control={form.control} name="guardian1.firstName" render={({ field }) => (
                         <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
-                    <FormField control={form.control} name="parentLastName" render={({ field }) => (
+                    <FormField control={form.control} name="guardian1.lastName" render={({ field }) => (
                         <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="parentEmail" render={({ field }) => (
-                        <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="parent@example.com" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormField control={form.control} name="guardian1.relationship" render={({ field }) => (
+                        <FormItem><FormLabel>Relationship</FormLabel><FormControl><Input {...field} placeholder="e.g. Mother, Father, Guardian" /></FormControl><FormMessage /></FormItem>
+                )} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="guardian1.contact" render={({ field }) => (
+                        <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="guardian1@example.com" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
-                    <FormField control={form.control} name="parentPhone" render={({ field }) => (
+                    <FormField control={form.control} name="guardian1.phone" render={({ field }) => (
                         <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="(555) 555-5555" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>
+            </div>
+
+            <Separator />
+
+            {/* Guardian 2 */}
+            <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Guardian 2 Information (Optional)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="guardian2.firstName" render={({ field }) => (
+                        <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="guardian2.lastName" render={({ field }) => (
+                        <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                </div>
+                 <FormField control={form.control} name="guardian2.relationship" render={({ field }) => (
+                        <FormItem><FormLabel>Relationship</FormLabel><FormControl><Input {...field} placeholder="e.g. Mother, Father, Guardian" /></FormControl><FormMessage /></FormItem>
+                )} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name="guardian2.contact" render={({ field }) => (
+                        <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="guardian2@example.com" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name="guardian2.phone" render={({ field }) => (
+                        <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="(555) 555-5555" {...field} /></FormControl><FormMessage /></FormItem>
+                    )} />
+                </div>
+            </div>
+            
+            <Separator />
+
+             <div className="space-y-4">
+                <h3 className="text-xl font-semibold">Address Information</h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField control={form.control} name="address" render={({ field }) => (
                         <FormItem><FormLabel>Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>

@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -33,16 +34,21 @@ Please analyze the keys and values in the JSON to intelligently map them to the 
 - \`name\`: The student's full name. If you find separate first and last name columns, combine them.
 - \`age\`: The student's age. If a date of birth is present, calculate the age based on the current year.
 - \`dob\`: The student's date of birth. Convert it to YYYY-MM-DD ISO format.
-- \`parentContact\`: The parent's email address.
-- \`parentFirstName\`: Parent's first name.
-- \`parentLastName\`: Parent's last name.
-- \`parentPhone\`: Parent's phone number.
+- \`guardian1\`: Information for the first parent or guardian. This is a required field.
+  - \`firstName\`: Guardian's first name.
+  - \`lastName\`: Guardian's last name.
+  - \`relationship\`: Guardian's relationship to the child (e.g., Mother, Father).
+  - \`contact\`: Guardian's email address.
+  - \`phone\`: Guardian's phone number.
+- \`guardian2\`: Information for the second parent or guardian. This is optional.
 - \`address\`, \`city\`, \`state\`: Address components.
 - \`afterCare\`: A boolean indicating if they are in after-care. Look for "yes", "true", or similar values.
 - \`emergencyContactName\`, \`emergencyContactPhone\`: Emergency contact details.
 - \`medicalConditions\`: Information about allergies or medical needs.
 
-Return an array of JSON objects matching the defined output schema. Be smart about mapping; for example, "Guardian Email" should map to \`parentContact\`. Do not include students with missing or invalid names.
+Be smart about mapping. For example, "Parent 1 Name" should map to guardian1's name fields. "Guardian Email" could map to guardian1's contact. If you find columns like "Mother's Name" and "Father's Name", map them to guardian1 and guardian2 respectively.
+
+Return an array of JSON objects matching the defined output schema. Do not include students with missing or invalid names.
 `,
 });
 

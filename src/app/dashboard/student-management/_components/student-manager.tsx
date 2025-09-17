@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -170,9 +171,14 @@ export default function StudentManager() {
         Name: s.name,
         Age: s.age,
         Birthday: s.dob,
-        'Parent Email': s.parentContact,
-        'Parent Name': `${s.parentFirstName} ${s.parentLastName}`,
-        'Parent Phone': s.parentPhone,
+        'Guardian 1 Name': `${s.guardian1.firstName} ${s.guardian1.lastName}`,
+        'Guardian 1 Relationship': s.guardian1.relationship,
+        'Guardian 1 Email': s.guardian1.contact,
+        'Guardian 1 Phone': s.guardian1.phone,
+        'Guardian 2 Name': s.guardian2 ? `${s.guardian2.firstName} ${s.guardian2.lastName}` : '',
+        'Guardian 2 Relationship': s.guardian2 ? s.guardian2.relationship : '',
+        'Guardian 2 Email': s.guardian2 ? s.guardian2.contact : '',
+        'Guardian 2 Phone': s.guardian2 ? s.guardian2.phone : '',
         Address: s.address,
         City: s.city,
         State: s.state,
@@ -217,18 +223,15 @@ export default function StudentManager() {
 
             mappedStudents.forEach(studentData => {
                 const newId = `SID-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-                const [firstName, ...lastName] = studentData.name.split(' ');
-
-                const finalStudentData: Omit<Student, 'id' | 'status'> = {
+                
+                const finalStudentData = {
                     name: studentData.name,
                     age: studentData.age || 0,
                     dob: studentData.dob || new Date().toISOString(),
-                    parentContact: studentData.parentContact,
                     avatarUrl: `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/100/100`,
                     imageHint: 'child portrait',
-                    parentFirstName: studentData.parentFirstName || firstName,
-                    parentLastName: studentData.parentLastName || lastName.join(' '),
-                    parentPhone: studentData.parentPhone || '',
+                    guardian1: studentData.guardian1,
+                    guardian2: studentData.guardian2,
                     address: studentData.address || '',
                     city: studentData.city || '',
                     state: studentData.state || '',
