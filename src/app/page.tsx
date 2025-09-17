@@ -39,8 +39,8 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = React.useState(false);
-  const { login } = useAuth();
+  const [isLoading, setIsLoading] = React.useState(true); // Set initial loading to true
+  const { login, user } = useAuth();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -58,7 +58,7 @@ export default function LoginPage() {
     router.push('/dashboard');
   }
 
-  const onSubmit = async (data: LoginFormValues) => {
+  const handleLogin = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
       const user = await login(data.emailOrUsername, data.password);
@@ -78,6 +78,17 @@ export default function LoginPage() {
     }
   };
 
+  React.useEffect(() => {
+    // If a user is already logged in, redirect to dashboard
+    if (user) {
+      router.push('/dashboard');
+      return;
+    }
+
+    // Automatically log in as Admin
+    handleLogin({ emailOrUsername: 'Admin', password: 'admin' });
+  }, [user]);
+
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center bg-background p-4 overflow-hidden">
@@ -89,7 +100,7 @@ export default function LoginPage() {
               Aunty Bernard DayCare and Pre-school
             </h1>
             <p className="text-muted-foreground">
-              Welcome back! Please enter your credentials to log in.
+              Please wait while we automatically log you in...
             </p>
         </div>
         <Card className="backdrop-blur-sm bg-card/80">
@@ -99,7 +110,7 @@ export default function LoginPage() {
             </CardHeader>
             <CardContent>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-4">
                   <FormField
                       control={form.control}
                       name="emailOrUsername"
