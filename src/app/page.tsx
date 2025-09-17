@@ -39,8 +39,8 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = React.useState(true); // Set initial loading to true
-  const { login, user, loading: authLoading } = useAuth();
+  const [isLoading, setIsLoading] = React.useState(false);
+  const { login, loginWithGoogle, user, loading: authLoading } = useAuth();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -74,23 +74,47 @@ export default function LoginPage() {
     }
   }, [login, router, toast]);
 
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    try {
+      const potentialUser = await loginWithGoogle();
+      if (potentialUser) {
+        if (!potentialUser.password) {
+          // If no password, login was successful in the hook
+          toast({
+            title: 'Google Login Successful',
+            description: `Welcome, ${potentialUser.username}!`,
+          });
+          router.push('/dashboard');
+        } else {
+          // A password exists, so the user should log in with it
+          form.setValue('emailOrUsername', potentialUser.email || '');
+          toast({
+            title: 'Account Found',
+            description: 'This Google account is associated with a password. Please log in normally.',
+          });
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: 'destructive',
+        title: 'Google Login Failed',
+        description: 'Could not sign in with Google. Please try again.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   React.useEffect(() => {
     // If a user is already logged in from a previous session, redirect.
-    if (user) {
+    if (user && !authLoading) {
       router.push('/dashboard');
-      return;
     }
-    
-    // Once auth is done loading and there's no user, attempt auto-login.
-    if (!authLoading && !user) {
-        // Use a small timeout to ensure all services are ready.
-        const timer = setTimeout(() => {
-            handleLogin({ emailOrUsername: 'Admin', password: 'admin' });
-        }, 500);
-        return () => clearTimeout(timer);
-    }
-  }, [user, authLoading, router, handleLogin]);
+  }, [user, authLoading, router]);
 
+  const pageLoading = authLoading || isLoading;
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center bg-background p-4 overflow-hidden">
@@ -102,13 +126,13 @@ export default function LoginPage() {
               Aunty Bernard DayCare and Pre-school
             </h1>
             <p className="text-muted-foreground">
-              Please wait while we automatically log you in...
+              Please sign in to continue to the dashboard.
             </p>
         </div>
         <Card className="backdrop-blur-sm bg-card/80">
             <CardHeader>
               <CardTitle>Login</CardTitle>
-              <CardDescription>Use "Admin" with password "admin" to continue.</CardDescription>
+              <CardDescription>Use "Admin" and "admin" to sign in.</CardDescription>
             </CardHeader>
             <CardContent>
             <Form {...form}>
@@ -123,7 +147,7 @@ export default function LoginPage() {
                           <Input
                               placeholder="admin or admin@example.com"
                               {...field}
-                              disabled={isLoading}
+                              disabled={pageLoading}
                           />
                           </FormControl>
                           <FormMessage />
@@ -141,7 +165,7 @@ export default function LoginPage() {
                               type="password"
                               placeholder="admin"
                               {...field}
-                              disabled={isLoading}
+                              disabled={pageLoading}
                           />
                           </FormControl>
                           <FormMessage />
@@ -149,8 +173,11 @@ export default function LoginPage() {
                       )}
                   />
                   <div className="flex flex-col gap-2">
-                    <Button type="submit" className="w-full" disabled={isLoading}>
-                        {isLoading ? 'Signing in...' : 'Sign In'}
+                    <Button type="submit" className="w-full" disabled={pageLoading}>
+                        {pageLoading ? 'Signing in...' : 'Sign In'}
+                    </Button>
+                    <Button type="button" variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={pageLoading}>
+                        Sign in with Google
                     </Button>
                   </div>
                 </form>
