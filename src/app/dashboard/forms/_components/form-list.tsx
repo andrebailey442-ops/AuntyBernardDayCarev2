@@ -27,15 +27,22 @@ export default function FormList() {
     const { toast } = useToast();
 
     const addLogoAndHeader = (doc: jsPDF, title: string) => {
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+
+      // Add a thick border
+      doc.setLineWidth(1.5);
+      doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(24);
-      doc.text('Aunty Bernard', 20, 22);
+      doc.setFontSize(18);
+      doc.text('Aunty Bernard DayCare and Pre-school', pageWidth / 2, 22, { align: 'center' });
       
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(18);
-      doc.text(title, 20, 35);
+      doc.setFontSize(16);
+      doc.text(title, pageWidth / 2, 35, { align: 'center' });
       doc.setLineWidth(0.5);
-      doc.line(20, 40, 190, 40);
+      doc.line(20, 40, pageWidth - 20, 40);
     };
 
     const addFormField = (doc: jsPDF, label: string, y: number) => {
@@ -91,7 +98,8 @@ export default function FormList() {
         y += 25;
 
         doc.addPage();
-        y = 30;
+        addLogoAndHeader(doc, 'Student Registration Form');
+        y = 50;
 
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
@@ -120,7 +128,8 @@ export default function FormList() {
         y += 25;
         
         doc.addPage();
-        y = 30;
+        addLogoAndHeader(doc, 'Student Registration Form');
+        y = 50;
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.text('Emergency and Health Information', 20, y);
@@ -183,7 +192,8 @@ export default function FormList() {
         y += 25;
         
         doc.addPage();
-        y = 30;
+        addLogoAndHeader(doc, 'Medical & Consent Form');
+        y = 50;
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.text('Consent for Treatment & Activities', 20, y);
