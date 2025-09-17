@@ -4,13 +4,12 @@
 import admin from 'firebase-admin';
 import { getApps } from 'firebase-admin/app';
 
-// This function is intended to be used on the server side.
-// It checks for Firebase environment variables and initializes the Firebase Admin app
-// if it hasn't been initialized already.
+let adminApp: admin.app.App | null = null;
 
-function getFirebaseAdmin() {
+function initializeAdminApp() {
   if (getApps().length > 0) {
-    return admin.app();
+    adminApp = admin.app();
+    return;
   }
 
   const {
@@ -20,15 +19,14 @@ function getFirebaseAdmin() {
   } = process.env;
 
   if (!projectId || !clientEmail || !privateKey) {
-    // We won't throw an error here for client-side use cases
     console.warn(
       'Firebase server environment variables are not fully set. Server-side Firebase features will be disabled.'
     );
-    return null;
+    return;
   }
 
   try {
-    return admin.initializeApp({
+    adminApp = admin.initializeApp({
       credential: admin.credential.cert({
         projectId,
         clientEmail,
@@ -46,5 +44,11 @@ function getFirebaseAdmin() {
   }
 }
 
-const adminApp = getFirebaseAdmin();
-export const db = adminApp ? admin.firestore() : null;
+function getDb() {
+  if (!adminApp) {
+    initializeAdminApp();
+  }
+  return adminApp ? admin.firestore() : null;
+}
+
+export { getDb };

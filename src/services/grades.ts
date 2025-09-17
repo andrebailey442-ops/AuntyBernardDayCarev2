@@ -2,22 +2,25 @@
 'use server';
 
 import type { Grade } from '@/lib/types';
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase';
 import { format } from 'date-fns';
 
 export const getGrades = async (): Promise<Grade[]> => {
+    const db = getDb();
     if (!db) return [];
     const snapshot = await db.collection('grades').get();
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Grade));
 };
 
 export const getGradesByStudent = async (studentId: string): Promise<Grade[]> => {
+    const db = getDb();
     if (!db) return [];
     const snapshot = await db.collection('grades').where('studentId', '==', studentId).get();
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Grade));
 };
 
 export const upsertGrade = async (studentId: string, subject: string, grade: string) => {
+    const db = getDb();
     if (!db) return;
     const gradeId = `${studentId}_${subject}`;
     const gradeRef = db.collection('grades').doc(gradeId);
@@ -35,6 +38,7 @@ export const upsertGrade = async (studentId: string, subject: string, grade: str
 
 
 export const deleteGradesByStudentId = async (studentId: string) => {
+    const db = getDb();
     if (!db) return;
     const snapshot = await db.collection('grades').where('studentId', '==', studentId).get();
     const batch = db.batch();

@@ -2,10 +2,11 @@
 'use server';
 
 import type { Subject } from '@/lib/types';
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase';
 import { SUBJECTS } from '@/lib/data';
 
 export const getSubjects = async (): Promise<Subject[]> => {
+    const db = getDb();
     if (!db) return SUBJECTS;
     
     const snapshot = await db.collection('subjects').get();

@@ -1,12 +1,18 @@
 
 'use server';
 
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase';
 import { USERS, STUDENTS, GRADES, ATTENDANCE, FEES, SUBJECTS, DEFAULT_TEACHER_PERMISSIONS } from '@/lib/data';
 
 // This function will check if data exists and initialize it if it doesn't.
 // It's a single entry point to avoid multiple checks across different services.
 export const initializeData = async () => {
+    const db = getDb();
+    if (!db) {
+        console.log('Database not available for initialization.');
+        return;
+    }
+
     const settingsCollection = db.collection('settings');
     const initDoc = await settingsCollection.doc('initialization').get();
 

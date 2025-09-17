@@ -2,10 +2,11 @@
 'use server';
 
 import type { User, UserRole } from '@/lib/types';
-import { db } from '@/lib/firebase';
+import { getDb } from '@/lib/firebase';
 import bcrypt from 'bcryptjs';
 
 export const getUsers = async (): Promise<User[]> => {
+    const db = getDb();
     if (!db) return [];
     const snapshot = await db.collection('users').get();
     return snapshot.docs.map(doc => {
@@ -17,6 +18,7 @@ export const getUsers = async (): Promise<User[]> => {
 };
 
 export const findUserByUsername = async (username: string): Promise<User | null> => {
+    const db = getDb();
     if (!db) return null;
     const loginIdentifier = username.toLowerCase();
     const snapshot = await db.collection('users').where('email', '==', loginIdentifier).limit(1).get();
@@ -36,6 +38,7 @@ export const findUserByUsername = async (username: string): Promise<User | null>
 }
 
 export const addUser = async (email: string, role: UserRole, password?: string, avatarUrl?: string, displayName?: string): Promise<User> => {
+    const db = getDb();
     if (!db) throw new Error("Database not initialized");
 
     const usersRef = db.collection('users');
@@ -65,11 +68,13 @@ export const addUser = async (email: string, role: UserRole, password?: string, 
 };
 
 export const removeUser = async (userId: string): Promise<void> => {
+    const db = getDb();
     if (!db) return;
     await db.collection('users').doc(userId).delete();
 };
 
 export const authenticateUser = async (emailOrUsername: string, password?: string): Promise<User | null> => {
+    const db = getDb();
     if (!db) return null;
     const user = await findUserByUsername(emailOrUsername);
 
