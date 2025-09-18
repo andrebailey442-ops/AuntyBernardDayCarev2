@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -24,13 +23,13 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Download, Info, ArrowLeft } from 'lucide-react';
+import { Download, Info, ArrowLeft, Upload, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 import { BusyBeeLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
 import { Separator } from '@/components/ui/separator';
 import {
     AlertDialog,
@@ -53,7 +52,6 @@ import {
 import { addFee } from '@/services/fees';
 import { Switch } from '@/components/ui/switch';
 import { JAMAICAN_PARISHES } from '@/lib/data';
-
 
 const phoneRegex = new RegExp(
   /^(\+\d{1,3})?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/
@@ -78,6 +76,7 @@ const newStudentSchema = z.object({
   city: z.string().min(2, 'City is required.'),
   state: z.string({ required_error: 'Parish is required.' }).min(1, 'Parish is required.'),
   afterCare: z.boolean().default(false),
+  nursery: z.boolean().default(false),
   emergencyContactName: z.string().min(2, 'Emergency contact name is required.').max(100, 'Name is too long'),
   emergencyContactPhone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
   medicalConditions: z.string().max(500, 'Medical conditions cannot exceed 500 characters.').optional(),
@@ -96,6 +95,7 @@ export function NewStudentForm() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [studentId, setStudentId] = React.useState('');
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [paymentPlan, setPaymentPlan] = React.useState<'Full Payment' | 'Two Installments' | 'Monthly Plan'>('Two Installments');
 
   const [dobState, setDobState] = React.useState({
     day: '',
@@ -116,6 +116,7 @@ export function NewStudentForm() {
         city: '',
         state: '',
         afterCare: false,
+        nursery: false,
         emergencyContactName: '',
         emergencyContactPhone: '',
         medicalConditions: '',
@@ -131,14 +132,24 @@ export function NewStudentForm() {
   const dob = form.watch('dob');
   const formValues = form.watch();
 
+  const totalFee = React.useMemo(() => {
+    let total = paymentPlan === 'Full Payment' ? TUITION_FULL : TUITION_INSTALLMENTS;
+    if (formValues.afterCare) {
+        total += AFTER_CARE_FEE;
+    }
+    return total;
+  }, [paymentPlan, formValues.afterCare]);
+
+  const enrollmentDeposit = totalFee * 0.3;
+
   React.useEffect(() => {
     const { day, month, year } = dobState;
     if (day && month && year) {
-      const newDob = new Date(Number(year), Number(month) - 1, Number(day));
-      // Check if it's a valid date
-      if (!isNaN(newDob.getTime())) {
-          form.setValue('dob', newDob, { shouldValidate: true });
-      }
+        const newDob = new Date(Number(year), Number(month) - 1, Number(day));
+        // Check if it's a valid date
+        if (!isNaN(newDob.getTime())) {
+            form.setValue('dob', newDob, { shouldValidate: true });
+        }
     }
   }, [dobState, form]);
 
@@ -171,11 +182,20 @@ export function NewStudentForm() {
             city: data.city,
             state: data.state,
             afterCare: data.afterCare,
+            nursery: data.nursery,
             emergencyContactName: data.emergencyContactName,
             emergencyContactPhone: data.emergencyContactPhone,
             medicalConditions: data.medicalConditions,
         };
         addStudent(data.studentId, studentData);
+
+        addFee({
+            studentId: data.studentId,
+            amount: totalFee,
+            amountPaid: 0,
+            status: 'Pending',
+            plan: paymentPlan,
+        });
 
         toast({
         title: 'Registration Submitted',
@@ -198,26 +218,34 @@ export function NewStudentForm() {
   const handleOpenDialog = async () => {
     const isValid = await form.trigger();
     if (isValid) {
-      setIsDialogOpen(true);
+        setIsDialogOpen(true);
     } else {
-      toast({
-        variant: 'destructive',
-        title: 'Validation Error',
-        description: 'Please correct the errors on the form before submitting.',
-      })
+        console.log(form.formState.errors);
+        toast({
+            variant: 'destructive',
+            title: 'Validation Error',
+            description: 'Please correct the errors on the form before submitting.',
+        })
     }
   }
 
   const addLogoAndHeader = (doc: jsPDF, title: string) => {
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(24);
-    doc.text('Aunty Bernard', 20, 22);
-    
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(18);
-    doc.text(title, 20, 35);
-    doc.setLineWidth(0.5);
-    doc.line(20, 40, 190, 40);
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+
+      // Add a thick border
+      doc.setLineWidth(1.5);
+      doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(18);
+      doc.text('Aunty Bernard DayCare and Pre-school', pageWidth / 2, 22, { align: 'center' });
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(16);
+      doc.text(title, pageWidth / 2, 35, { align: 'center' });
+      doc.setLineWidth(0.5);
+      doc.line(20, 40, pageWidth - 20, 40);
   };
 
   const addFormField = (doc: jsPDF, label: string, y: number) => {
@@ -239,13 +267,7 @@ export function NewStudentForm() {
     try {
         const doc = new jsPDF();
         addLogoAndHeader(doc, 'Student Registration Form');
-        let y = 50;
-
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`Student ID: ${studentId}`, 20, y);
-        y += 10;
-        
+        let y = 60;
 
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
@@ -256,42 +278,42 @@ export function NewStudentForm() {
         addFormField(doc, 'Last Name:', y);
         y += 15;
         addFormField(doc, 'Date of Birth (YYYY-MM-DD):', y);
-        y += 15;
-        addFormField(doc, 'Age:', y);
         y += 25;
 
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.text('Guardian 1 Information', 20, y);
         y += 15;
-        addFormField(doc, "Guardian 1: First Name:", y);
+        addFormField(doc, "First Name:", y);
         y += 15;
-        addFormField(doc, "Guardian 1: Last Name:", y);
+        addFormField(doc, "Last Name:", y);
         y += 15;
-        addFormField(doc, "Guardian 1: Relationship:", y);
+        addFormField(doc, 'Relationship to child:', y);
         y += 15;
-        addFormField(doc, 'Guardian 1: Email Address:', y);
+        addFormField(doc, 'Email Address:', y);
         y += 15;
-        addFormField(doc, 'Guardian 1: Phone Number:', y);
+        addFormField(doc, 'Phone Number:', y);
         y += 25;
+
+        doc.addPage();
+        addLogoAndHeader(doc, 'Student Registration Form');
+        y = 50;
 
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
-        doc.text('Guardian 2 Information', 20, y);
+        doc.text('Guardian 2 Information (Optional)', 20, y);
         y += 15;
-        addFormField(doc, "Guardian 2: First Name:", y);
+        addFormField(doc, "First Name:", y);
         y += 15;
-        addFormField(doc, "Guardian 2: Last Name:", y);
+        addFormField(doc, "Last Name:", y);
         y += 15;
-        addFormField(doc, "Guardian 2: Relationship:", y);
+        addFormField(doc, 'Relationship to child:', y);
         y += 15;
-        addFormField(doc, 'Guardian 2: Email Address:', y);
+        addFormField(doc, 'Email Address:', y);
         y += 15;
-        addFormField(doc, 'Guardian 2: Phone Number:', y);
+        addFormField(doc, 'Phone Number:', y);
         y += 25;
-        
-        doc.addPage();
-        y = 30;
+
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.text('Address Information', 20, y);
@@ -303,6 +325,9 @@ export function NewStudentForm() {
         addFormField(doc, 'Parish:', y);
         y += 25;
         
+        doc.addPage();
+        addLogoAndHeader(doc, 'Student Registration Form');
+        y = 50;
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.text('Emergency and Health Information', 20, y);
@@ -563,29 +588,44 @@ export function NewStudentForm() {
             <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Program Enrollment</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                        <div className="mt-4">
-                            <FormField
-                                control={form.control}
-                                name="afterCare"
-                                render={({ field }) => (
-                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                                    <div className="space-y-0.5">
-                                        <FormLabel className="text-base">
-                                        After-Care Program
-                                        </FormLabel>
-                                    </div>
-                                    <FormControl>
-                                        <Switch
-                                        checked={field.value}
-                                        onCheckedChange={field.onChange}
-                                        />
-                                    </FormControl>
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                    </div>
+                    <FormField
+                        control={form.control}
+                        name="afterCare"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                            <div className="space-y-0.5">
+                                <FormLabel className="text-base">
+                                After-Care Program
+                                </FormLabel>
+                            </div>
+                            <FormControl>
+                                <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                />
+                            </FormControl>
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="nursery"
+                        render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                            <div className="space-y-0.5">
+                                <FormLabel className="text-base">
+                                Nursery Program
+                                </FormLabel>
+                            </div>
+                            <FormControl>
+                                <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                />
+                            </FormControl>
+                            </FormItem>
+                        )}
+                    />
                 </div>
             </div>
 
@@ -665,6 +705,7 @@ export function NewStudentForm() {
                         <div>
                             <h4 className="font-semibold mb-2">Program Enrollment</h4>
                             <p><strong>After Care:</strong> {formValues.afterCare ? 'Yes' : 'No'}</p>
+                            <p><strong>Nursery:</strong> {formValues.nursery ? 'Yes' : 'No'}</p>
                         </div>
                          <Separator />
                         <div>

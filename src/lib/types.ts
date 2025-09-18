@@ -18,6 +18,7 @@ export type Student = {
   avatarUrl: string;
   imageHint: string;
   afterCare?: boolean;
+  nursery?: boolean;
   status?: 'enrolled' | 'graduated' | 'pending';
   graduationDate?: string;
   // Extended details from form
@@ -95,3 +96,23 @@ export type Permission = {
     role: 'Teacher' | 'Admin';
     allowed: boolean;
 }
+
+export type StaffRole = 'Preschool Attendant' | 'Aftercare Attendant' | 'Nursery Attendant';
+
+export type Staff = {
+  id: string;
+  name: string;
+  role: StaffRole;
+  avatarUrl: string;
+  imageHint: string;
+};
+
+export type StaffSchedule = {
+  [staffId: string]: {
+    [day: string]: string; // e.g., '9am-5pm'
+  };
+};
+
+export type StaffAttendance = {
+  [staffId: string]: 'present' | 'absent' | 'late';
+};

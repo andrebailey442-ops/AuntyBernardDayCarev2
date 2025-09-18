@@ -1,5 +1,5 @@
 
-import type { Student, Subject, Grade, Attendance, Fee, User } from './types';
+import type { Student, Subject, Fee, User, FormDocument, Staff, StaffRole } from './types';
 
 export const STUDENTS: Student[] = [
   {
@@ -11,6 +11,7 @@ export const STUDENTS: Student[] = [
     avatarUrl: 'https://picsum.photos/seed/101/100/100',
     imageHint: 'child smiling',
     afterCare: true,
+    nursery: false,
     status: 'enrolled',
     address: '123 Maple St',
     city: 'Kingston',
@@ -28,6 +29,7 @@ export const STUDENTS: Student[] = [
     avatarUrl: 'https://picsum.photos/seed/102/100/100',
     imageHint: 'girl laughing',
     afterCare: false,
+    nursery: true,
     status: 'enrolled',
     address: '456 Oak Ave',
     city: 'Montego Bay',
@@ -45,6 +47,7 @@ export const STUDENTS: Student[] = [
     avatarUrl: 'https://picsum.photos/seed/103/100/100',
     imageHint: 'boy playing',
     afterCare: true,
+    nursery: true,
     status: 'enrolled',
     address: '789 Pine Ln',
     city: 'Ocho Rios',
@@ -62,6 +65,7 @@ export const STUDENTS: Student[] = [
     avatarUrl: 'https://picsum.photos/seed/104/100/100',
     imageHint: 'toddler girl',
     afterCare: false,
+    nursery: true,
     status: 'pending',
     address: '101 Elm Ct',
     city: 'Spanish Town',
@@ -79,6 +83,7 @@ export const STUDENTS: Student[] = [
     avatarUrl: 'https://picsum.photos/seed/105/100/100',
     imageHint: 'child portrait',
     afterCare: true,
+    nursery: false,
     status: 'enrolled',
     address: '212 Birch Rd',
     city: 'Mandeville',
@@ -96,6 +101,7 @@ export const STUDENTS: Student[] = [
     avatarUrl: 'https://picsum.photos/seed/106/100/100',
     imageHint: 'child painting',
     afterCare: false,
+    nursery: false,
     status: 'enrolled',
     address: '333 Cedar Dr',
     city: 'Negril',
@@ -113,6 +119,7 @@ export const STUDENTS: Student[] = [
     avatarUrl: 'https://picsum.photos/seed/107/100/100',
     imageHint: 'boy running',
     afterCare: true,
+    nursery: true,
     status: 'enrolled',
     address: '444 Spruce Way',
     city: 'Port Antonio',
@@ -127,9 +134,10 @@ export const STUDENTS: Student[] = [
     age: 3,
     dob: '2021-02-12',
     guardian1: { firstName: 'Robert', lastName: 'Martinez', relationship: 'Father', contact: 'sophia.martinez.parent@example.com', phone: '876-555-0115' },
-    avatarUrl: 'https://picsum.photos/seed/108/100/100',
+    avatarUrl: 'https/picsum.photos/seed/108/100/100',
     imageHint: 'girl with book',
     afterCare: false,
+    nursery: true,
     status: 'enrolled',
     address: '555 Willow Ave',
     city: 'May Pen',
@@ -144,9 +152,10 @@ export const STUDENTS: Student[] = [
     age: 4,
     dob: '2020-04-01',
     guardian1: { firstName: 'Lisa', lastName: 'Hernandez', relationship: 'Mother', contact: 'ethan.hernandez.parent@example.com', phone: '876-555-0117' },
-    avatarUrl: 'https://picsum.photos/seed/109/100/100',
+    avatarUrl: 'https/picsum.photos/seed/109/100/100',
     imageHint: 'child on swing',
     afterCare: true,
+    nursery: false,
     status: 'pending',
     address: '666 Redwood Cir',
     city: 'Falmouth',
@@ -164,6 +173,7 @@ export const STUDENTS: Student[] = [
     avatarUrl: 'https://picsum.photos/seed/110/100/100',
     imageHint: 'girl smiling',
     afterCare: false,
+    nursery: true,
     status: 'enrolled',
     address: '777 Sequoia Blvd',
     city: 'Black River',
@@ -229,12 +239,14 @@ export const PERMISSIONS: {id: string, label: string}[] = [
     { id: '/dashboard/reports', label: 'Reports' },
     { id: '/dashboard/graduation', label: 'Graduation' },
     { id: '/dashboard/after-care', label: 'After-Care' },
+    { id: '/dashboard/nursery', label: 'Nursery' },
     { id: '/dashboard/manage-users', label: 'Manage Users'},
+    { id: '/dashboard/staff', label: 'Staff Management' },
 ];
 
 export const DEFAULT_TEACHER_PERMISSIONS: string[] = ['/dashboard/preschool', '/dashboard/attendance', '/dashboard/grades'];
 
-export const FORMS: {id: string, title: string, description: string, icon: any}[] = [
+export const FORMS: FormDocument[] = [
     {
       id: 'f1',
       title: 'New Student Application',
@@ -248,6 +260,31 @@ export const FORMS: {id: string, title: string, description: string, icon: any}[
       icon: 'HeartPulse',
     },
 ];
+
+export const STAFF: Staff[] = [
+    {
+      id: 'staff-1',
+      name: 'Eleanor Vance',
+      role: 'Preschool Attendant',
+      avatarUrl: 'https://i.pravatar.cc/150?u=eleanor',
+      imageHint: 'woman smiling'
+    },
+    {
+      id: 'staff-2',
+      name: 'Marcus Holloway',
+      role: 'Aftercare Attendant',
+      avatarUrl: 'https://i.pravatar.cc/150?u=marcus',
+      imageHint: 'man with glasses'
+    },
+    {
+      id: 'staff-3',
+      name: 'Clara Oswald',
+      role: 'Nursery Attendant',
+      avatarUrl: 'https://i.pravatar.cc/150?u=clara',
+      imageHint: 'woman with dark hair'
+    }
+];
+
 
 export const JAMAICAN_PARISHES = [
     { value: 'St. Andrew', label: 'St. Andrew' },
