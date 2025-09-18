@@ -21,18 +21,18 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { getStaff, addStaff, deleteStaff, getStaffSchedule, setStaffSchedule, getStaffAttendance, setStaffAttendance } from '@/services/staff';
+import { getStaff, deleteStaff, getStaffSchedule, setStaffSchedule, getStaffAttendance, setStaffAttendance } from '@/services/staff';
 import type { Staff, StaffRole, StaffSchedule, StaffAttendance } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MoreHorizontal, PlusCircle, Trash2, CalendarDays, CheckCircle } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { MoreHorizontal, PlusCircle, Trash2, Edit } from 'lucide-react';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format, startOfWeek, addDays, eachDayOfInterval } from 'date-fns';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { StaffForm } from './staff-form';
 
-const staffRoles: StaffRole[] = ['Preschool Attendant', 'Aftercare Attendant', 'Nursery Attendant'];
+export const staffRoles: StaffRole[] = ['Preschool Attendant', 'Aftercare Attendant', 'Nursery Attendant'];
 
 export default function StaffManager() {
   const { toast } = useToast();
@@ -41,42 +41,40 @@ export default function StaffManager() {
   const [attendance, setAttendance] = React.useState<StaffAttendance>({});
   const [loading, setLoading] = React.useState(true);
   
-  const [isAddStaffDialogOpen, setIsAddStaffDialogOpen] = React.useState(false);
-  const [newStaffName, setNewStaffName] = React.useState('');
-  const [newStaffRole, setNewStaffRole] = React.useState<StaffRole>('Preschool Attendant');
+  const [isFormOpen, setIsFormOpen] = React.useState(false);
+  const [selectedStaff, setSelectedStaff] = React.useState<Staff | null>(null);
 
   const [isRemoveStaffAlertOpen, setIsRemoveStaffAlertOpen] = React.useState(false);
   const [staffToRemove, setStaffToRemove] = React.useState<Staff | null>(null);
 
   const [selectedDate, setSelectedDate] = React.useState(new Date());
 
-  React.useEffect(() => {
-    const fetchData = () => {
-      setLoading(true);
-      setStaff(getStaff());
-      setSchedule(getStaffSchedule());
-      setAttendance(getStaffAttendance(format(selectedDate, 'yyyy-MM-dd')));
-      setLoading(false);
-    };
-    fetchData();
+  const fetchData = React.useCallback(() => {
+    setLoading(true);
+    setStaff(getStaff());
+    setSchedule(getStaffSchedule());
+    setAttendance(getStaffAttendance(format(selectedDate, 'yyyy-MM-dd')));
+    setLoading(false);
   }, [selectedDate]);
 
-  const handleAddStaff = () => {
-    if (!newStaffName) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Staff name is required.' });
-        return;
-    }
-    try {
-        const newMember = addStaff(newStaffName, newStaffRole);
-        setStaff(prev => [...prev, newMember]);
-        toast({ title: 'Staff Member Added', description: `${newStaffName} has been added.` });
-        setIsAddStaffDialogOpen(false);
-        setNewStaffName('');
-        setNewStaffRole('Preschool Attendant');
-    } catch (error) {
-        console.error('Failed to add staff: ', error);
-        toast({ variant: 'destructive', title: 'Error', description: (error as Error).message || 'Failed to add staff.' });
-    }
+  React.useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleFormSuccess = () => {
+    fetchData();
+    setIsFormOpen(false);
+    setSelectedStaff(null);
+  }
+
+  const handleEdit = (staffMember: Staff) => {
+    setSelectedStaff(staffMember);
+    setIsFormOpen(true);
+  };
+  
+  const handleAddNew = () => {
+    setSelectedStaff(null);
+    setIsFormOpen(true);
   };
 
   const handleRemoveStaff = () => {
@@ -112,104 +110,96 @@ export default function StaffManager() {
   };
 
   const weekDays = eachDayOfInterval({ start: startOfWeek(selectedDate, { weekStartsOn: 1 }), end: addDays(startOfWeek(selectedDate, { weekStartsOn: 1 }), 4) }).map(d => format(d, 'EEEE'));
-  const todayStr = format(new Date(), 'yyyy-MM-dd');
-
+  
   return (
     <div className="space-y-6">
-      <Card className="backdrop-blur-sm bg-card/80">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-              <CardTitle>Staff Members</CardTitle>
-              <CardDescription>Manage your team of dedicated staff.</CardDescription>
-          </div>
-          <Dialog open={isAddStaffDialogOpen} onOpenChange={setIsAddStaffDialogOpen}>
-              <DialogTrigger asChild>
-                  <Button>
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Add Staff
-                  </Button>
-              </DialogTrigger>
-              <DialogContent>
-                  <DialogHeader>
-                      <CardTitle>Add New Staff Member</CardTitle>
-                      <CardDescription>Enter the details for the new staff member.</CardDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                      <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="name" className="text-right">Name</Label>
-                          <Input id="name" value={newStaffName} onChange={e => setNewStaffName(e.target.value)} className="col-span-3" placeholder="John Doe" />
-                      </div>
-                      <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="role" className="text-right">Role</Label>
-                          <Select onValueChange={(value: StaffRole) => setNewStaffRole(value)} value={newStaffRole}>
-                              <SelectTrigger className="col-span-3">
-                                  <SelectValue placeholder="Select a role" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                  {staffRoles.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}
-                              </SelectContent>
-                          </Select>
-                      </div>
-                  </div>
-                  <DialogFooter>
-                      <Button onClick={handleAddStaff}>Add Staff</Button>
-                  </DialogFooter>
-              </DialogContent>
-          </Dialog>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Staff Member</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                  Array.from({length: 3}).map((_, i) => (
-                      <TableRow key={i}>
-                          <TableCell>
-                              <div className="flex items-center gap-3">
-                                  <Skeleton className="h-10 w-10 rounded-full" />
-                                  <Skeleton className="h-4 w-[150px]" />
-                              </div>
-                          </TableCell>
-                          <TableCell><Skeleton className="h-6 w-[120px] rounded-full" /></TableCell>
-                          <TableCell className="text-right"><Skeleton className="h-8 w-8" /></TableCell>
-                      </TableRow>
-                  ))
-              ) : staff.map(member => (
-                <TableRow key={member.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Image
-                        alt={member.name}
-                        className="aspect-square rounded-full object-cover"
-                        height="40"
-                        src={member.avatarUrl}
-                        width="40"
-                        data-ai-hint={member.imageHint}
-                      />
-                      <div className="font-medium">{member.name}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{member.role}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => openRemoveStaffAlert(member)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                        <span className="sr-only">Remove</span>
-                    </Button>
-                  </TableCell>
+      <Dialog open={isFormOpen} onOpenChange={(open) => { if (!open) { setIsFormOpen(false); setSelectedStaff(null); } else { setIsFormOpen(true); }}}>
+        <Card className="backdrop-blur-sm bg-card/80">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+                <CardTitle>Staff Members</CardTitle>
+                <CardDescription>Manage your team of dedicated staff.</CardDescription>
+            </div>
+            <Button onClick={handleAddNew}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Staff
+            </Button>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Staff Member</TableHead>
+                  <TableHead>Roles</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                    Array.from({length: 3}).map((_, i) => (
+                        <TableRow key={i}>
+                            <TableCell>
+                                <div className="flex items-center gap-3">
+                                    <Skeleton className="h-10 w-10 rounded-full" />
+                                    <Skeleton className="h-4 w-[150px]" />
+                                </div>
+                            </TableCell>
+                            <TableCell><Skeleton className="h-6 w-[120px] rounded-full" /></TableCell>
+                            <TableCell className="text-right"><Skeleton className="h-8 w-8" /></TableCell>
+                        </TableRow>
+                    ))
+                ) : staff.map(member => (
+                  <TableRow key={member.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Image
+                          alt={member.name}
+                          className="aspect-square rounded-full object-cover"
+                          height="40"
+                          src={member.avatarUrl}
+                          width="40"
+                          data-ai-hint={member.imageHint}
+                        />
+                        <div className="font-medium">{member.name}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        {member.roles.length > 0 ? member.roles.map(role => <Badge key={role} variant="outline">{role}</Badge>) : <span className="text-muted-foreground">No roles assigned</span>}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                       <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleEdit(member)}>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit Profile
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => openRemoveStaffAlert(member)}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Remove Staff
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+        <DialogContent className="sm:max-w-2xl">
+          <StaffForm staffMember={selectedStaff} onSuccess={handleFormSuccess} />
+        </DialogContent>
+      </Dialog>
 
       <Card className="backdrop-blur-sm bg-card/80">
         <CardHeader>

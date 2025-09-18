@@ -102,7 +102,10 @@ export type StaffRole = 'Preschool Attendant' | 'Aftercare Attendant' | 'Nursery
 export type Staff = {
   id: string;
   name: string;
-  role: StaffRole;
+  dob: string;
+  age: number;
+  address: string;
+  roles: StaffRole[];
   avatarUrl: string;
   imageHint: string;
 };
@@ -116,3 +119,4 @@ export type StaffSchedule = {
 export type StaffAttendance = {
   [staffId: string]: 'present' | 'absent' | 'late';
 };
+

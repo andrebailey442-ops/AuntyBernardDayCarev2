@@ -1,4 +1,5 @@
 
+
 import type { Student, Subject, Fee, User, FormDocument, Staff, StaffRole } from './types';
 
 export const STUDENTS: Student[] = [
@@ -290,21 +291,30 @@ export const STAFF: Staff[] = [
     {
       id: 'staff-1',
       name: 'Eleanor Vance',
-      role: 'Preschool Attendant',
+      dob: '1990-05-15',
+      age: 34,
+      address: '789 Oak Street, Kingston',
+      roles: ['Preschool Attendant'],
       avatarUrl: 'https://i.pravatar.cc/150?u=eleanor',
       imageHint: 'woman smiling'
     },
     {
       id: 'staff-2',
       name: 'Marcus Holloway',
-      role: 'Aftercare Attendant',
+      dob: '1988-11-22',
+      age: 35,
+      address: '456 Pine Avenue, Montego Bay',
+      roles: ['Aftercare Attendant', 'Nursery Attendant'],
       avatarUrl: 'https://i.pravatar.cc/150?u=marcus',
       imageHint: 'man with glasses'
     },
     {
       id: 'staff-3',
       name: 'Clara Oswald',
-      role: 'Nursery Attendant',
+      dob: '1995-03-01',
+      age: 29,
+      address: '123 Maple Drive, Ocho Rios',
+      roles: ['Nursery Attendant'],
       avatarUrl: 'https://i.pravatar.cc/150?u=clara',
       imageHint: 'woman with dark hair'
     }
@@ -327,3 +337,4 @@ export const JAMAICAN_PARISHES = [
     { value: 'St. Thomas', label: 'St. Thomas' },
     { value: 'Kingston', label: 'Kingston' },
 ];
+
