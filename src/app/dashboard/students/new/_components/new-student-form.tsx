@@ -204,7 +204,6 @@ export function NewStudentForm() {
     if (isValid) {
         setIsConfirmDialogOpen(true);
     } else {
-        // If validation fails, check for the specific age error
         const ageError = form.formState.errors.age;
         if(ageError && ageError.message?.includes("exceed 6 years")) {
             setIsAgeOverrideDialogOpen(true);
@@ -217,6 +216,13 @@ export function NewStudentForm() {
             })
         }
     }
+  }
+
+  const handleOverrideSubmit = () => {
+    // This function is called when the user confirms the age override.
+    // It manually invokes the onSubmit handler with the current form data,
+    // bypassing the validation that would normally block it.
+    onSubmit(form.getValues());
   }
 
   const addLogoAndHeader = (doc: jsPDF, title: string) => {
@@ -583,7 +589,7 @@ export function NewStudentForm() {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={form.handleSubmit(onSubmit)} disabled={isLoading}>
+                        <AlertDialogAction onClick={handleOverrideSubmit} disabled={isLoading}>
                             {isLoading ? 'Submitting...' : 'Override and Continue'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
