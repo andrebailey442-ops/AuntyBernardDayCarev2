@@ -164,9 +164,12 @@ export default function HeroSlideshow({ title }: HeroSlideshowProps) {
                 <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center p-4">
                     <div className="flex items-center gap-4 bg-black/50 p-6 rounded-lg">
                         <BusyBeeLogo className="h-16 w-16 text-white" />
-                        <h1 className="text-5xl font-bold text-white tracking-wider">
-                            {title}
-                        </h1>
+                        <div>
+                            <h2 className="text-xl font-semibold text-white/90 tracking-wide">Aunty Bernard DayCare and Pre-school</h2>
+                            <h1 className="text-5xl font-bold text-white tracking-wider">
+                                {title}
+                            </h1>
+                        </div>
                     </div>
                 </div>
               </CardContent>
