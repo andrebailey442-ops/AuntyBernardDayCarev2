@@ -1,5 +1,6 @@
 
 
+
 import { USERS, STUDENTS, FEES, SUBJECTS, DEFAULT_TEACHER_PERMISSIONS, PERMISSIONS, STAFF } from '@/lib/data';
 
 const INIT_FLAG = 'isInitialized';
@@ -18,6 +19,7 @@ const initializeLocalStorage = () => {
     localStorage.setItem('staffSchedule', JSON.stringify({}));
     const todayStr = new Date().toISOString().split('T')[0];
     localStorage.setItem(`staffAttendance_${todayStr}`, JSON.stringify({}));
+    localStorage.setItem('staffArchivedLogs', JSON.stringify([]));
     localStorage.setItem(INIT_FLAG, 'true');
 };
 
@@ -31,3 +33,4 @@ export const initializeData = () => {
         initializeLocalStorage();
     }
 };
+

@@ -116,7 +116,21 @@ export type StaffSchedule = {
   };
 };
 
-export type StaffAttendance = {
-  [staffId: string]: 'present' | 'absent' | 'late';
+export type StaffClockStatus = 'Clocked-In' | 'Clocked-Out';
+
+export type StaffClockRecord = {
+  status: StaffClockStatus;
+  checkInTime?: string;
+  checkOutTime?: string;
+  checkedInBy?: string;
+  checkedOutBy?: string;
 };
 
+export type StaffAttendance = {
+  [staffId: string]: StaffClockRecord;
+};
+
+export type ArchivedStaffLog = {
+    date: string; // YYYY-MM-DD
+    records: (Staff & { log: StaffClockRecord })[];
+}

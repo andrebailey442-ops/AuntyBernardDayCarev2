@@ -1,10 +1,13 @@
 
-import type { Staff, StaffRole, StaffSchedule, StaffAttendance } from '@/lib/types';
+
+import type { Staff, StaffSchedule, StaffAttendance, ArchivedStaffLog } from '@/lib/types';
 import { STAFF } from '@/lib/data';
 
 const STAFF_STORAGE_KEY = 'staff';
 const STAFF_SCHEDULE_STORAGE_KEY = 'staffSchedule';
 const STAFF_ATTENDANCE_STORAGE_KEY_PREFIX = 'staffAttendance_';
+const ARCHIVED_STAFF_LOGS_STORAGE_KEY = 'staffArchivedLogs';
+
 
 // Staff Management
 const getStoredStaff = (): Staff[] => {
@@ -94,4 +97,15 @@ export const getStaffAttendance = (date: string): StaffAttendance => {
 
 export const setStaffAttendance = (date: string, attendance: StaffAttendance) => {
     setStoredAttendance(date, attendance);
+}
+
+// Logbook
+export const getArchivedStaffLogs = (): ArchivedStaffLog[] => {
+    if (typeof window === 'undefined') return [];
+    const data = localStorage.getItem(ARCHIVED_STAFF_LOGS_STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+}
+
+export const saveArchivedStaffLogs = (logs: ArchivedStaffLog[]) => {
+    localStorage.setItem(ARCHIVED_STAFF_LOGS_STORAGE_KEY, JSON.stringify(logs));
 }
