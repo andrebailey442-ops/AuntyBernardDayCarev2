@@ -43,6 +43,16 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { JAMAICAN_PARISHES } from '@/lib/data';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+  } from "@/components/ui/alert-dialog"
 
 const phoneRegex = new RegExp(
   /^(\+\d{1,3})?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/
@@ -60,7 +70,9 @@ const editStudentSchema = z.object({
     firstName: z.string().min(2, 'First name must be at least 2 characters.').max(50, 'First name cannot exceed 50 characters.'),
     lastName: z.string().min(2, 'Last name must be at least 2 characters.').max(50, 'Last name cannot exceed 50 characters.'),
     dob: z.date({ required_error: 'Date of birth is required' }),
-    age: z.number().optional(),
+    age: z.number().optional().refine(age => age === undefined || age <= 6, {
+        message: "Student's age cannot exceed 6 years for online registration.",
+    }),
     guardian1: guardianSchema,
     guardian2: guardianSchema.partial().optional(),
     address: z.string().min(5, 'Address is required and must be at least 5 characters.'),
@@ -84,6 +96,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
   const [isLoading, setIsLoading] = React.useState(false);
   const [isFetching, setIsFetching] = React.useState(true);
   const [student, setStudent] = React.useState<Student | null>(null);
+  const [isAgeOverrideDialogOpen, setIsAgeOverrideDialogOpen] = React.useState(false);
 
   const [dobState, setDobState] = React.useState({
     day: '',
@@ -196,6 +209,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
         title: 'Student Updated',
         description: `The details for ${data.firstName} ${data.lastName} have been successfully updated.`,
         });
+        setIsAgeOverrideDialogOpen(false);
         router.push(`/dashboard/students/${studentId}`);
     } catch (error) {
         console.error("Failed to update student: ", error);
@@ -204,6 +218,29 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
         setIsLoading(false);
     }
   };
+
+  const handleFormSubmit = async () => {
+    const isValid = await form.trigger();
+    if (isValid) {
+        onSubmit(form.getValues());
+    } else {
+        const ageError = form.formState.errors.age;
+        if(ageError && ageError.message?.includes("exceed 6 years")) {
+            setIsAgeOverrideDialogOpen(true);
+        } else {
+            console.log(form.formState.errors);
+            toast({
+                variant: 'destructive',
+                title: 'Validation Error',
+                description: 'Please correct the errors on the form before submitting.',
+            })
+        }
+    }
+  }
+
+  const handleOverrideSubmit = () => {
+    onSubmit(form.getValues());
+  }
 
   if (isFetching || !student) {
       return (
@@ -266,7 +303,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={(e) => { e.preventDefault(); handleFormSubmit(); }} className="space-y-8">
             <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Student Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -505,6 +542,22 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
             </div>
           </form>
         </Form>
+        <AlertDialog open={isAgeOverrideDialogOpen} onOpenChange={setIsAgeOverrideDialogOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Age Limit Exceeded</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        The student's age is over 6. This online form is for children 6 and under. Do you want to override and continue with the update?
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleOverrideSubmit} disabled={isLoading}>
+                        {isLoading ? 'Saving...' : 'Override and Continue'}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
     </Card>
     </>
