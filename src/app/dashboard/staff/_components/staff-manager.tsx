@@ -24,18 +24,20 @@ import { useToast } from '@/hooks/use-toast';
 import { getStaff, deleteStaff, getStaffSchedule, setStaffSchedule, getStaffAttendance, setStaffAttendance } from '@/services/staff';
 import type { Staff, StaffRole, StaffSchedule, StaffAttendance } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MoreHorizontal, PlusCircle, Trash2, Edit } from 'lucide-react';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { MoreHorizontal, PlusCircle, Trash2, Edit, User } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { format, startOfWeek, addDays, eachDayOfInterval } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { StaffForm } from './staff-form';
+import { useRouter } from 'next/navigation';
 
 export const staffRoles: StaffRole[] = ['Preschool Attendant', 'Aftercare Attendant', 'Nursery Attendant'];
 
 export default function StaffManager() {
   const { toast } = useToast();
+  const router = useRouter();
   const [staff, setStaff] = React.useState<Staff[]>([]);
   const [schedule, setSchedule] = React.useState<StaffSchedule>({});
   const [attendance, setAttendance] = React.useState<StaffAttendance>({});
@@ -164,7 +166,7 @@ export default function StaffManager() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-1">
+                      <div className="flex gap-1 flex-wrap">
                         {member.roles && member.roles.length > 0 ? member.roles.map(role => <Badge key={role} variant="outline">{role}</Badge>) : <span className="text-muted-foreground">No roles assigned</span>}
                       </div>
                     </TableCell>
@@ -178,6 +180,10 @@ export default function StaffManager() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => router.push(`/dashboard/staff/${member.id}`)}>
+                                <User className="mr-2 h-4 w-4" />
+                                View Profile
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEdit(member)}>
                               <Edit className="mr-2 h-4 w-4" />
                               Edit Profile
