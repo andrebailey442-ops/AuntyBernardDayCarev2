@@ -11,6 +11,16 @@ import HeroSlideshow from './_components/hero-slideshow';
 import WallArt from '@/components/wall-art';
 import { useAuth } from '@/hooks/use-auth';
 
+// A simple function to format the pathname into a title
+const getTitleFromPathname = (pathname: string): string => {
+    if (pathname === '/dashboard') return 'Dashboard';
+    const segment = pathname.split('/')[2] || 'Dashboard';
+    return segment
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
 export default function DashboardLayout({
   children,
 }: {
@@ -44,8 +54,8 @@ export default function DashboardLayout({
     );
   }
   
-  const showSlideshow = pathname.startsWith('/dashboard/preschool') || pathname.startsWith('/dashboard/after-care');
-  const slideshowTitle = pathname.includes('preschool') ? 'Aunty Bernard Pre-school' : 'Aunty Bernard AfterCare';
+  const showSlideshow = pathname !== '/dashboard' && !pathname.includes('/new') && !pathname.includes('/edit') && !pathname.split('/')[3];
+  const slideshowTitle = getTitleFromPathname(pathname);
 
   return (
     <Dialog>

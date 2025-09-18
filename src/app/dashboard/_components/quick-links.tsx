@@ -28,11 +28,6 @@ const links = [
     icon: Users,
   },
   {
-    href: '/dashboard/staff',
-    label: 'Staff Management',
-    icon: UserCog,
-  },
-  {
     href: '/dashboard/forms',
     label: 'View All Forms',
     icon: FileText,
@@ -52,11 +47,6 @@ const links = [
     label: 'Graduation',
     icon: Award,
   },
-   {
-    href: '/dashboard/nursery',
-    label: 'Nursery',
-    icon: Baby,
-  },
 ];
 
 export default function QuickLinks() {
@@ -66,7 +56,7 @@ export default function QuickLinks() {
         <CardTitle>Actions</CardTitle>
         <CardDescription>Fast access to common tasks.</CardDescription>
       </CardHeader>
-      <CardContent className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+      <CardContent className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
           {links.map((link) => (
             <Link key={link.href} href={link.href} className="flex">
               <Button variant="outline" className="flex flex-col h-28 w-full justify-center gap-2">
