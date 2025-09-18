@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -208,15 +207,23 @@ export default function StaffManager() {
   const generateWeeklyRoster = () => {
     try {
         const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+
+        // Add border
+        doc.setLineWidth(1.5);
+        doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
+
+        // Add header
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(24);
-        doc.text('Aunty Bernard', 20, 22);
+        doc.setFontSize(18);
+        doc.text('Aunty Bernard DayCare and Pre-school', pageWidth / 2, 22, { align: 'center' });
         
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(18);
-        doc.text(`Weekly Staff Roster for week of ${format(startOfWeek(selectedDate, { weekStartsOn: 1 }), 'PPP')}`, 20, 35);
+        doc.setFontSize(16);
+        doc.text(`Weekly Staff Roster - Week of ${format(startOfWeek(selectedDate, { weekStartsOn: 1 }), 'PPP')}`, pageWidth / 2, 35, { align: 'center' });
         doc.setLineWidth(0.5);
-        doc.line(20, 40, 190, 40);
+        doc.line(20, 40, pageWidth - 20, 40);
 
         const tableColumn = ["Staff Member", ...weekDays];
         const tableRows = staff.map(member => {
@@ -231,6 +238,16 @@ export default function StaffManager() {
             head: [tableColumn],
             body: tableRows,
             startY: 50,
+            theme: 'grid',
+            headStyles: {
+                fillColor: [22, 163, 74], // A pleasant green color
+                textColor: 255,
+                fontStyle: 'bold',
+            },
+            styles: {
+                cellPadding: 3,
+                fontSize: 10,
+            }
         });
 
         doc.save('Weekly_Staff_Roster.pdf');
@@ -429,7 +446,7 @@ export default function StaffManager() {
                 </div>
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
-                        <Button variant="outline" disabled={clockedOutStaff.length === 0}><Archive className="mr-2 h-4 w-4" />Clear & Archive Log</Button>
+                        <Button variant="outline" disabled={clockedOutStaff.length === 0}><Archive className="mr-2 h-4 w-4" />Clear &amp; Archive Log</Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                         <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will archive today's clock-out log and reset the status for all staff members.</AlertDialogDescription></AlertDialogHeader>
