@@ -325,13 +325,6 @@ export function NewStudentForm() {
   const fromService = fromSection?.replace('-', ' ');
 
   return (
-    <>
-    <div className="mb-4">
-        <Button variant="outline" onClick={() => router.back()}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-        </Button>
-    </div>
     <Card className="max-w-4xl mx-auto backdrop-blur-sm bg-card/80">
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
@@ -575,6 +568,5 @@ export function NewStudentForm() {
         </Form>
       </CardContent>
     </Card>
-    </>
   );
 }
