@@ -65,7 +65,9 @@ export function NewStudentForm() {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = React.useState(false);
   const [studentId, setStudentId] = React.useState('');
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = React.useState(false);
+  const [isAgeOverrideDialogOpen, setIsAgeOverrideDialogOpen] = React.useState(false);
+
   const [paymentPlan, setPaymentPlan] = React.useState<'Full Payment' | 'Two Installments' | 'Monthly Plan'>('Two Installments');
   const [showAdditionalServices, setShowAdditionalServices] = React.useState(false);
 
@@ -182,7 +184,8 @@ export function NewStudentForm() {
         title: 'Registration Submitted',
         description: `The registration form for ${data.firstName} ${data.lastName} has been submitted.`,
         });
-        setIsDialogOpen(false);
+        setIsConfirmDialogOpen(false);
+        setIsAgeOverrideDialogOpen(false);
         router.push('/dashboard/preschool');
     } catch (error) {
         console.error('Failed to add student:', error);
@@ -199,14 +202,20 @@ export function NewStudentForm() {
   const handleOpenDialog = async () => {
     const isValid = await form.trigger();
     if (isValid) {
-        setIsDialogOpen(true);
+        setIsConfirmDialogOpen(true);
     } else {
-        console.log(form.formState.errors);
-        toast({
-            variant: 'destructive',
-            title: 'Validation Error',
-            description: 'Please correct the errors on the form before submitting.',
-        })
+        // If validation fails, check for the specific age error
+        const ageError = form.formState.errors.age;
+        if(ageError && ageError.message?.includes("exceed 6 years")) {
+            setIsAgeOverrideDialogOpen(true);
+        } else {
+            console.log(form.formState.errors);
+            toast({
+                variant: 'destructive',
+                title: 'Validation Error',
+                description: 'Please correct the errors on the form before submitting.',
+            })
+        }
     }
   }
 
@@ -508,7 +517,7 @@ export function NewStudentForm() {
                     Download PDF
                 </Button>
             </div>
-            <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <AlertDialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Confirm Registration</AlertDialogTitle>
@@ -560,6 +569,22 @@ export function NewStudentForm() {
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction onClick={form.handleSubmit(onSubmit)} disabled={isLoading}>
                             {isLoading ? 'Submitting...' : 'Confirm'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+            <AlertDialog open={isAgeOverrideDialogOpen} onOpenChange={setIsAgeOverrideDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Age Limit Exceeded</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            The student's age is over 6. This online form is for children 6 and under. Do you want to override and continue with the registration? This is recommended only if the student was already accepted via a hard-copy application.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={form.handleSubmit(onSubmit)} disabled={isLoading}>
+                            {isLoading ? 'Submitting...' : 'Override and Continue'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

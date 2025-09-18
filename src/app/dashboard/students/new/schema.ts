@@ -40,7 +40,9 @@ export const newStudentSchema = z.object({
     firstName: z.string().min(2, 'First name must be at least 2 characters.').max(50, 'First name cannot exceed 50 characters.'),
     lastName: z.string().min(2, 'Last name must be at least 2 characters.').max(50, 'Last name cannot exceed 50 characters.'),
     dob: z.date({ required_error: 'Date of birth is required' }),
-    age: z.number().optional(),
+    age: z.number().optional().refine(age => age === undefined || age <= 6, {
+        message: "Student's age cannot exceed 6 years for online registration.",
+    }),
     guardian1: guardianSchema,
     guardian2: guardianSchema.partial().optional(),
     address: z.string().min(5, 'Address is required and must be at least 5 characters.'),
