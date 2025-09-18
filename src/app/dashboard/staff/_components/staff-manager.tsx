@@ -165,7 +165,7 @@ export default function StaffManager() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        {member.roles.length > 0 ? member.roles.map(role => <Badge key={role} variant="outline">{role}</Badge>) : <span className="text-muted-foreground">No roles assigned</span>}
+                        {member.roles && member.roles.length > 0 ? member.roles.map(role => <Badge key={role} variant="outline">{role}</Badge>) : <span className="text-muted-foreground">No roles assigned</span>}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
