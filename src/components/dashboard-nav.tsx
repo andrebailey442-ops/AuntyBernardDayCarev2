@@ -14,6 +14,8 @@ import {
   Sunset,
   Home,
   Award,
+  UserCog,
+  Baby,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
@@ -35,6 +37,8 @@ const navItems: NavItem[] = [
   { href: '/dashboard/reports', label: 'Reports', icon: FileText, id: '/dashboard/reports' },
   { href: '/dashboard/graduation', label: 'Graduation', icon: Award, id: '/dashboard/graduation' },
   { href: '/dashboard/after-care', label: 'After Care', icon: Sunset, id: '/dashboard/after-care' },
+  { href: '/dashboard/nursery', label: 'Nursery', icon: Baby, id: '/dashboard/nursery' },
+  { href: '/dashboard/staff', label: 'Staff', icon: UserCog, id: '/dashboard/staff' },
 ];
 
 export function DashboardNav() {
@@ -43,18 +47,12 @@ export function DashboardNav() {
   const [visibleNavItems, setVisibleNavItems] = React.useState<NavItem[]>([]);
 
   React.useEffect(() => {
-    const determineVisibleItems = async () => {
-      if (user) {
-        const permissions = await getPermissionsByRole(user.role);
-        const userNav = navItems.filter(item => permissions.includes(item.id));
-        setVisibleNavItems(userNav);
-      } else {
-        setVisibleNavItems([]);
-      }
-    };
-
     if (user) {
-      determineVisibleItems();
+      const permissions = getPermissionsByRole(user.role);
+      const userNav = navItems.filter(item => permissions.includes(item.id));
+      setVisibleNavItems(userNav);
+    } else {
+      setVisibleNavItems([]);
     }
   }, [user]);
 
@@ -63,7 +61,7 @@ export function DashboardNav() {
   }
 
   return (
-    <>
+    <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
       <Link
         href="/dashboard"
         className={cn(
@@ -87,6 +85,6 @@ export function DashboardNav() {
           {item.label}
         </Link>
       ))}
-    </>
+    </nav>
   );
 }

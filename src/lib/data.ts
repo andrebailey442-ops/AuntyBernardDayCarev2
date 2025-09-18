@@ -184,6 +184,31 @@ export const STUDENTS: Student[] = [
   }
 ];
 
+export const ARCHIVED_STUDENTS: Student[] = [
+    {
+        id: 'SID-9001',
+        name: 'Michael Clark',
+        age: 6,
+        dob: '2018-03-15',
+        guardian1: { firstName: 'Linda', lastName: 'Clark', relationship: 'Mother', contact: 'linda.clark@example.com', phone: '876-555-0201' },
+        avatarUrl: 'https://picsum.photos/seed/901/100/100',
+        imageHint: 'boy with backpack',
+        status: 'graduated',
+        graduationDate: '2023-06-15T12:00:00.000Z',
+    },
+    {
+        id: 'SID-9002',
+        name: 'Emily Lewis',
+        age: 6,
+        dob: '2018-05-20',
+        guardian1: { firstName: 'Paul', lastName: 'Lewis', relationship: 'Father', contact: 'paul.lewis@example.com', phone: '876-555-0202' },
+        avatarUrl: 'https://picsum.photos/seed/902/100/100',
+        imageHint: 'girl in cap and gown',
+        status: 'graduated',
+        graduationDate: '2023-06-15T12:00:00.000Z',
+    },
+];
+
 export const SUBJECTS: Subject[] = [
   { id: 'math', name: 'Math' },
   { id: 'science', name: 'Science' },

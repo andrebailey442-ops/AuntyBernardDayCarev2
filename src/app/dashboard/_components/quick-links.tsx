@@ -66,7 +66,7 @@ export default function QuickLinks() {
         <CardTitle>Actions</CardTitle>
         <CardDescription>Fast access to common tasks.</CardDescription>
       </CardHeader>
-      <CardContent className="grid grid-cols-2 md:grid-cols-9 gap-4">
+      <CardContent className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
           {links.map((link) => (
             <Link key={link.href} href={link.href} className="flex">
               <Button variant="outline" className="flex flex-col h-28 w-full justify-center gap-2">
