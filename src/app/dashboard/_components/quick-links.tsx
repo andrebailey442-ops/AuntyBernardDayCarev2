@@ -18,7 +18,7 @@ const links = [
     icon: Home,
   },
   {
-    href: '/dashboard/students/new',
+    href: '/dashboard/students/new?from=preschool',
     label: 'Add New Student',
     icon: UserPlus,
   },

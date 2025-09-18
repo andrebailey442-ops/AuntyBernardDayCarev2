@@ -1,7 +1,7 @@
 
 'use client';
 import Link from 'next/link';
-import { Home, Users, CheckCircle, LogIn, LogOut } from 'lucide-react';
+import { Home, UserPlus } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -17,6 +17,11 @@ const links = [
     label: 'Home',
     icon: Home,
   },
+  {
+    href: '/dashboard/students/new?from=after-care',
+    label: 'Add New Student',
+    icon: UserPlus,
+  }
 ];
 
 export default function QuickLinks() {

@@ -23,12 +23,12 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Download, Info, ArrowLeft, Upload, Trash2 } from 'lucide-react';
+import { Download, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 import { BusyBeeLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import jsPDF from 'jspdf';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -52,50 +52,24 @@ import {
 import { addFee } from '@/services/fees';
 import { Switch } from '@/components/ui/switch';
 import { JAMAICAN_PARISHES } from '@/lib/data';
-
-const phoneRegex = new RegExp(
-  /^(\+\d{1,3})?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/
-);
-
-const guardianSchema = z.object({
-    firstName: z.string().min(2, 'First name must be at least 2 characters.').max(50, 'First name cannot exceed 50 characters.'),
-    lastName: z.string().min(2, 'Last name must be at least 2 characters.').max(50, 'Last name cannot exceed 50 characters.'),
-    relationship: z.string().min(2, 'Relationship is required.'),
-    contact: z.string().email('Invalid email address.'),
-    phone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
-});
-
-const newStudentSchema = z.object({
-  firstName: z.string().min(2, 'First name must be at least 2 characters.').max(50, 'First name cannot exceed 50 characters.'),
-  lastName: z.string().min(2, 'Last name must be at least 2 characters.').max(50, 'Last name cannot exceed 50 characters.'),
-  dob: z.date({ required_error: 'Date of birth is required' }),
-  age: z.number().optional(),
-  guardian1: guardianSchema,
-  guardian2: guardianSchema.partial().optional(),
-  address: z.string().min(5, 'Address is required and must be at least 5 characters.'),
-  city: z.string().min(2, 'City is required.'),
-  state: z.string({ required_error: 'Parish is required.' }).min(1, 'Parish is required.'),
-  afterCare: z.boolean().default(false),
-  nursery: z.boolean().default(false),
-  emergencyContactName: z.string().min(2, 'Emergency contact name is required.').max(100, 'Name is too long'),
-  emergencyContactPhone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
-  medicalConditions: z.string().max(500, 'Medical conditions cannot exceed 500 characters.').optional(),
-});
-
-type NewStudentFormValues = z.infer<typeof newStudentSchema>;
+import { newStudentSchema } from '../schema';
+import type { NewStudentFormValues } from '../schema';
 
 const AFTER_CARE_FEE = 500;
 const TUITION_FULL = 2375;
 const TUITION_INSTALLMENTS = 2500;
 
-
 export function NewStudentForm() {
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = React.useState(false);
   const [studentId, setStudentId] = React.useState('');
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [paymentPlan, setPaymentPlan] = React.useState<'Full Payment' | 'Two Installments' | 'Monthly Plan'>('Two Installments');
+  const [showAdditionalServices, setShowAdditionalServices] = React.useState(false);
+
+  const fromSection = searchParams.get('from');
 
   const [dobState, setDobState] = React.useState({
     day: '',
@@ -115,8 +89,9 @@ export function NewStudentForm() {
         address: '',
         city: '',
         state: '',
-        afterCare: false,
-        nursery: false,
+        preschool: fromSection === 'preschool',
+        afterCare: fromSection === 'after-care',
+        nursery: fromSection === 'nursery',
         emergencyContactName: '',
         emergencyContactPhone: '',
         medicalConditions: '',
@@ -133,12 +108,16 @@ export function NewStudentForm() {
   const formValues = form.watch();
 
   const totalFee = React.useMemo(() => {
-    let total = paymentPlan === 'Full Payment' ? TUITION_FULL : TUITION_INSTALLMENTS;
+    let total = 0;
+    if (formValues.preschool) {
+      total += paymentPlan === 'Full Payment' ? TUITION_FULL : TUITION_INSTALLMENTS;
+    }
     if (formValues.afterCare) {
         total += AFTER_CARE_FEE;
     }
+    // Assuming nursery might have a fee, add here if necessary
     return total;
-  }, [paymentPlan, formValues.afterCare]);
+  }, [paymentPlan, formValues.preschool, formValues.afterCare]);
 
   const enrollmentDeposit = totalFee * 0.3;
 
@@ -146,7 +125,6 @@ export function NewStudentForm() {
     const { day, month, year } = dobState;
     if (day && month && year) {
         const newDob = new Date(Number(year), Number(month) - 1, Number(day));
-        // Check if it's a valid date
         if (!isNaN(newDob.getTime())) {
             form.setValue('dob', newDob, { shouldValidate: true });
         }
@@ -181,6 +159,7 @@ export function NewStudentForm() {
             address: data.address,
             city: data.city,
             state: data.state,
+            preschool: data.preschool,
             afterCare: data.afterCare,
             nursery: data.nursery,
             emergencyContactName: data.emergencyContactName,
@@ -189,13 +168,15 @@ export function NewStudentForm() {
         };
         addStudent(data.studentId, studentData);
 
-        addFee({
-            studentId: data.studentId,
-            amount: totalFee,
-            amountPaid: 0,
-            status: 'Pending',
-            plan: paymentPlan,
-        });
+        if (totalFee > 0) {
+            addFee({
+                studentId: data.studentId,
+                amount: totalFee,
+                amountPaid: 0,
+                status: 'Pending',
+                plan: paymentPlan,
+            });
+        }
 
         toast({
         title: 'Registration Submitted',
@@ -232,15 +213,11 @@ export function NewStudentForm() {
   const addLogoAndHeader = (doc: jsPDF, title: string) => {
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
-
-      // Add a thick border
       doc.setLineWidth(1.5);
       doc.rect(10, 10, pageWidth - 20, pageHeight - 20);
-
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(18);
       doc.text('Aunty Bernard DayCare and Pre-school', pageWidth / 2, 22, { align: 'center' });
-      
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(16);
       doc.text(title, pageWidth / 2, 35, { align: 'center' });
@@ -268,63 +245,41 @@ export function NewStudentForm() {
         const doc = new jsPDF();
         addLogoAndHeader(doc, 'Student Registration Form');
         let y = 60;
-
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.text('Student Information', 20, y);
         y += 15;
-        addFormField(doc, 'First Name:', y);
-        y += 15;
-        addFormField(doc, 'Last Name:', y);
-        y += 15;
-        addFormField(doc, 'Date of Birth (YYYY-MM-DD):', y);
-        y += 25;
-
+        addFormField(doc, 'First Name:', y); y += 15;
+        addFormField(doc, 'Last Name:', y); y += 15;
+        addFormField(doc, 'Date of Birth (YYYY-MM-DD):', y); y += 25;
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.text('Guardian 1 Information', 20, y);
         y += 15;
-        addFormField(doc, "First Name:", y);
-        y += 15;
-        addFormField(doc, "Last Name:", y);
-        y += 15;
-        addFormField(doc, 'Relationship to child:', y);
-        y += 15;
-        addFormField(doc, 'Email Address:', y);
-        y += 15;
-        addFormField(doc, 'Phone Number:', y);
-        y += 25;
-
+        addFormField(doc, "First Name:", y); y += 15;
+        addFormField(doc, "Last Name:", y); y += 15;
+        addFormField(doc, 'Relationship to child:', y); y += 15;
+        addFormField(doc, 'Email Address:', y); y += 15;
+        addFormField(doc, 'Phone Number:', y); y += 25;
         doc.addPage();
         addLogoAndHeader(doc, 'Student Registration Form');
         y = 50;
-
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.text('Guardian 2 Information (Optional)', 20, y);
         y += 15;
-        addFormField(doc, "First Name:", y);
-        y += 15;
-        addFormField(doc, "Last Name:", y);
-        y += 15;
-        addFormField(doc, 'Relationship to child:', y);
-        y += 15;
-        addFormField(doc, 'Email Address:', y);
-        y += 15;
-        addFormField(doc, 'Phone Number:', y);
-        y += 25;
-
+        addFormField(doc, "First Name:", y); y += 15;
+        addFormField(doc, "Last Name:", y); y += 15;
+        addFormField(doc, 'Relationship to child:', y); y += 15;
+        addFormField(doc, 'Email Address:', y); y += 15;
+        addFormField(doc, 'Phone Number:', y); y += 25;
         doc.setFontSize(14);
         doc.setFont('helvetica', 'bold');
         doc.text('Address Information', 20, y);
         y += 15;
-        addFormField(doc, 'Home Address:', y);
-        y += 15;
-        addFormField(doc, 'City:', y);
-        y += 15;
-        addFormField(doc, 'Parish:', y);
-        y += 25;
-        
+        addFormField(doc, 'Home Address:', y); y += 15;
+        addFormField(doc, 'City:', y); y += 15;
+        addFormField(doc, 'Parish:', y); y += 25;
         doc.addPage();
         addLogoAndHeader(doc, 'Student Registration Form');
         y = 50;
@@ -332,32 +287,20 @@ export function NewStudentForm() {
         doc.setFont('helvetica', 'bold');
         doc.text('Emergency and Health Information', 20, y);
         y += 15;
-        addFormField(doc, 'Emergency Contact Name:', y);
-        y += 15;
-        addFormField(doc, 'Emergency Contact Phone:', y);
-        y += 15;
+        addFormField(doc, 'Emergency Contact Name:', y); y += 15;
+        addFormField(doc, 'Emergency Contact Phone:', y); y += 15;
         doc.setFontSize(12);
         doc.text('Allergies or Medical Conditions (Please describe):', 20, y);
         y += 5;
         doc.setLineWidth(0.2);
-        doc.rect(20, y, 170, 40); // Text area
+        doc.rect(20, y, 170, 40);
         y += 60;
-
         addSignatureLine(doc, y);
-        
         doc.save('New-Student-Application.pdf');
-
-        toast({
-            title: "Download Started",
-            description: `New Student Application is being downloaded.`
-        });
+        toast({ title: "Download Started", description: `New Student Application is being downloaded.` });
     } catch (error) {
         console.error(error);
-        toast({
-            variant: 'destructive',
-            title: "Download Failed",
-            description: `Could not generate PDF for the form.`
-        });
+        toast({ variant: 'destructive', title: "Download Failed", description: `Could not generate PDF for the form.` });
     }
   }
 
@@ -372,6 +315,14 @@ export function NewStudentForm() {
     { value: '11', label: 'November' }, { value: '12', label: 'December' },
   ];
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
+
+  const availableServices = [
+      { name: 'Preschool', field: 'preschool', label: 'Preschool Program' },
+      { name: 'After-Care', field: 'afterCare', label: 'After-Care Program' },
+      { name: 'Nursery', field: 'nursery', label: 'Nursery Program' },
+  ];
+
+  const fromService = fromSection?.replace('-', ' ');
 
   return (
     <>
@@ -417,67 +368,28 @@ export function NewStudentForm() {
                 <FormField
                   control={form.control}
                   name="dob"
-                  render={({ field }) => (
+                  render={() => (
                     <FormItem>
                       <FormLabel>Date of Birth</FormLabel>
                       <div className="grid grid-cols-3 gap-4">
-                        <Select
-                          value={dobState.month}
-                          onValueChange={(value) => setDobState((prev) => ({ ...prev, month: value }))}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Month" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {months.map((month) => (
-                              <SelectItem key={month.value} value={month.value}>
-                                {month.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
+                        <Select value={dobState.month} onValueChange={(value) => setDobState((prev) => ({ ...prev, month: value }))}>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Month" /></SelectTrigger></FormControl>
+                          <SelectContent>{months.map((m) => (<SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>))}</SelectContent>
                         </Select>
-                        <Select
-                          value={dobState.day}
-                          onValueChange={(value) => setDobState((prev) => ({ ...prev, day: value }))}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Day" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {days.map((day) => (
-                              <SelectItem key={day} value={String(day)}>
-                                {day}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
+                        <Select value={dobState.day} onValueChange={(value) => setDobState((prev) => ({ ...prev, day: value }))}>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Day" /></SelectTrigger></FormControl>
+                          <SelectContent>{days.map((d) => (<SelectItem key={d} value={String(d)}>{d}</SelectItem>))}</SelectContent>
                         </Select>
-                        <Select
-                          value={dobState.year}
-                          onValueChange={(value) => setDobState((prev) => ({ ...prev, year: value }))}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Year" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {years.map((year) => (
-                              <SelectItem key={year} value={String(year)}>
-                                {year}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
+                        <Select value={dobState.year} onValueChange={(value) => setDobState((prev) => ({ ...prev, year: value }))}>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger></FormControl>
+                          <SelectContent>{years.map((y) => (<SelectItem key={y} value={String(y)}>{y}</SelectItem>))}</SelectContent>
                         </Select>
                       </div>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div></div>
                      <FormField control={form.control} name="age" render={({ field }) => (
                         <FormItem>
@@ -493,53 +405,31 @@ export function NewStudentForm() {
 
             <Separator />
             
-            {/* Guardian 1 */}
             <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Guardian 1 Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="guardian1.firstName" render={({ field }) => (
-                        <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="guardian1.lastName" render={({ field }) => (
-                        <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
+                    <FormField control={form.control} name="guardian1.firstName" render={({ field }) => (<FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="guardian1.lastName" render={({ field }) => (<FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                 </div>
-                <FormField control={form.control} name="guardian1.relationship" render={({ field }) => (
-                        <FormItem><FormLabel>Relationship</FormLabel><FormControl><Input {...field} placeholder="e.g. Mother, Father, Guardian" /></FormControl><FormMessage /></FormItem>
-                )} />
+                <FormField control={form.control} name="guardian1.relationship" render={({ field }) => (<FormItem><FormLabel>Relationship</FormLabel><FormControl><Input {...field} placeholder="e.g. Mother, Father, Guardian" /></FormControl><FormMessage /></FormItem>)} />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="guardian1.contact" render={({ field }) => (
-                        <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="guardian1@example.com" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="guardian1.phone" render={({ field }) => (
-                        <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="876-555-5555" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
+                    <FormField control={form.control} name="guardian1.contact" render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="guardian1@example.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="guardian1.phone" render={({ field }) => (<FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="876-555-5555" {...field} /></FormControl><FormMessage /></FormItem>)} />
                 </div>
             </div>
 
             <Separator />
 
-            {/* Guardian 2 */}
             <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Guardian 2 Information (Optional)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="guardian2.firstName" render={({ field }) => (
-                        <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="guardian2.lastName" render={({ field }) => (
-                        <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
+                    <FormField control={form.control} name="guardian2.firstName" render={({ field }) => (<FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="guardian2.lastName" render={({ field }) => (<FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                 </div>
-                 <FormField control={form.control} name="guardian2.relationship" render={({ field }) => (
-                        <FormItem><FormLabel>Relationship</FormLabel><FormControl><Input {...field} placeholder="e.g. Mother, Father, Guardian" /></FormControl><FormMessage /></FormItem>
-                )} />
+                 <FormField control={form.control} name="guardian2.relationship" render={({ field }) => (<FormItem><FormLabel>Relationship</FormLabel><FormControl><Input {...field} placeholder="e.g. Mother, Father, Guardian" /></FormControl><FormMessage /></FormItem>)} />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="guardian2.contact" render={({ field }) => (
-                        <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="guardian2@example.com" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="guardian2.phone" render={({ field }) => (
-                        <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="876-555-5555" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
+                    <FormField control={form.control} name="guardian2.contact" render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="guardian2@example.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="guardian2.phone" render={({ field }) => (<FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="876-555-5555" {...field} /></FormControl><FormMessage /></FormItem>)} />
                 </div>
             </div>
             
@@ -548,38 +438,13 @@ export function NewStudentForm() {
              <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Address Information</h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="address" render={({ field }) => (
-                        <FormItem><FormLabel>Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="city" render={({ field }) => (
-                        <FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
+                    <FormField control={form.control} name="address" render={({ field }) => (<FormItem><FormLabel>Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="city" render={({ field }) => (<FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="state"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Parish</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a parish" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                {JAMAICAN_PARISHES.map((parish) => (
-                                    <SelectItem key={parish.value} value={parish.value}>
-                                    {parish.label}
-                                    </SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                        />
+                    <FormField control={form.control} name="state" render={({ field }) => (
+                        <FormItem><FormLabel>Parish</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a parish" /></SelectTrigger></FormControl><SelectContent>{JAMAICAN_PARISHES.map((p) => (<SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
+                    )} />
                 </div>
             </div>
 
@@ -587,45 +452,44 @@ export function NewStudentForm() {
             
             <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Program Enrollment</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <FormField
-                        control={form.control}
-                        name="afterCare"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                            <div className="space-y-0.5">
-                                <FormLabel className="text-base">
-                                After-Care Program
-                                </FormLabel>
-                            </div>
-                            <FormControl>
-                                <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                />
-                            </FormControl>
-                            </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="nursery"
-                        render={({ field }) => (
-                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                            <div className="space-y-0.5">
-                                <FormLabel className="text-base">
-                                Nursery Program
-                                </FormLabel>
-                            </div>
-                            <FormControl>
-                                <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                />
-                            </FormControl>
-                            </FormItem>
-                        )}
-                    />
+                <div className="space-y-2">
+                    <div className="p-3 border rounded-lg bg-muted/50">
+                        <p className="font-semibold capitalize">{fromService} Program</p>
+                        <p className="text-sm text-muted-foreground">This program is automatically selected based on where you started the registration.</p>
+                    </div>
+                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                        <div className="space-y-0.5">
+                            <FormLabel className="text-base">Add Additional Services?</FormLabel>
+                            <FormDescription>Select other programs to enroll this student in.</FormDescription>
+                        </div>
+                        <FormControl>
+                            <Switch checked={showAdditionalServices} onCheckedChange={setShowAdditionalServices} />
+                        </FormControl>
+                    </FormItem>
+
+                    {showAdditionalServices && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                            {availableServices
+                                .filter(service => service.name.toLowerCase() !== fromService)
+                                .map(service => (
+                                    <FormField
+                                        key={service.name}
+                                        control={form.control}
+                                        name={service.field as keyof NewStudentFormValues}
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                                            <div className="space-y-0.5">
+                                                <FormLabel className="text-base">{service.label}</FormLabel>
+                                            </div>
+                                            <FormControl>
+                                                <Switch checked={field.value as boolean | undefined} onCheckedChange={field.onChange} />
+                                            </FormControl>
+                                            </FormItem>
+                                        )}
+                                    />
+                                ))}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -634,22 +498,11 @@ export function NewStudentForm() {
             <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Emergency and Health Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="emergencyContactName" render={({ field }) => (
-                        <FormItem><FormLabel>Emergency Contact Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                     <FormField control={form.control} name="emergencyContactPhone" render={({ field }) => (
-                        <FormItem><FormLabel>Emergency Contact Phone</FormLabel><FormControl><Input {...field} placeholder="876-555-5555" /></FormControl><FormMessage /></FormItem>
-                    )} />
+                    <FormField control={form.control} name="emergencyContactName" render={({ field }) => (<FormItem><FormLabel>Emergency Contact Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                     <FormField control={form.control} name="emergencyContactPhone" render={({ field }) => (<FormItem><FormLabel>Emergency Contact Phone</FormLabel><FormControl><Input {...field} placeholder="876-555-5555" /></FormControl><FormMessage /></FormItem>)} />
                 </div>
                  <FormField control={form.control} name="medicalConditions" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Allergies or Medical Conditions</FormLabel>
-                        <FormControl><Textarea placeholder="List any relevant health information..." {...field} /></FormControl>
-                        <FormDescription>
-                            This information will be kept confidential and used only in case of an emergency.
-                        </FormDescription>
-                        <FormMessage />
-                    </FormItem>
+                    <FormItem><FormLabel>Allergies or Medical Conditions</FormLabel><FormControl><Textarea placeholder="List any relevant health information..." {...field} /></FormControl><FormDescription>This information will be kept confidential and used only in case of an emergency.</FormDescription><FormMessage /></FormItem>
                  )} />
             </div>
             
@@ -666,9 +519,7 @@ export function NewStudentForm() {
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Confirm Registration</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Please review the details before confirming.
-                        </AlertDialogDescription>
+                        <AlertDialogDescription>Please review the details before confirming.</AlertDialogDescription>
                     </AlertDialogHeader>
                     <div className="text-sm space-y-4 max-h-[60vh] overflow-y-auto px-2">
                         <div>
@@ -685,16 +536,13 @@ export function NewStudentForm() {
                             <p><strong>Phone:</strong> {formValues.guardian1.phone}</p>
                         </div>
                         {formValues.guardian2?.firstName && (
-                             <>
-                                <Separator />
-                                <div>
-                                    <h4 className="font-semibold mb-2">Guardian 2 Information</h4>
-                                    <p><strong>Name:</strong> {formValues.guardian2.firstName} {formValues.guardian2.lastName}</p>
-                                    <p><strong>Relationship:</strong> {formValues.guardian2.relationship}</p>
-                                    <p><strong>Email:</strong> {formValues.guardian2.contact}</p>
-                                    <p><strong>Phone:</strong> {formValues.guardian2.phone}</p>
-                                </div>
-                            </>
+                             <><Separator /><div>
+                                <h4 className="font-semibold mb-2">Guardian 2 Information</h4>
+                                <p><strong>Name:</strong> {formValues.guardian2.firstName} {formValues.guardian2.lastName}</p>
+                                <p><strong>Relationship:</strong> {formValues.guardian2.relationship}</p>
+                                <p><strong>Email:</strong> {formValues.guardian2.contact}</p>
+                                <p><strong>Phone:</strong> {formValues.guardian2.phone}</p>
+                            </div></>
                         )}
                         <Separator />
                          <div>
@@ -704,6 +552,7 @@ export function NewStudentForm() {
                         <Separator />
                         <div>
                             <h4 className="font-semibold mb-2">Program Enrollment</h4>
+                            <p><strong>Preschool:</strong> {formValues.preschool ? 'Yes' : 'No'}</p>
                             <p><strong>After Care:</strong> {formValues.afterCare ? 'Yes' : 'No'}</p>
                             <p><strong>Nursery:</strong> {formValues.nursery ? 'Yes' : 'No'}</p>
                         </div>

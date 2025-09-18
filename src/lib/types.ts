@@ -17,6 +17,7 @@ export type Student = {
   dob: string;
   avatarUrl: string;
   imageHint: string;
+  preschool?: boolean;
   afterCare?: boolean;
   nursery?: boolean;
   status?: 'enrolled' | 'graduated' | 'pending';
