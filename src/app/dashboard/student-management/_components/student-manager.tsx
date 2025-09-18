@@ -48,7 +48,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
 import { getStudents, deleteStudent, updateStudent, addStudent } from '@/services/students';
@@ -66,13 +65,16 @@ export default function StudentManager() {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [allStudents, setAllStudents] = React.useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = React.useState<Student[]>([]);
-  const [selectedStudent, setSelectedStudent] = React.useState<Student | null>(null);
+  const [selectedStudentForDialog, setSelectedStudentForDialog] = React.useState<Student | null>(null);
   const [dialogContent, setDialogContent] = React.useState<'report' | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [isProcessingImport, setIsProcessingImport] = React.useState(false);
   const [selectedStudents, setSelectedStudents] = React.useState<string[]>([]);
   const [isDownloading, setIsDownloading] = React.useState(false);
   const importInputRef = React.useRef<HTMLInputElement>(null);
+
+  const [isRemoveAlertOpen, setIsRemoveAlertOpen] = React.useState(false);
+  const [studentToRemove, setStudentToRemove] = React.useState<Student | null>(null);
 
   const fetchStudents = React.useCallback(() => {
     setLoading(true);
@@ -87,7 +89,7 @@ export default function StudentManager() {
 
   React.useEffect(() => {
     const results = allStudents.filter(student =>
-      (student.name.toLowerCase().includes(searchTerm.toLowerCase()) || student.id.includes(searchTerm))
+      (student.name.toLowerCase().includes(searchTerm.toLowerCase()) || student.id.includes(searchTerm)) && student.status !== 'graduated'
     );
     setFilteredStudents(results);
   }, [searchTerm, allStudents]);
@@ -123,9 +125,8 @@ export default function StudentManager() {
   const handleGraduate = (studentId: string) => {
     try {
       updateStudent(studentId, { status: 'graduated' });
-      setAllStudents(prev =>
-        prev.filter(s => s.id !== studentId)
-      );
+      // The list is already filtered, so we just need to re-filter
+      setAllStudents(prev => prev.map(s => s.id === studentId ? {...s, status: 'graduated'} : s));
       toast({
         title: 'Student Graduated',
         description: 'The student has been moved to the graduated list.',
@@ -140,13 +141,11 @@ export default function StudentManager() {
     }
   };
 
-  const handleRemoveStudent = (studentId: string) => {
-    const studentToRemove = allStudents.find(s => s.id === studentId);
+  const handleRemoveConfirm = () => {
     if (!studentToRemove) return;
-
     try {
-      deleteStudent(studentId);
-      setAllStudents(prevStudents => prevStudents.filter(s => s.id !== studentId));
+      deleteStudent(studentToRemove.id);
+      setAllStudents(prevStudents => prevStudents.filter(s => s.id !== studentToRemove!.id));
       toast({
           title: 'Student Removed',
           description: `${studentToRemove.name} has been removed from the system.`,
@@ -158,8 +157,16 @@ export default function StudentManager() {
         title: 'Error',
         description: 'Failed to remove student.',
       });
+    } finally {
+        setIsRemoveAlertOpen(false);
+        setStudentToRemove(null);
     }
   };
+
+  const openRemoveDialog = (student: Student) => {
+    setStudentToRemove(student);
+    setIsRemoveAlertOpen(true);
+  }
 
   const handleExport = () => {
     const studentsToExport = selectedStudents.length > 0
@@ -343,7 +350,7 @@ export default function StudentManager() {
   }
 
   const openDialog = (student: Student, content: 'report') => {
-    setSelectedStudent(student);
+    setSelectedStudentForDialog(student);
     setDialogContent(content);
   }
 
@@ -361,6 +368,7 @@ export default function StudentManager() {
   };
 
   return (
+    <>
     <Card className="backdrop-blur-sm bg-card/80">
       <CardHeader>
         <CardTitle>Student Management</CardTitle>
@@ -402,7 +410,6 @@ export default function StudentManager() {
             </Button>
           </div>
         </div>
-        <AlertDialog>
           <Dialog onOpenChange={(open) => !open && setDialogContent(null)}>
             <Table>
               <TableHeader>
@@ -486,31 +493,19 @@ export default function StudentManager() {
                                 View Full Report Page
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => handleGraduate(student.id)} disabled={student.status !== 'enrolled'}>
+                              <DropdownMenuItem onClick={() => handleGraduate(student.id)}>
                                 <GraduationCap className="mr-2 h-4 w-4" />
                                 Graduate Student
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <AlertDialogTrigger asChild>
-                                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                              <DropdownMenuItem
+                                className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                                onSelect={(e) => e.preventDefault()}
+                                onClick={() => openRemoveDialog(student)}
+                              >
                                   <Trash2 className="mr-2 h-4 w-4" />
                                   Remove Student
-                                </DropdownMenuItem>
-                              </AlertDialogTrigger>
-                               <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                    This action cannot be undone. This will permanently remove {student.name} and all their associated data from the servers.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleRemoveStudent(student.id)}>
-                                        Continue
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                               </AlertDialogContent>
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                       </TableCell>
@@ -525,14 +520,30 @@ export default function StudentManager() {
                 )}
               </TableBody>
             </Table>
-            {selectedStudent && (
+            {selectedStudentForDialog && (
               <DialogContent className={dialogContent === 'report' ? 'sm:max-w-3xl' : 'sm:max-w-[425px]'}>
-                {dialogContent === 'report' && <ReportCardDialog student={selectedStudent} />}
+                {dialogContent === 'report' && <ReportCardDialog student={selectedStudentForDialog} />}
               </DialogContent>
             )}
           </Dialog>
-        </AlertDialog>
       </CardContent>
     </Card>
+    <AlertDialog open={isRemoveAlertOpen} onOpenChange={setIsRemoveAlertOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                This action cannot be undone. This will permanently remove {studentToRemove?.name} and all their associated data.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleRemoveConfirm}>
+                    Continue
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
