@@ -75,6 +75,7 @@ export default function AfterCareManager() {
       if (savedStatuses) {
         initialStatuses = JSON.parse(savedStatuses);
       } else {
+        // Initialize statuses only for students in this program
         afterCareStudents.forEach(student => {
           initialStatuses[student.id] = { status: 'Checked-Out' };
         });
@@ -308,7 +309,7 @@ export default function AfterCareManager() {
                             <TableCell className="text-right"><Skeleton className="h-10 w-28" /></TableCell>
                         </TableRow>
                     ))
-                ) : [...notCheckedInStudents, ...checkedInStudents].length > 0 ? (
+                ) : students.length > 0 ? (
                 [...notCheckedInStudents, ...checkedInStudents].map((student) => {
                     const record = studentStatuses[student.id];
                     return (
@@ -354,7 +355,7 @@ export default function AfterCareManager() {
                 ) : (
                 <TableRow>
                     <TableCell colSpan={5} className="h-24 text-center">
-                        All students have been checked out for the day.
+                        No students enrolled in After-Care.
                     </TableCell>
                 </TableRow>
                 )}

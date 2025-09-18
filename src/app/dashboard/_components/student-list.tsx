@@ -31,7 +31,7 @@ type StudentListProps = {
 export default function StudentList({ students, loading }: StudentListProps) {
 
   const enrolledStudents = React.useMemo(() => {
-    return students.filter(s => s.status === 'enrolled');
+    return students.filter(s => s.status === 'enrolled' && s.preschool);
   }, [students]);
 
   return (
@@ -117,7 +117,7 @@ export default function StudentList({ students, loading }: StudentListProps) {
             ) : (
                 <TableRow>
                     <TableCell colSpan={5} className="h-24 text-center">
-                        No students found.
+                        No students enrolled in Preschool.
                     </TableCell>
                 </TableRow>
             )}
