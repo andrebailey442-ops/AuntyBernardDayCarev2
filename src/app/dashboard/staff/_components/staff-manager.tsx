@@ -205,6 +205,42 @@ export default function StaffManager() {
   const weekDays = eachDayOfInterval({ start: startOfWeek(selectedDate, { weekStartsOn: 1 }), end: addDays(startOfWeek(selectedDate, { weekStartsOn: 1 }), 4) }).map(d => format(d, 'EEEE'));
   const clockedOutStaff = staff.filter(s => attendance[s.id]?.status === 'Clocked-Out' && attendance[s.id]?.checkOutTime);
   
+  const generateWeeklyRoster = () => {
+    try {
+        const doc = new jsPDF();
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(24);
+        doc.text('Aunty Bernard', 20, 22);
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(18);
+        doc.text(`Weekly Staff Roster for week of ${format(startOfWeek(selectedDate, { weekStartsOn: 1 }), 'PPP')}`, 20, 35);
+        doc.setLineWidth(0.5);
+        doc.line(20, 40, 190, 40);
+
+        const tableColumn = ["Staff Member", ...weekDays];
+        const tableRows = staff.map(member => {
+            const row = [member.name];
+            weekDays.forEach(day => {
+                row.push(schedule[member.id]?.[day] || 'Off');
+            });
+            return row;
+        });
+
+        (doc as any).autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 50,
+        });
+
+        doc.save('Weekly_Staff_Roster.pdf');
+        toast({ title: 'Roster Generated', description: 'The weekly staff roster has been downloaded.' });
+    } catch (error) {
+        console.error("Failed to generate roster PDF:", error);
+        toast({ variant: 'destructive', title: 'Download Failed', description: 'Could not generate the roster PDF.' });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Dialog open={isFormOpen} onOpenChange={(open) => { if (!open) { setIsFormOpen(false); setSelectedStaff(null); } else { setIsFormOpen(true); }}}>
@@ -300,9 +336,15 @@ export default function StaffManager() {
       </Dialog>
 
       <Card className="backdrop-blur-sm bg-card/80">
-        <CardHeader>
-            <CardTitle>Weekly Schedule</CardTitle>
-            <CardDescription>Assign shifts for the week.</CardDescription>
+        <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+                <CardTitle>Weekly Schedule</CardTitle>
+                <CardDescription>Assign shifts for the week.</CardDescription>
+            </div>
+            <Button variant="outline" onClick={generateWeeklyRoster}>
+                <Download className="mr-2 h-4 w-4" />
+                Generate Roster
+            </Button>
         </CardHeader>
         <CardContent>
             <Table>
