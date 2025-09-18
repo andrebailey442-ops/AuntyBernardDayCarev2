@@ -1,7 +1,7 @@
 
 'use client';
 import Link from 'next/link';
-import { PlusCircle, FileText, UserPlus, GraduationCap, Users, DollarSign, ClipboardCheck, Home, Award } from 'lucide-react';
+import { PlusCircle, FileText, UserPlus, GraduationCap, Users, DollarSign, ClipboardCheck, Home, Award, UserCog } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -26,6 +26,11 @@ const links = [
     href: '/dashboard/student-management',
     label: 'Student Management',
     icon: Users,
+  },
+  {
+    href: '/dashboard/staff',
+    label: 'Staff Management',
+    icon: UserCog,
   },
   {
     href: '/dashboard/forms',

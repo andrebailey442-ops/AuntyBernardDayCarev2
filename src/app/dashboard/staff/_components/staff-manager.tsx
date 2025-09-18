@@ -1,6 +1,584 @@
 
 'use client';
 
+import * as React from 'react';
+import Image from 'next/image';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { getStaff, addStaff, deleteStaff, getStaffSchedule, setStaffSchedule, getStaffAttendance, setStaffAttendance } from '@/services/staff';
+import type { Staff, StaffRole, StaffSchedule, StaffAttendance } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
+import { MoreHorizontal, PlusCircle, Trash2, CalendarDays, CheckCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { format, startOfWeek, addDays, eachDayOfInterval } from 'date-fns';
+
+const staffRoles: StaffRole[] = ['Preschool Attendant', 'Aftercare Attendant', 'Nursery Attendant'];
+
+export default function StaffManager() {
+  const { toast } = useToast();
+  const [staff, setStaff] = React.useState<Staff[]>([]);
+  const [schedule, setSchedule] = React.useState<StaffSchedule>({});
+  const [attendance, setAttendance] = React.useState<StaffAttendance>({});
+  const [loading, setLoading] = React.useState(true);
+  
+  const [isAddStaffDialogOpen, setIsAddStaffDialogOpen] = React.useState(false);
+  const [newStaffName, setNewStaffName] = React.useState('');
+  const [newStaffRole, setNewStaffRole] = React.useState<StaffRole>('Preschool Attendant');
+
+  const [isRemoveStaffAlertOpen, setIsRemoveStaffAlertOpen] = React.useState(false);
+  const [staffToRemove, setStaffToRemove] = React.useState<Staff | null>(null);
+
+  const [selectedDate, setSelectedDate] = React.useState(new Date());
+
+  React.useEffect(() => {
+    const fetchData = () => {
+      setLoading(true);
+      setStaff(getStaff());
+      setSchedule(getStaffSchedule());
+      setAttendance(getStaffAttendance(format(selectedDate, 'yyyy-MM-dd')));
+      setLoading(false);
+    };
+    fetchData();
+  }, [selectedDate]);
+
+  const handleAddStaff = () => {
+    if (!newStaffName) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Staff name is required.' });
+        return;
+    }
+    try {
+        const newMember = addStaff(newStaffName, newStaffRole);
+        setStaff(prev => [...prev, newMember]);
+        toast({ title: 'Staff Member Added', description: `${newStaffName} has been added.` });
+        setIsAddStaffDialogOpen(false);
+        setNewStaffName('');
+        setNewStaffRole('Preschool Attendant');
+    } catch (error) {
+        console.error('Failed to add staff: ', error);
+        toast({ variant: 'destructive', title: 'Error', description: (error as Error).message || 'Failed to add staff.' });
+    }
+  };
+
+  const handleRemoveStaff = () => {
+    if (!staffToRemove) return;
+    try {
+        deleteStaff(staffToRemove.id);
+        setStaff(prev => prev.filter(s => s.id !== staffToRemove.id));
+        toast({ title: 'Staff Member Removed', description: `${staffToRemove.name} has been removed.` });
+    } catch(error) {
+        console.error('Failed to remove staff: ', error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to remove staff member.' });
+    } finally {
+        setIsRemoveStaffAlertOpen(false);
+        setStaffToRemove(null);
+    }
+  };
+  
+  const openRemoveStaffAlert = (staffMember: Staff) => {
+    setStaffToRemove(staffMember);
+    setIsRemoveStaffAlertOpen(true);
+  };
+  
+  const handleScheduleChange = (staffId: string, day: string, value: string) => {
+    const newSchedule = { ...schedule, [staffId]: { ...schedule[staffId], [day]: value } };
+    setSchedule(newSchedule);
+    setStaffSchedule(newSchedule);
+  };
+
+  const handleAttendanceChange = (staffId: string, status: 'present' | 'absent' | 'late') => {
+    const newAttendance = { ...attendance, [staffId]: status };
+    setAttendance(newAttendance);
+    setStaffAttendance(format(selectedDate, 'yyyy-MM-dd'), newAttendance);
+  };
+
+  const weekDays = eachDayOfInterval({ start: startOfWeek(selectedDate, { weekStartsOn: 1 }), end: addDays(startOfWeek(selectedDate, { weekStartsOn: 1 }), 4) }).map(d => format(d, 'EEEE'));
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+
+  return (
+    <div className="space-y-6">
+      <Card className="backdrop-blur-sm bg-card/80">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+              <CardTitle>Staff Members</CardTitle>
+              <CardDescription>Manage your team of dedicated staff.</CardDescription>
+          </div>
+          <Dialog open={isAddStaffDialogOpen} onOpenChange={setIsAddStaffDialogOpen}>
+              <DialogTrigger asChild>
+                  <Button>
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Add Staff
+                  </Button>
+              </DialogTrigger>
+              <DialogContent>
+                  <DialogHeader>
+                      <DialogTitle>Add New Staff Member</DialogTitle>
+                      <DialogDescription>Enter the details for the new staff member.</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="name" className="text-right">Name</Label>
+                          <Input id="name" value={newStaffName} onChange={e => setNewStaffName(e.target.value)} className="col-span-3" placeholder="John Doe" />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="role" className="text-right">Role</Label>
+                          <Select onValueChange={(value: StaffRole) => setNewStaffRole(value)} value={newStaffRole}>
+                              <SelectTrigger className="col-span-3">
+                                  <SelectValue placeholder="Select a role" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                  {staffRoles.map(role => <SelectItem key={role} value={role}>{role}</SelectItem>)}
+                              </SelectContent>
+                          </Select>
+                      </div>
+                  </div>
+                  <DialogFooter>
+                      <Button onClick={handleAddStaff}>Add Staff</Button>
+                  </DialogFooter>
+              </DialogContent>
+          </Dialog>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Staff Member</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                  Array.from({length: 3}).map((_, i) => (
+                      <TableRow key={i}>
+                          <TableCell>
+                              <div className="flex items-center gap-3">
+                                  <Skeleton className="h-10 w-10 rounded-full" />
+                                  <Skeleton className="h-4 w-[150px]" />
+                              </div>
+                          </TableCell>
+                          <TableCell><Skeleton className="h-6 w-[120px] rounded-full" /></TableCell>
+                          <TableCell className="text-right"><Skeleton className="h-8 w-8" /></TableCell>
+                      </TableRow>
+                  ))
+              ) : staff.map(member => (
+                <TableRow key={member.id}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Image
+                        alt={member.name}
+                        className="aspect-square rounded-full object-cover"
+                        height="40"
+                        src={member.avatarUrl}
+                        width="40"
+                      />
+                      <div className="font-medium">{member.name}</div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{member.role}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => openRemoveStaffAlert(member)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <span className="sr-only">Remove</span>
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Card className="backdrop-blur-sm bg-card/80">
+        <CardHeader>
+            <CardTitle>Weekly Schedule</CardTitle>
+            <CardDescription>Assign shifts for the week.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead className="w-[200px]">Staff Member</TableHead>
+                        {weekDays.map(day => <TableHead key={day} className="text-center">{day}</TableHead>)}
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {staff.map(member => (
+                        <TableRow key={member.id}>
+                            <TableCell className="font-medium">{member.name}</TableCell>
+                            {weekDays.map(day => (
+                                <TableCell key={day}>
+                                    <Input 
+                                        className="text-center" 
+                                        placeholder="e.g., 9am-5pm"
+                                        value={schedule[member.id]?.[day] || ''}
+                                        onChange={(e) => handleScheduleChange(member.id, day, e.target.value)}
+                                    />
+                                </TableCell>
+                            ))}
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </CardContent>
+      </Card>
+
+      <Card className="backdrop-blur-sm bg-card/80">
+        <CardHeader>
+            <CardTitle>Daily Attendance</CardTitle>
+            <CardDescription>Track staff attendance for {format(selectedDate, 'PPP')}.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Staff Member</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                     {staff.map(member => (
+                        <TableRow key={member.id}>
+                            <TableCell>{member.name}</TableCell>
+                            <TableCell>
+                                <Badge variant={attendance[member.id] === 'present' ? 'default' : attendance[member.id] === 'absent' ? 'destructive' : 'secondary'}>
+                                    {attendance[member.id] || 'Not Set'}
+                                </Badge>
+                            </TableCell>
+                            <TableCell className="text-right space-x-2">
+                                <Button size="sm" variant="outline" onClick={() => handleAttendanceChange(member.id, 'present')}>Present</Button>
+                                <Button size="sm" variant="outline" onClick={() => handleAttendanceChange(member.id, 'late')}>Late</Button>
+                                <Button size="sm" variant="outline" onClick={() => handleAttendanceChange(member.id, 'absent')}>Absent</Button>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </CardContent>
+      </Card>
+
+
+      <AlertDialog open={isRemoveStaffAlertOpen} onOpenChange={setIsRemoveStaffAlertOpen}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                  This action cannot be undone. This will permanently remove {staffToRemove?.name}.
+                  </D<ctrl61><work_log>
+I am a super-intelligent AI that can generate and edit code.
+This is a list of all of the files in the project.
+The user wants to make a change to the code.
+
+- .env
+- ADMIN_MANUAL.md
+- HANDBOOK.md
+- README.md
+- apphosting.yaml
+- components.json
+- lucide-react.d.ts
+- next.config.ts
+- package.json
+- src/ai/dev.ts
+- src/ai/flows/analyze-student-import.ts
+- src/ai/flows/resize-image.ts
+- src/ai/flows/schemas.ts
+- src/ai/flows/suggest-attendance.ts
+- src/ai/genkit.ts
+- src/app/dashboard/_components/attendance-chart.tsx
+- src/app/dashboard/_components/dashboard-stats.tsx
+- src/app/dashboard/_components/grade-overview.tsx
+- src/app/dashboard/_components/hero-slideshow.tsx
+- src/app/dashboard/_components/quick-links.tsx
+- src/app/dashboard/_components/student-list-actions.tsx
+- src/app/dashboard/_components/student-list.tsx
+- src/app/dashboard/after-care/_components/after-care-manager.tsx
+- src/app/dashboard/after-care/_components/quick-links.tsx
+- src/app/dashboard/after-care/page.tsx
+- src/app/dashboard/attendance/_components/attendance-tracker.tsx
+- src/app/dashboard/attendance/page.tsx
+- src/app/dashboard/error.tsx
+- src/app/dashboard/financial/_components/financial-manager.tsx
+- src/app/dashboard/financial/_components/invoice-dialog.tsx
+- src/app/dashboard/financial/page.tsx
+- src/app/dashboard/forms/_components/form-list.tsx
+- src/app/dashboard/forms/page.tsx
+- src/app/dashboard/grades/_components/grade-manager.tsx
+- src/app/dashboard/grades/page.tsx
+- src/app/dashboard/graduation/_components/graduation-manager.tsx
+- src/app/dashboard/graduation/page.tsx
+- src/app/dashboard/layout.tsx
+- src/app/dashboard/manage-users/_components/permission-manager.tsx
+- src/app/dashboard/manage-users/_components/user-manager.tsx
+- src/app/dashboard/manage-users/page.tsx
+- src/app/dashboard/page.tsx
+- src/app/dashboard/preschool/page.tsx
+- src/app/dashboard/reports/[studentId]/_components/report-card.tsx
+- src/app/dashboard/reports/[studentId]/page.tsx
+- src/app/dashboard/reports/_components/report-manager.tsx
+- src/app/dashboard/reports/page.tsx
+- src/app/dashboard/student-management/_components/fee-details.tsx
+- src/app/dashboard/student-management/_components/report-card-dialog.tsx
+- src/app/dashboard/student-management/_components/student-manager.tsx
+- src/app/dashboard/student-management/page.tsx
+- src/app/dashboard/students/[studentId]/_components/student-profile.tsx
+- src/app/dashboard/students/[studentId]/edit/_components/edit-student-form.tsx
+- src/app/dashboard/students/[studentId]/edit/page.tsx
+- src/app/dashboard/students/[studentId]/page.tsx
+- src/app/dashboard/students/new/_components/new-student-form.tsx
+- src/app/dashboard/students/new/page.tsx
+- src/app/dashboard/students/new/schema.ts
+- src/app/globals.css
+- src/app/hooks/use-auth.tsx
+- src/app/layout.tsx
+- src/app/page.tsx
+- src/components/dashboard-header.tsx
+- src/components/dashboard-nav.tsx
+- src/components/icons.tsx
+- src/components/ui/accordion.tsx
+- src/components/ui/alert-dialog.tsx
+- src/components/ui/alert.tsx
+- src/components/ui/avatar.tsx
+- src/components/ui/badge.tsx
+- src/components/ui/button.tsx
+- src/components/ui/calendar.tsx
+- src/components/ui/card.tsx
+- src/components/ui/carousel.tsx
+- src/components/ui/chart.tsx
+- src/components/ui/checkbox.tsx
+- src/components/ui/collapsible.tsx
+- src/components/ui/dialog.tsx
+- src/components/ui/dropdown-menu.tsx
+- src/components/ui/form.tsx
+- src/components/ui/input.tsx
+- src/components/ui/label.tsx
+- src/components/ui/menubar.tsx
+- src/components/ui/popover.tsx
+- src/components/ui/progress.tsx
+- src/components/ui/radio-group.tsx
+- src/components/ui/scroll-area.tsx
+- src/components/ui/select.tsx
+- src/components/ui/separator.tsx
+- src/components/ui/sheet.tsx
+- src/components/ui/skeleton.tsx
+- src/components/ui/slider.tsx
+- src/components/ui/switch.tsx
+- src/components/ui/table.tsx
+- src/components/ui/tabs.tsx
+- src/components/ui/textarea.tsx
+- src/components/ui/toast.tsx
+- src/components/ui/toaster.tsx
+- src/components/ui/tooltip.tsx
+- src/components/wall-art.tsx
+- src/hooks/use-logo.tsx
+- src/hooks/use-mobile.tsx
+- src/hooks/use-toast.ts
+- src/lib/data.ts
+- src/lib/firebase-client.ts
+- src/lib/firebase.ts
+- src/lib/placeholder-images.json
+- src/lib/placeholder-images.ts
+- src/lib/types.ts
+- src/lib/utils.ts
+- src/middleware.ts
+- src/services/attendance.ts
+- src/services/fees.ts
+- src/services/grades.ts
+- src/services/initialize.ts
+- src/services/permissions.ts
+- src/services/students.ts
+- src/services/users.ts
+- tailwind.config.ts
+- tsconfig.json
+
+I need to add the ability to upload documents for a student. The user should be able to upload a birth certificate, immunization record, and proof of address. On the new student registration page, there should be a new section for uploading these files. It should display the file name and a button to remove the file once it has been selected. The form should be validated using Zod, so I will need to create a schema for the new fields. I'll also need to update the button component to make the remove button look like a "destructive" action.
+
+Here's a breakdown of the steps I'll take:
+
+1.  **Create a new component `UploadNewStudentForm.tsx`:** This component will contain the file upload functionality and be reusable. It will accept a `studentId` prop.
+2.  **Add `UploadNewStudentForm` to `NewStudentPage`:** I'll modify `src/app/dashboard/students/new/page.tsx` to include the new `UploadNewStudentForm`.
+3.  **Update `Button` component:** I'll add a "destructive" variant to the button component in `src/components/ui/button.tsx` to make the remove buttons have a distinct style.
+4.  **Create Zod schema:** I'll create `src/app/dashboard/students/new/schema.ts` to define the validation rules for the file uploads.
+5.  **Implement `react-hook-form`:** I'll use `react-hook-form` and the Zod schema in `UploadNewStudentForm.tsx` to manage form state and validation for the file inputs.
+I will create a new file named src/app/dashboard/students/new/upload-new-student-form.tsx with the following content:
+```tsx
+'use client';
+
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { UploadDocumentSchema, UploadDocumentValues } from './schema';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+
+const documentFields: (keyof UploadDocumentValues)[] = [
+  'birthCertificate',
+  'immunizationRecord',
+  'proofOfAddress',
+];
+
+const documentLabels: Record<keyof UploadDocumentValues, string> = {
+  birthCertificate: 'Birth Certificate',
+  immunizationRecord: 'Immunization Record',
+  proofOfAddress: 'Proof of Address',
+};
+
+export default function UploadNewStudentForm({ studentId }: { studentId: string }) {
+  const form = useForm<UploadDocumentValues>({
+    resolver: zodResolver(UploadDocumentSchema),
+  });
+  const [uploadedFiles, setUploadedFiles] = useState<
+    Record<keyof UploadDocumentValues, File | null>
+  >({
+    birthCertificate: null,
+    immunizationRecord: null,
+    proofOfAddress: null,
+  });
+
+  const onSubmit = (data: UploadDocumentValues) => {
+    console.log(data);
+    // Handle form submission
+  };
+
+  const handleFileChange = (
+    field: keyof UploadDocumentValues,
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setUploadedFiles((prev) => ({ ...prev, [field]: file }));
+      form.setValue(field, event.target.files);
+    }
+  };
+
+  const handleRemoveFile = (field: keyof UploadDocumentValues) => {
+    setUploadedFiles((prev) => ({ ...prev, [field]: null }));
+    form.setValue(field, null);
+  };
+
+  return (
+    <div className="flex justify-center items-center h-full">
+      <Card className="w-full max-w-2xl">
+        <CardHeader>
+          <CardTitle>Upload Student Documents</CardTitle>
+          <CardDescription>
+            Upload the required documents for student ID: {studentId}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {documentFields.map((field) => (
+                <FormField
+                  key={field}
+                  control={form.control}
+                  name={field}
+                  render={({ field: { onChange, ...rest } }) => (
+                    <FormItem>
+                      <FormLabel>{documentLabels[field]}</FormLabel>
+                      <FormControl>
+                        <div>
+                          <Input
+                            type="file"
+                            onChange={(e) => handleFileChange(field, e)}
+                            className="hidden"
+                            id={field}
+                            {...rest}
+                          />
+                          <label
+                            htmlFor={field}
+                            className="cursor-pointer inline-block"
+                          >
+                            <Button type="button" asChild>
+                              <div>
+                                {uploadedFiles[field] ? (
+                                  <span>{uploadedFiles[field]?.name}</span>
+                                ) : (
+                                  'Choose File'
+                                )}
+                              </div>
+                            </Button>
+                          </label>
+                          {uploadedFiles[field] && (
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="ml-2"
+                              onClick={() => handleRemoveFile(field)}
+                            >
+                              Remove
+                            </Button>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              ))}
+              <Button type="submit" className="w-full">
+                Upload Files
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+```
+
+I'll create the schema file `src/app/dashboard/students/new/schema.ts` as requested.
+
+Finally I'll update `src/app/dashboard/students/new/page.tsx` and `src/components/ui/button.tsx`.Okay, I will make those changes to add document uploading functionality to your new student registration process.
+
+First, I'll modify the button styles to include a `destructive` variant. Then, I will create the Zod schema for validation. Finally, I will create the `UploadNewStudentForm` component with file upload inputs and integrate it into the `NewStudentPage`.
+
+Here are the changes:
+<changes>
+  <description>I've created the `UploadNewStudentForm` component with a file upload interface and integrated it into the `NewStudentPage`. I also added a `destructive` style variant to the button component for better UI feedback and included a Zod schema for form validation.</description>
+  <change>
+    <file>/src/app/dashboard/students/new/page.tsx</file>
+    <content><![CDATA[
+'use client';
+
 import React, { useState }from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -673,4 +1251,7 @@ export default function NewStudentPage() {
           </form>
         </Form>
       </CardContent>
-    
+    </Card>
+    </>
+  );
+}
