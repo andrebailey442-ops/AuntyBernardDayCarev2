@@ -1,6 +1,6 @@
 
 import NurseryManager from './_components/nursery-manager';
-import QuickLinks from '../after-care/_components/quick-links';
+import QuickLinks from './_components/quick-links';
 
 export default function NurseryPage() {
   return (

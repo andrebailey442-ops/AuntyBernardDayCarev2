@@ -322,8 +322,6 @@ export function NewStudentForm() {
       { name: 'nursery', field: 'nursery', label: 'Nursery Program' },
   ];
 
-  const fromService = fromSection;
-
   return (
     <Card className="max-w-4xl mx-auto backdrop-blur-sm bg-card/80">
       <CardHeader>
@@ -446,10 +444,12 @@ export function NewStudentForm() {
             <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Program Enrollment</h3>
                 <div className="space-y-2">
-                    <div className="p-3 border rounded-lg bg-muted/50">
-                        <p className="font-semibold capitalize">{fromService?.replace('-', ' ')} Program</p>
-                        <p className="text-sm text-muted-foreground">This program is automatically selected based on where you started the registration.</p>
-                    </div>
+                    {fromSection && (
+                        <div className="p-3 border rounded-lg bg-muted/50">
+                            <p className="font-semibold capitalize">{fromSection.replace('-', ' ')} Program</p>
+                            <p className="text-sm text-muted-foreground">This program is automatically selected based on where you started the registration.</p>
+                        </div>
+                    )}
                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                         <div className="space-y-0.5">
                             <FormLabel className="text-base">Add Additional Services?</FormLabel>
@@ -463,7 +463,7 @@ export function NewStudentForm() {
                     {showAdditionalServices && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                             {availableServices
-                                .filter(service => service.name !== fromService)
+                                .filter(service => service.name !== fromSection)
                                 .map(service => (
                                     <FormField
                                         key={service.name}
