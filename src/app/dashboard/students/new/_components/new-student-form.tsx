@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -51,7 +52,7 @@ import {
 } from '@/components/ui/select';
 import { addFee } from '@/services/fees';
 import { Switch } from '@/components/ui/switch';
-import { JAMAICAN_PARISHES } from '@/lib/data';
+import { JAMAICAN_PARISHES, CITIES_BY_PARISH } from '@/lib/data';
 import { newStudentSchema } from '../schema';
 import type { NewStudentFormValues } from '../schema';
 
@@ -108,6 +109,7 @@ export function NewStudentForm() {
 
   const dob = form.watch('dob');
   const formValues = form.watch();
+  const selectedParish = form.watch('state');
 
   const totalFee = React.useMemo(() => {
     let total = 0;
@@ -444,14 +446,58 @@ export function NewStudentForm() {
              <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Address Information</h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="address" render={({ field }) => (<FormItem><FormLabel>Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField control={form.control} name="city" render={({ field }) => (<FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField
+                        control={form.control}
+                        name="state"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Parish</FormLabel>
+                            <Select onValueChange={(value) => { field.onChange(value); form.setValue('city', ''); }} value={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a parish" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {JAMAICAN_PARISHES.map((parish) => (
+                                    <SelectItem key={parish.value} value={parish.value}>
+                                    {parish.label}
+                                    </SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>City</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={!selectedParish}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a city" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {(CITIES_BY_PARISH[selectedParish] || []).map((city) => (
+                                    <SelectItem key={city} value={city}>
+                                    {city}
+                                    </SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                 </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="state" render={({ field }) => (
-                        <FormItem><FormLabel>Parish</FormLabel><Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a parish" /></SelectTrigger></FormControl><SelectContent>{JAMAICAN_PARISHES.map((p) => (<SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>))}</SelectContent></Select><FormMessage /></FormItem>
-                    )} />
-                </div>
+                <FormField control={form.control} name="address" render={({ field }) => (
+                    <FormItem><FormLabel>Address</FormLabel><FormControl><Input placeholder="Street address" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
             </div>
 
             <Separator />

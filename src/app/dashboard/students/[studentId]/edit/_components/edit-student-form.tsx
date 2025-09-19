@@ -42,7 +42,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { JAMAICAN_PARISHES } from '@/lib/data';
+import { JAMAICAN_PARISHES, CITIES_BY_PARISH } from '@/lib/data';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -53,6 +53,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
   } from "@/components/ui/alert-dialog"
+import { uploadDocumentSchema } from '../../../new/schema';
 
 const phoneRegex = new RegExp(
   /^(\+\d{1,3})?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/
@@ -82,6 +83,9 @@ const editStudentSchema = z.object({
     emergencyContactName: z.string().min(2, 'Emergency contact name is required.').max(100, 'Name is too long'),
     emergencyContactPhone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
     medicalConditions: z.string().max(500, 'Medical conditions cannot exceed 500 characters.').optional(),
+    birthCertificate: uploadDocumentSchema.shape.birthCertificate,
+    immunizationRecord: uploadDocumentSchema.shape.immunizationRecord,
+    proofOfAddress: uploadDocumentSchema.shape.proofOfAddress,
   });
 
 type EditStudentFormValues = z.infer<typeof editStudentSchema>;
@@ -162,6 +166,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
   }, [studentId, form, router, toast]);
 
   const dob = form.watch('dob');
+  const selectedParish = form.watch('state');
 
   React.useEffect(() => {
     if (dob) {
@@ -448,21 +453,13 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
              <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Address Information</h3>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="address" render={({ field }) => (
-                        <FormItem><FormLabel>Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="city" render={({ field }) => (
-                        <FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                </div>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                         control={form.control}
                         name="state"
                         render={({ field }) => (
                             <FormItem>
                             <FormLabel>Parish</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={(value) => { field.onChange(value); form.setValue('city', ''); }} value={field.value}>
                                 <FormControl>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select a parish" />
@@ -480,7 +477,34 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                             </FormItem>
                         )}
                         />
+                    <FormField
+                        control={form.control}
+                        name="city"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>City</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={!selectedParish}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a city" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                {(CITIES_BY_PARISH[selectedParish] || []).map((city) => (
+                                    <SelectItem key={city} value={city}>
+                                    {city}
+                                    </SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                 </div>
+                <FormField control={form.control} name="address" render={({ field }) => (
+                    <FormItem><FormLabel>Address</FormLabel><FormControl><Input placeholder="Street address" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
             </div>
 
             <Separator />
