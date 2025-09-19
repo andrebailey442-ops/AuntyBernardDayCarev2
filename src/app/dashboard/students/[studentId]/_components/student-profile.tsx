@@ -121,7 +121,7 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
             <Separator />
 
             <div>
-                <h3 className="text-xl font-semibold mb-4">Guardian Information</h3>
+                <h3 className="text-xl font-semibold mb-4">Guardian & Address Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     {student.guardians.map((guardian, index) => (
                         <div key={index} className="space-y-4 rounded-lg border p-4">
@@ -144,10 +144,9 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                 </div>
             </div>
             
-            <Separator />
-
             {student.authorizedPickups && student.authorizedPickups.length > 0 && (
                 <>
+                <Separator />
                 <div>
                     <h3 className="text-xl font-semibold mb-4">Authorized Pickup Persons</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -161,7 +160,6 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                     ))}
                     </div>
                 </div>
-                <Separator />
                 </>
             )}
 

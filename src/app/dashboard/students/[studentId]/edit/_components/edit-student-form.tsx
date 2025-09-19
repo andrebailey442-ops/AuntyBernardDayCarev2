@@ -417,7 +417,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xl font-semibold">Guardian Information</h3>
+                  <h3 className="text-xl font-semibold">Guardian & Address Information</h3>
                   <p className="text-sm text-muted-foreground">You can add up to 2 guardians.</p>
                 </div>
                 <Button type="button" variant="outline" size="sm" onClick={() => appendGuardian({ firstName: '', lastName: '', relationship: '', contact: '', phone: '' })} disabled={guardianFields.length >= 2}>
@@ -447,13 +447,8 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                 </div>
               ))}
               <FormField control={form.control} name="guardians" render={() => ( <FormItem><FormMessage /></FormItem> )} />
-            </div>
-
-            <Separator />
-
-             <div className="space-y-4">
-                <h3 className="text-xl font-semibold">Address Information</h3>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                         control={form.control}
                         name="state"
