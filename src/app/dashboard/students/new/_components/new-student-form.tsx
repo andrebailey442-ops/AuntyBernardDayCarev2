@@ -64,7 +64,8 @@ const relationshipOptions = [
     'Mother', 'Father', 'Guardian', 'Grandmother', 'Grandfather', 'Aunt', 'Uncle', 'Brother', 'Sister', 'Other'
 ];
 
-const formSchema = newStudentSchema.extend({
+const formSchema = z.object({
+    ...newStudentSchema.shape,
     studentId: z.string(),
 });
 
