@@ -164,7 +164,7 @@ export function NewStudentForm() {
   }, [dob, form]);
 
 
-  const onSubmit = async (data: NewStudentFormValues & { studentId: string }) => {
+  const onSubmit = (data: NewStudentFormValues & { studentId: string }) => {
     setIsLoading(true);
     try {
         const processedGuardians = data.guardians.map((g, index) => {
@@ -443,7 +443,7 @@ export function NewStudentForm() {
                     <h3 className="text-xl font-semibold">Guardian Information</h3>
                     <p className="text-sm text-muted-foreground">You can add up to 2 guardians.</p>
                 </div>
-                <Button type="button" variant="outline" size="sm" onClick={() => appendGuardian({ firstName: '', lastName: '', relationship: '', contact: '', phone: '', occupation: '', placeOfEmployment: '', workNumber: '', address: '', city: '', state: '' })} disabled={guardianFields.length >= 2}>
+                <Button type="button" variant="outline" size="sm" onClick={() => appendGuardian({ firstName: '', lastName: '', relationship: '', contact: '', phone: '', occupation: '', placeOfEmployment: '', workNumber: '' })} disabled={guardianFields.length >= 2}>
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Add Guardian
                 </Button>
@@ -721,7 +721,7 @@ export function NewStudentForm() {
                     </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={form.handleSubmit(onSubmit)} disabled={isLoading}>
+                        <AlertDialogAction onClick={() => onSubmit(form.getValues())} disabled={isLoading}>
                             {isLoading ? 'Submitting...' : 'Confirm'}
                         </AlertDialogAction>
                     </AlertDialogFooter>
