@@ -100,6 +100,10 @@ type EditStudentFormProps = {
     studentId: string;
 }
 
+const relationshipOptions = [
+    'Mother', 'Father', 'Guardian', 'Grandmother', 'Grandfather', 'Aunt', 'Uncle', 'Brother', 'Sister', 'Other'
+];
+
 export function EditStudentForm({ studentId }: EditStudentFormProps) {
   const { toast } = useToast();
   const router = useRouter();
@@ -439,7 +443,28 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                     <FormField control={form.control} name={`guardians.${index}.firstName`} render={({ field }) => (<FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                     <FormField control={form.control} name={`guardians.${index}.lastName`} render={({ field }) => (<FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                   </div>
-                  <FormField control={form.control} name={`guardians.${index}.relationship`} render={({ field }) => (<FormItem><FormLabel>Relationship</FormLabel><FormControl><Input {...field} placeholder="e.g. Mother, Father, Guardian" /></FormControl><FormMessage /></FormItem>)} />
+                   <FormField
+                      control={form.control}
+                      name={`guardians.${index}.relationship`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Relationship</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a relationship" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {relationshipOptions.map(option => (
+                                <SelectItem key={option} value={option}>{option}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField control={form.control} name={`guardians.${index}.contact`} render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder={`guardian${index+1}@example.com`} {...field} /></FormControl><FormMessage /></FormItem>)} />
                     <FormField control={form.control} name={`guardians.${index}.phone`} render={({ field }) => (<FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="876-555-5555" {...field} /></FormControl><FormMessage /></FormItem>)} />
@@ -575,9 +600,28 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                     <FormField control={form.control} name={`authorizedPickups.${index}.name`} render={({ field }) => (
                       <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input {...field} placeholder="e.g., Jane Doe" /></FormControl><FormMessage /></FormItem>
                     )} />
-                    <FormField control={form.control} name={`authorizedPickups.${index}.relationship`} render={({ field }) => (
-                      <FormItem><FormLabel>Relationship</FormLabel><FormControl><Input {...field} placeholder="e.g., Aunt, Grandfather" /></FormControl><FormMessage /></FormItem>
-                    )} />
+                    <FormField
+                      control={form.control}
+                      name={`authorizedPickups.${index}.relationship`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Relationship</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a relationship" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {relationshipOptions.map(option => (
+                                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                            </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                   <FormField control={form.control} name={`authorizedPickups.${index}.phone`} render={({ field }) => (
                       <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input {...field} placeholder="876-555-5555" /></FormControl><FormMessage /></FormItem>
