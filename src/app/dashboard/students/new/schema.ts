@@ -34,6 +34,9 @@ const guardianSchema = z.object({
     relationship: z.string().min(2, 'Relationship is required.'),
     contact: z.string().email('Invalid email address.'),
     phone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
+    occupation: z.string().optional(),
+    placeOfEmployment: z.string().optional(),
+    workNumber: z.string().optional(),
 });
 
 const authorizedPickupSchema = z.object({

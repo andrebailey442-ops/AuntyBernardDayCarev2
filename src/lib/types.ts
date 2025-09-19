@@ -8,6 +8,9 @@ export type Guardian = {
   relationship: string;
   contact: string; // email
   phone: string;
+  occupation?: string;
+  placeOfEmployment?: string;
+  workNumber?: string;
 };
 
 export type AuthorizedPickup = {
