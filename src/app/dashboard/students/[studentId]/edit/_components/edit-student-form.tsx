@@ -66,7 +66,7 @@ const guardianSchema = z.object({
   phone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
   occupation: z.string().optional(),
   placeOfEmployment: z.string().optional(),
-  workNumber: z.string().optional(),
+  workNumber: z.string().regex(phoneRegex, 'Invalid phone number format.').optional().or(z.literal('')),
   address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),

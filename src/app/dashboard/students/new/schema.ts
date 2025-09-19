@@ -36,7 +36,7 @@ const guardianSchema = z.object({
     phone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
     occupation: z.string().optional(),
     placeOfEmployment: z.string().optional(),
-    workNumber: z.string().optional(),
+    workNumber: z.string().regex(phoneRegex, 'Invalid phone number format.').optional().or(z.literal('')),
     address: z.string().optional(),
     city: z.string().optional(),
     state: z.string().optional(),
@@ -66,7 +66,7 @@ export const newStudentSchema = z.object({
     authorizedPickups: z.array(authorizedPickupSchema).max(5, 'You can add a maximum of 5 authorized pickup persons.').optional(),
 }).superRefine((data, ctx) => {
     // Guardian 1 must have an address
-    if (!data.guardians[0].address || !data.guardians[0].city || !data.guardians[0].state) {
+    if (data.guardians[0] && (!data.guardians[0].address || !data.guardians[0].city || !data.guardians[0].state)) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ['guardians', 0, 'address'],

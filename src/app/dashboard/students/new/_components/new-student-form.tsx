@@ -702,6 +702,7 @@ export function NewStudentForm() {
                                 <p><strong>Relationship:</strong> {guardian.relationship}</p>
                                 <p><strong>Email:</strong> {guardian.contact}</p>
                                 <p><strong>Phone:</strong> {guardian.phone}</p>
+                                <p><strong>Work Number:</strong> {guardian.workNumber || 'N/A'}</p>
                                 <p><strong>Address:</strong> {`${guardian.address}, ${guardian.city}, ${guardian.state}`}</p>
                             </div>
                         ))}
