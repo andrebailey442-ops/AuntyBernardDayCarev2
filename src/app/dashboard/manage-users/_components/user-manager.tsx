@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import { MoreHorizontal, PlusCircle, Trash2, KeyRound } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Trash2, KeyRound, Edit } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -59,7 +59,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import type { User, UserRole } from '@/lib/types';
-import { getUsers, addUser, removeUser } from '@/services/users';
+import { getUsers, addUser, removeUser, updateUser } from '@/services/users';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function UserManager() {
@@ -72,6 +72,11 @@ export default function UserManager() {
   const [newEmail, setNewEmail] = React.useState('');
   const [newPassword, setNewPassword] = React.useState('');
   const [newRole, setNewRole] = React.useState<UserRole>('Teacher');
+
+  const [isEditUserDialogOpen, setIsEditUserDialogOpen] = React.useState(false);
+  const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
+  const [updatedRole, setUpdatedRole] = React.useState<UserRole | ''>('');
+  const [updatedPassword, setUpdatedPassword] = React.useState('');
 
   const [isRemoveUserAlertOpen, setIsRemoveUserAlertOpen] = React.useState(false);
   const [userToRemove, setUserToRemove] = React.useState<User | null>(null);
@@ -110,6 +115,39 @@ export default function UserManager() {
         toast({ variant: 'destructive', title: 'Error', description: (error as Error).message || 'Failed to add user.'});
     }
   };
+
+  const openEditDialog = (user: User) => {
+    setSelectedUser(user);
+    setUpdatedRole(user.role);
+    setUpdatedPassword('');
+    setIsEditUserDialogOpen(true);
+  };
+  
+  const handleUpdateUser = () => {
+    if (!selectedUser) return;
+    try {
+        const updates: Partial<User> = {};
+        if (updatedRole && updatedRole !== selectedUser.role) {
+            updates.role = updatedRole;
+        }
+        if (updatedPassword) {
+            updates.password = updatedPassword;
+        }
+
+        if (Object.keys(updates).length > 0) {
+            const updatedUser = updateUser(selectedUser.id, updates);
+            if (updatedUser) {
+                setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+                toast({ title: 'User Updated', description: `${updatedUser.username}'s profile has been updated.` });
+            }
+        }
+        setIsEditUserDialogOpen(false);
+        setSelectedUser(null);
+    } catch (error) {
+        console.error('Failed to update user: ', error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to update user profile.' });
+    }
+  }
   
   const handleRemoveUser = () => {
     if (!userToRemove) return;
@@ -233,6 +271,11 @@ export default function UserManager() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => openEditDialog(user)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit Profile
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onClick={() => openRemoveUserAlert(user)}>
                         <Trash2 className="mr-2 h-4 w-4" />
                         Remove User
@@ -244,6 +287,38 @@ export default function UserManager() {
             ))}
           </TableBody>
         </Table>
+
+        {selectedUser && (
+            <Dialog open={isEditUserDialogOpen} onOpenChange={setIsEditUserDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit User: {selectedUser.username}</DialogTitle>
+                        <DialogDescription>Change the user's role or reset their password.</DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="edit-role" className="text-right">Role</Label>
+                            <Select onValueChange={(value: UserRole) => setUpdatedRole(value)} value={updatedRole || selectedUser.role}>
+                                <SelectTrigger className="col-span-3" id="edit-role">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Admin">Admin</SelectItem>
+                                    <SelectItem value="Teacher">Teacher</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="edit-password" className="text-right">New Password</Label>
+                            <Input id="edit-password" type="password" value={updatedPassword} onChange={e => setUpdatedPassword(e.target.value)} className="col-span-3" placeholder="Leave blank to keep current" />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={handleUpdateUser}>Save Changes</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        )}
 
         <AlertDialog open={isRemoveUserAlertOpen} onOpenChange={setIsRemoveUserAlertOpen}>
             <AlertDialogContent>

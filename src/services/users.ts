@@ -58,6 +58,26 @@ export const addUser = (email: string, role: UserRole, password?: string, avatar
     return newUser;
 };
 
+export const updateUser = (userId: string, updates: Partial<User>): User | null => {
+    const users = getStoredUsers();
+    const userIndex = users.findIndex(u => u.id === userId);
+
+    if (userIndex === -1) {
+        return null;
+    }
+
+    // Ensure we don't accidentally wipe the password if it's not being updated
+    if (updates.password === '') {
+        delete updates.password;
+    }
+
+    users[userIndex] = { ...users[userIndex], ...updates };
+    setStoredUsers(users);
+
+    const { password, ...userWithoutPassword } = users[userIndex];
+    return userWithoutPassword as User;
+}
+
 export const removeUser = (userId: string): void => {
     let users = getStoredUsers();
     users = users.filter(u => u.id !== userId);
