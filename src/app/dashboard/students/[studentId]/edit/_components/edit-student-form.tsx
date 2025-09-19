@@ -87,7 +87,9 @@ const editStudentSchema = z.object({
         message: "Student's age cannot exceed 6 years for online registration.",
     }),
     guardians: z.array(guardianSchema).min(1, 'At least one guardian is required.').max(2, 'You can add a maximum of 2 guardians.'),
-    afterCare: z.boolean().optional(),
+    preschool: z.boolean().default(false),
+    afterCare: z.boolean().default(false),
+    nursery: z.boolean().default(false),
     emergencyContactName: z.string().min(2, 'Emergency contact name is required.').max(100, 'Name is too long'),
     emergencyContactPhone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
     medicalConditions: z.string().max(500, 'Medical conditions cannot exceed 500 characters.').optional(),
@@ -102,6 +104,13 @@ const editStudentSchema = z.object({
         if (!data.guardians[1].address || !data.guardians[1].city || !data.guardians[1].state) {
             ctx.addIssue({ code: 'custom', path: ['guardians', 1, 'address'], message: 'Address information is required if not same as Guardian 1.' });
         }
+    }
+    if (!data.preschool && !data.afterCare && !data.nursery) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['preschool'], // You can attach the error to one of the fields
+            message: 'At least one program (Preschool, After-Care, or Nursery) must be selected.',
+        });
     }
 });
 
@@ -136,7 +145,9 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
         firstName: '',
         lastName: '',
         guardians: [],
+        preschool: false,
         afterCare: false,
+        nursery: false,
         emergencyContactName: '',
         emergencyContactPhone: '',
         medicalConditions: '',
@@ -168,8 +179,10 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                 lastName: lastName.join(' '),
                 dob: dob,
                 age: studentData.age,
-                guardians: studentData.guardians,
+                guardians: studentData.guardians.map(g => ({ ...g, occupation: g.occupation || '', placeOfEmployment: g.placeOfEmployment || '', workNumber: g.workNumber || '' })),
+                preschool: studentData.preschool || false,
                 afterCare: studentData.afterCare || false,
+                nursery: studentData.nursery || false,
                 emergencyContactName: studentData.emergencyContactName || '',
                 emergencyContactPhone: studentData.emergencyContactPhone || '',
                 medicalConditions: studentData.medicalConditions || '',
@@ -237,7 +250,9 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
             age: data.age,
             dob: data.dob.toISOString(),
             guardians: processedGuardians,
+            preschool: data.preschool,
             afterCare: data.afterCare,
+            nursery: data.nursery,
             emergencyContactName: data.emergencyContactName,
             emergencyContactPhone: data.emergencyContactPhone,
             medicalConditions: data.medicalConditions,
@@ -554,28 +569,39 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
             
             <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Program Enrollment</h3>
-                 <FormField
-                    control={form.control}
-                    name="afterCare"
-                    render={({ field }) => (
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="preschool"
+                        render={({ field }) => (
                         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                        <div className="space-y-0.5">
-                            <FormLabel className="text-base">
-                            After-Care Program
-                            </FormLabel>
-                            <FormDescription>
-                                Enroll this student in the after-care program.
-                            </FormDescription>
-                        </div>
-                        <FormControl>
-                            <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            />
-                        </FormControl>
+                            <FormLabel className="font-normal">Preschool</FormLabel>
+                            <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                         </FormItem>
-                    )}
-                />
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="afterCare"
+                        render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                            <FormLabel className="font-normal">After-Care</FormLabel>
+                            <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="nursery"
+                        render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                            <FormLabel className="font-normal">Nursery</FormLabel>
+                            <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                        </FormItem>
+                        )}
+                    />
+                </div>
+                 <FormField control={form.control} name="preschool" render={() => ( <FormItem><FormMessage /></FormItem> )} />
             </div>
 
             <Separator />

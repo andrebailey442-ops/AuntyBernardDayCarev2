@@ -21,6 +21,7 @@ import { getStudent } from '@/services/students';
 import { getFeeByStudentId } from '@/services/fees';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
+import { CheckCircle, XCircle } from 'lucide-react';
 
 type StudentProfileProps = {
     studentId: string;
@@ -115,6 +116,26 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                     <div><p className="text-sm text-muted-foreground">Last Name</p><p>{student.name.split(' ').slice(1).join(' ')}</p></div>
                     <div><p className="text-sm text-muted-foreground">Age</p><p>{student.age}</p></div>
                     <div><p className="text-sm text-muted-foreground">Date of Birth</p><p>{format(new Date(student.dob), 'PPP')}</p></div>
+                </div>
+            </div>
+
+            <Separator />
+
+            <div>
+                <h3 className="text-xl font-semibold mb-4">Program Enrollment</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="flex items-center justify-between rounded-lg border p-3">
+                        <span className="font-medium">Preschool</span>
+                        {student.preschool ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-muted-foreground" />}
+                    </div>
+                     <div className="flex items-center justify-between rounded-lg border p-3">
+                        <span className="font-medium">After-Care</span>
+                        {student.afterCare ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-muted-foreground" />}
+                    </div>
+                     <div className="flex items-center justify-between rounded-lg border p-3">
+                        <span className="font-medium">Nursery</span>
+                        {student.nursery ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-muted-foreground" />}
+                    </div>
                 </div>
             </div>
 
