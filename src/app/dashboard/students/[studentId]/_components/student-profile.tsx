@@ -134,6 +134,10 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                             <div><p className="text-sm text-muted-foreground">Occupation</p><p>{guardian.occupation || 'N/A'}</p></div>
                             <div><p className="text-sm text-muted-foreground">Place of Employment</p><p>{guardian.placeOfEmployment || 'N/A'}</p></div>
                             <div><p className="text-sm text-muted-foreground">Work Number</p><p>{guardian.workNumber || 'N/A'}</p></div>
+                             <div>
+                                <p className="text-sm text-muted-foreground">Address</p>
+                                <p>{`${guardian.address || ''}, ${guardian.city || ''}, ${guardian.state || ''}`}</p>
+                            </div>
                         </div>
                     ))}
                     {student.guardians.length < 2 && (
@@ -143,10 +147,6 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                             <p className="text-sm text-muted-foreground">No information provided for a second guardian.</p>
                         </div>
                     )}
-                    <div className="md:col-span-2 pt-4">
-                        <h4 className="font-medium mb-2">Address</h4>
-                        <p>{`${student.address || ''}, ${student.city || ''}, ${student.state || ''}`}</p>
-                    </div>
                 </div>
             </div>
             

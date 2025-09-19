@@ -37,6 +37,10 @@ const guardianSchema = z.object({
     occupation: z.string().optional(),
     placeOfEmployment: z.string().optional(),
     workNumber: z.string().optional(),
+    address: z.string().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    addressSameAsGuardian1: z.boolean().optional(),
 });
 
 const authorizedPickupSchema = z.object({
@@ -53,9 +57,6 @@ export const newStudentSchema = z.object({
         message: "Student's age cannot exceed 6 years for online registration.",
     }),
     guardians: z.array(guardianSchema).min(1, 'At least one guardian is required.').max(2, 'You can add a maximum of 2 guardians.'),
-    address: z.string().min(5, 'Address is required and must be at least 5 characters.'),
-    city: z.string().min(2, 'City is required.'),
-    state: z.string({ required_error: 'Parish is required.' }).min(1, 'Parish is required.'),
     preschool: z.boolean().default(false),
     afterCare: z.boolean().default(false),
     nursery: z.boolean().default(false),
@@ -63,6 +64,27 @@ export const newStudentSchema = z.object({
     emergencyContactPhone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
     medicalConditions: z.string().max(500, 'Medical conditions cannot exceed 500 characters.').optional(),
     authorizedPickups: z.array(authorizedPickupSchema).max(5, 'You can add a maximum of 5 authorized pickup persons.').optional(),
+}).superRefine((data, ctx) => {
+    // Guardian 1 must have an address
+    if (!data.guardians[0].address || !data.guardians[0].city || !data.guardians[0].state) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['guardians', 0, 'address'],
+            message: 'Address information is required for the primary guardian.',
+        });
+    }
+
+    // If Guardian 2 exists and address is not same as Guardian 1, address is required
+    if (data.guardians[1] && !data.guardians[1].addressSameAsGuardian1) {
+        if (!data.guardians[1].address || !data.guardians[1].city || !data.guardians[1].state) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ['guardians', 1, 'address'],
+                message: 'Address information is required for the second guardian if not the same as the first.',
+            });
+        }
+    }
 });
+
 
 export type NewStudentFormValues = z.infer<typeof newStudentSchema>;

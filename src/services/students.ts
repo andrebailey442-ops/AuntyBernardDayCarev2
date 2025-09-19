@@ -1,7 +1,7 @@
 
 
 import type { Student, Guardian } from '@/lib/types';
-import { STUDENTS } from '@/lib/data';
+import { STUDENTS, ARCHIVED_STUDENTS } from '@/lib/data';
 import { deleteFeeByStudentId } from './fees';
 import { deleteGradesByStudentId } from './grades';
 import { deleteAttendanceByStudentId } from './attendance';
@@ -22,7 +22,7 @@ const setStoredStudents = (students: Student[]) => {
 const getStoredArchivedStudents = (): Student[] => {
     if (typeof window === 'undefined') return [];
     const data = localStorage.getItem(ARCHIVED_STUDENTS_STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    return data ? JSON.parse(data) : ARCHIVED_STUDENTS;
 };
 
 const setStoredArchivedStudents = (students: Student[]) => {

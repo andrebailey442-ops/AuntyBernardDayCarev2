@@ -92,9 +92,6 @@ export function NewStudentForm() {
         lastName: '',
         dob: undefined,
         guardians: [{ firstName: '', lastName: '', relationship: '', contact: '', phone: '', occupation: '', placeOfEmployment: '', workNumber: '' }],
-        address: '',
-        city: '',
-        state: '',
         preschool: fromSection === 'preschool',
         afterCare: fromSection === 'after-care',
         nursery: fromSection === 'nursery',
@@ -123,7 +120,7 @@ export function NewStudentForm() {
 
   const dob = form.watch('dob');
   const formValues = form.watch();
-  const selectedParish = form.watch('state');
+  const guardians = form.watch('guardians');
 
   const totalFee = React.useMemo(() => {
     let total = 0;
@@ -166,16 +163,25 @@ export function NewStudentForm() {
   const onSubmit = async (data: NewStudentFormValues & { studentId: string }) => {
     setIsLoading(true);
     try {
+        const processedGuardians = data.guardians.map((g, index) => {
+            if (index === 1 && g.addressSameAsGuardian1) {
+                return {
+                    ...g,
+                    address: data.guardians[0].address,
+                    city: data.guardians[0].city,
+                    state: data.guardians[0].state,
+                };
+            }
+            return g;
+        });
+
         const studentData = {
             name: `${data.firstName} ${data.lastName}`,
             age: data.age || 0,
             avatarUrl: `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/100/100`,
             imageHint: 'child portrait',
             dob: data.dob.toISOString(),
-            guardians: data.guardians,
-            address: data.address,
-            city: data.city,
-            state: data.state,
+            guardians: processedGuardians,
             preschool: data.preschool,
             afterCare: data.afterCare,
             nursery: data.nursery,
@@ -438,7 +444,9 @@ export function NewStudentForm() {
                   Add Guardian
                 </Button>
               </div>
-              {guardianFields.map((field, index) => (
+              {guardianFields.map((field, index) => {
+                const selectedParish = guardians[index]?.state;
+                return (
                 <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium text-md">Guardian {index + 1}</h4>
@@ -483,64 +491,63 @@ export function NewStudentForm() {
                     <FormField control={form.control} name={`guardians.${index}.placeOfEmployment`} render={({ field }) => (<FormItem><FormLabel>Place of Employment</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                   </div>
                   <FormField control={form.control} name={`guardians.${index}.workNumber`} render={({ field }) => (<FormItem><FormLabel>Work Number</FormLabel><FormControl><Input placeholder="876-555-5555" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                </div>
-              ))}
-                <FormField control={form.control} name="guardians" render={() => ( <FormItem><FormMessage /></FormItem> )} />
 
-                <h3 className="text-xl font-semibold pt-4">Address Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="state"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Parish</FormLabel>
-                            <Select onValueChange={(value) => { field.onChange(value); form.setValue('city', ''); }} value={field.value}>
+                   <Separator className="my-4"/>
+                    <h4 className="font-medium">Address Information</h4>
+                    
+                     {index === 1 && (
+                        <FormField
+                            control={form.control}
+                            name={`guardians.${index}.addressSameAsGuardian1`}
+                            render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                                <div className="space-y-0.5">
+                                <FormLabel>Same as Guardian 1</FormLabel>
+                                </div>
                                 <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a parish" />
-                                </SelectTrigger>
+                                <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
                                 </FormControl>
-                                <SelectContent>
-                                {JAMAICAN_PARISHES.map((parish) => (
-                                    <SelectItem key={parish.value} value={parish.value}>
-                                    {parish.label}
-                                    </SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
                             </FormItem>
-                        )}
+                            )}
                         />
-                    <FormField
-                        control={form.control}
-                        name="city"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>City</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value} disabled={!selectedParish}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a city" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                {(CITIES_BY_PARISH[selectedParish] || []).map((city) => (
-                                    <SelectItem key={city} value={city}>
-                                    {city}
-                                    </SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    )}
+
+                    { (index === 0 || !guardians[1]?.addressSameAsGuardian1) && (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField control={form.control} name={`guardians.${index}.state`} render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Parish</FormLabel>
+                                    <Select onValueChange={(value) => { field.onChange(value); form.setValue(`guardians.${index}.city`, ''); }} value={field.value}>
+                                        <FormControl><SelectTrigger><SelectValue placeholder="Select a parish" /></SelectTrigger></FormControl>
+                                        <SelectContent>{JAMAICAN_PARISHES.map((p) => (<SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>))}</SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                            <FormField control={form.control} name={`guardians.${index}.city`} render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>City</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!selectedParish}>
+                                        <FormControl><SelectTrigger><SelectValue placeholder="Select a city" /></SelectTrigger></FormControl>
+                                        <SelectContent>{(CITIES_BY_PARISH[selectedParish || ''] || []).map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}</SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                            </div>
+                            <FormField control={form.control} name={`guardians.${index}.address`} render={({ field }) => (
+                                <FormItem><FormLabel>Street Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage />
+                                </FormItem>
+                            )} />
+                        </div>
+                    )}
                 </div>
-                <FormField control={form.control} name="address" render={({ field }) => (
-                    <FormItem><FormLabel>Address</FormLabel><FormControl><Input placeholder="Street address" {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
+                )})}
+              <FormField control={form.control} name="guardians" render={() => ( <FormItem><FormMessage /></FormItem> )} />
             </div>
 
             <Separator />
@@ -690,14 +697,10 @@ export function NewStudentForm() {
                                 <p><strong>Relationship:</strong> {guardian.relationship}</p>
                                 <p><strong>Email:</strong> {guardian.contact}</p>
                                 <p><strong>Phone:</strong> {guardian.phone}</p>
+                                <p><strong>Address:</strong> {`${guardian.address}, ${guardian.city}, ${guardian.state}`}</p>
                             </div>
                         ))}
                          <Separator />
-                         <div>
-                            <h4 className="font-semibold mb-2">Address</h4>
-                            <p>{`${formValues.address}, ${formValues.city}, ${formValues.state}`}</p>
-                        </div>
-                        <Separator />
                         <div>
                             <h4 className="font-semibold mb-2">Program Enrollment</h4>
                             <p><strong>Preschool:</strong> {formValues.preschool ? 'Yes' : 'No'}</p>

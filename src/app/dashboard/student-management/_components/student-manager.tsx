@@ -85,6 +85,18 @@ export default function StudentManager() {
 
   React.useEffect(() => {
     fetchStudents();
+    
+    const handleStorageChange = () => {
+        fetchStudents();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('focus', handleStorageChange);
+
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+        window.removeEventListener('focus', handleStorageChange);
+    };
   }, [fetchStudents]);
 
   React.useEffect(() => {
@@ -173,27 +185,30 @@ export default function StudentManager() {
       ? allStudents.filter(s => selectedStudents.includes(s.id))
       : allStudents;
 
-    const worksheet = XLSX.utils.json_to_sheet(studentsToExport.map(s => ({
-        ID: s.id,
-        Name: s.name,
-        Age: s.age,
-        Birthday: s.dob,
-        'Guardian 1 Name': s.guardians[0] ? `${s.guardians[0].firstName} ${s.guardians[0].lastName}` : '',
-        'Guardian 1 Relationship': s.guardians[0] ? s.guardians[0].relationship : '',
-        'Guardian 1 Email': s.guardians[0] ? s.guardians[0].contact : '',
-        'Guardian 1 Phone': s.guardians[0] ? s.guardians[0].phone : '',
-        'Guardian 2 Name': s.guardians[1] ? `${s.guardians[1].firstName} ${s.guardians[1].lastName}` : '',
-        'Guardian 2 Relationship': s.guardians[1] ? s.guardians[1].relationship : '',
-        'Guardian 2 Email': s.guardians[1] ? s.guardians[1].contact : '',
-        'Guardian 2 Phone': s.guardians[1] ? s.guardians[1].phone : '',
-        Address: s.address,
-        City: s.city,
-        State: s.state,
-        'After Care': s.afterCare ? 'Yes' : 'No',
-        'Emergency Contact': s.emergencyContactName,
-        'Emergency Phone': s.emergencyContactPhone,
-        'Medical Info': s.medicalConditions
-    })));
+    const worksheet = XLSX.utils.json_to_sheet(studentsToExport.map(s => {
+        const guardian1 = s.guardians[0];
+        const guardian2 = s.guardians[1];
+        return {
+            ID: s.id,
+            Name: s.name,
+            Age: s.age,
+            Birthday: s.dob,
+            'Guardian 1 Name': guardian1 ? `${guardian1.firstName} ${guardian1.lastName}` : '',
+            'Guardian 1 Relationship': guardian1 ? guardian1.relationship : '',
+            'Guardian 1 Email': guardian1 ? guardian1.contact : '',
+            'Guardian 1 Phone': guardian1 ? guardian1.phone : '',
+            'Address 1': guardian1 ? `${guardian1.address}, ${guardian1.city}, ${guardian1.state}` : '',
+            'Guardian 2 Name': guardian2 ? `${guardian2.firstName} ${guardian2.lastName}` : '',
+            'Guardian 2 Relationship': guardian2 ? guardian2.relationship : '',
+            'Guardian 2 Email': guardian2 ? guardian2.contact : '',
+            'Guardian 2 Phone': guardian2 ? guardian2.phone : '',
+            'Address 2': guardian2 ? `${guardian2.address}, ${guardian2.city}, ${guardian2.state}` : '',
+            'After Care': s.afterCare ? 'Yes' : 'No',
+            'Emergency Contact': s.emergencyContactName,
+            'Emergency Phone': s.emergencyContactPhone,
+            'Medical Info': s.medicalConditions
+        }
+    }));
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
     XLSX.writeFile(workbook, 'students.xlsx');
@@ -231,21 +246,13 @@ export default function StudentManager() {
             mappedStudents.forEach(studentData => {
                 const newId = `SID-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
                 
-                const guardians = [studentData.guardian1];
-                if (studentData.guardian2) {
-                    guardians.push(studentData.guardian2);
-                }
-
                 const finalStudentData = {
                     name: studentData.name,
                     age: studentData.age || 0,
                     dob: studentData.dob || new Date().toISOString(),
                     avatarUrl: `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/100/100`,
                     imageHint: 'child portrait',
-                    guardians,
-                    address: studentData.address || '',
-                    city: studentData.city || '',
-                    state: studentData.state || '',
+                    guardians: studentData.guardians,
                     afterCare: studentData.afterCare || false,
                     emergencyContactName: studentData.emergencyContactName || '',
                     emergencyContactPhone: studentData.emergencyContactPhone || '',

@@ -11,6 +11,10 @@ export type Guardian = {
   occupation?: string;
   placeOfEmployment?: string;
   workNumber?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  addressSameAsGuardian1?: boolean;
 };
 
 export type AuthorizedPickup = {
@@ -33,9 +37,6 @@ export type Student = {
   graduationDate?: string;
   // Extended details from form
   guardians: Guardian[];
-  address?: string;
-  city?: string;
-  state?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   medicalConditions?: string;

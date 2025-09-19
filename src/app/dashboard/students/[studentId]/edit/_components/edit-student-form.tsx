@@ -53,7 +53,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
   } from "@/components/ui/alert-dialog"
-import { uploadDocumentSchema } from '../../../new/schema';
 
 const phoneRegex = new RegExp(
   /^(\+\d{1,3})?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/
@@ -68,6 +67,10 @@ const guardianSchema = z.object({
   occupation: z.string().optional(),
   placeOfEmployment: z.string().optional(),
   workNumber: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
+  addressSameAsGuardian1: z.boolean().optional(),
 });
 
 const authorizedPickupSchema = z.object({
@@ -84,18 +87,24 @@ const editStudentSchema = z.object({
         message: "Student's age cannot exceed 6 years for online registration.",
     }),
     guardians: z.array(guardianSchema).min(1, 'At least one guardian is required.').max(2, 'You can add a maximum of 2 guardians.'),
-    address: z.string().min(5, 'Address is required and must be at least 5 characters.'),
-    city: z.string().min(2, 'City is required.'),
-    state: z.string({ required_error: 'Parish is required.' }).min(1, 'Parish is required.'),
     afterCare: z.boolean().optional(),
     emergencyContactName: z.string().min(2, 'Emergency contact name is required.').max(100, 'Name is too long'),
     emergencyContactPhone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
     medicalConditions: z.string().max(500, 'Medical conditions cannot exceed 500 characters.').optional(),
     authorizedPickups: z.array(authorizedPickupSchema).max(5, 'You can add a maximum of 5 authorized pickup persons.').optional(),
-    birthCertificate: uploadDocumentSchema.shape.birthCertificate,
-    immunizationRecord: uploadDocumentSchema.shape.immunizationRecord,
-    proofOfAddress: uploadDocumentSchema.shape.proofOfAddress,
-  });
+}).superRefine((data, ctx) => {
+    if (data.guardians[0]) {
+        if (!data.guardians[0].address || !data.guardians[0].city || !data.guardians[0].state) {
+            ctx.addIssue({ code: 'custom', path: ['guardians', 0, 'address'], message: 'Address information is required for the primary guardian.' });
+        }
+    }
+    if (data.guardians[1] && !data.guardians[1].addressSameAsGuardian1) {
+        if (!data.guardians[1].address || !data.guardians[1].city || !data.guardians[1].state) {
+            ctx.addIssue({ code: 'custom', path: ['guardians', 1, 'address'], message: 'Address information is required if not same as Guardian 1.' });
+        }
+    }
+});
+
 
 type EditStudentFormValues = z.infer<typeof editStudentSchema>;
 
@@ -127,9 +136,6 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
         firstName: '',
         lastName: '',
         guardians: [],
-        address: '',
-        city: '',
-        state: '',
         afterCare: false,
         emergencyContactName: '',
         emergencyContactPhone: '',
@@ -163,9 +169,6 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                 dob: dob,
                 age: studentData.age,
                 guardians: studentData.guardians,
-                address: studentData.address || '',
-                city: studentData.city || '',
-                state: studentData.state || '',
                 afterCare: studentData.afterCare || false,
                 emergencyContactName: studentData.emergencyContactName || '',
                 emergencyContactPhone: studentData.emergencyContactPhone || '',
@@ -189,7 +192,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
   }, [studentId, form, router, toast]);
 
   const dob = form.watch('dob');
-  const selectedParish = form.watch('state');
+  const guardians = form.watch('guardians');
 
   React.useEffect(() => {
     if (dob) {
@@ -217,14 +220,23 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
   const onSubmit = (data: EditStudentFormValues) => {
     setIsLoading(true);
     try {
+        const processedGuardians = data.guardians.map((g, index) => {
+            if (index === 1 && g.addressSameAsGuardian1 && data.guardians[0]) {
+                return {
+                    ...g,
+                    address: data.guardians[0].address,
+                    city: data.guardians[0].city,
+                    state: data.guardians[0].state,
+                }
+            }
+            return g;
+        });
+
         const updatedData: Partial<Student> = {
             name: `${data.firstName} ${data.lastName}`,
             age: data.age,
             dob: data.dob.toISOString(),
-            guardians: data.guardians,
-            address: data.address,
-            city: data.city,
-            state: data.state,
+            guardians: processedGuardians,
             afterCare: data.afterCare,
             emergencyContactName: data.emergencyContactName,
             emergencyContactPhone: data.emergencyContactPhone,
@@ -432,7 +444,9 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                   Add Guardian
                 </Button>
               </div>
-              {guardianFields.map((field, index) => (
+              {guardianFields.map((field, index) => {
+                const selectedParish = guardians[index]?.state;
+                return (
                 <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium text-md">Guardian {index + 1}</h4>
@@ -477,64 +491,63 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                     <FormField control={form.control} name={`guardians.${index}.placeOfEmployment`} render={({ field }) => (<FormItem><FormLabel>Place of Employment</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                   </div>
                   <FormField control={form.control} name={`guardians.${index}.workNumber`} render={({ field }) => (<FormItem><FormLabel>Work Number</FormLabel><FormControl><Input placeholder="876-555-5555" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                </div>
-              ))}
-              <FormField control={form.control} name="guardians" render={() => ( <FormItem><FormMessage /></FormItem> )} />
-              
-                <h3 className="text-xl font-semibold pt-4">Address Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="state"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>Parish</FormLabel>
-                            <Select onValueChange={(value) => { field.onChange(value); form.setValue('city', ''); }} value={field.value}>
+
+                   <Separator className="my-4"/>
+                    <h4 className="font-medium">Address Information</h4>
+                    
+                     {index === 1 && (
+                        <FormField
+                            control={form.control}
+                            name={`guardians.${index}.addressSameAsGuardian1`}
+                            render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                                <div className="space-y-0.5">
+                                <FormLabel>Same as Guardian 1</FormLabel>
+                                </div>
                                 <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a parish" />
-                                </SelectTrigger>
+                                <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                />
                                 </FormControl>
-                                <SelectContent>
-                                {JAMAICAN_PARISHES.map((parish) => (
-                                    <SelectItem key={parish.value} value={parish.value}>
-                                    {parish.label}
-                                    </SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
                             </FormItem>
-                        )}
+                            )}
                         />
-                    <FormField
-                        control={form.control}
-                        name="city"
-                        render={({ field }) => (
-                            <FormItem>
-                            <FormLabel>City</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value} disabled={!selectedParish}>
-                                <FormControl>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select a city" />
-                                </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                {(CITIES_BY_PARISH[selectedParish] || []).map((city) => (
-                                    <SelectItem key={city} value={city}>
-                                    {city}
-                                    </SelectItem>
-                                ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    )}
+
+                    { (index === 0 || !guardians[1]?.addressSameAsGuardian1) && (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField control={form.control} name={`guardians.${index}.state`} render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Parish</FormLabel>
+                                    <Select onValueChange={(value) => { field.onChange(value); form.setValue(`guardians.${index}.city`, ''); }} value={field.value}>
+                                        <FormControl><SelectTrigger><SelectValue placeholder="Select a parish" /></SelectTrigger></FormControl>
+                                        <SelectContent>{JAMAICAN_PARISHES.map((p) => (<SelectItem key={p.value} value={p.value}>{p.label}</SelectItem>))}</SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                            <FormField control={form.control} name={`guardians.${index}.city`} render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>City</FormLabel>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={!selectedParish}>
+                                        <FormControl><SelectTrigger><SelectValue placeholder="Select a city" /></SelectTrigger></FormControl>
+                                        <SelectContent>{(CITIES_BY_PARISH[selectedParish || ''] || []).map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}</SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                            </div>
+                            <FormField control={form.control} name={`guardians.${index}.address`} render={({ field }) => (
+                                <FormItem><FormLabel>Street Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage />
+                                </FormItem>
+                            )} />
+                        </div>
+                    )}
                 </div>
-                <FormField control={form.control} name="address" render={({ field }) => (
-                    <FormItem><FormLabel>Address</FormLabel><FormControl><Input placeholder="Street address" {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
+                )})}
+              <FormField control={form.control} name="guardians" render={() => ( <FormItem><FormMessage /></FormItem> )} />
             </div>
 
             <Separator />
