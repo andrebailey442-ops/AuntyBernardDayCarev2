@@ -35,6 +35,7 @@ export default function DashboardLayout({
   const { user, loading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [isSlideshowDialogOpen, setIsSlideshowDialogOpen] = React.useState(false);
 
   React.useEffect(() => {
     if (!loading && !user) {
@@ -65,11 +66,11 @@ export default function DashboardLayout({
 
   return (
       <div className="flex min-h-screen w-full flex-col bg-background">
-        <DashboardHeader />
+        <DashboardHeader setSlideshowDialogOpen={setIsSlideshowDialogOpen} />
         <main className="relative flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8 overflow-hidden">
           <WallArt />
           <div className="relative z-10">
-            {showSlideshow && <HeroSlideshow key={pathname} title={slideshowTitle} />}
+            {showSlideshow && <HeroSlideshow key={pathname} title={slideshowTitle} isDialogOpen={isSlideshowDialogOpen} setDialogOpen={setIsSlideshowDialogOpen} />}
             {children}
           </div>
         </main>

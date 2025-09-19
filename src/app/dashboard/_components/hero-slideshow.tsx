@@ -50,9 +50,11 @@ const SLIDESHOW_STORAGE_KEY = 'slideshowImages';
 
 type HeroSlideshowProps = {
     title: string;
+    isDialogOpen: boolean;
+    setDialogOpen: (open: boolean) => void;
 };
 
-export default function HeroSlideshow({ title }: HeroSlideshowProps) {
+export default function HeroSlideshow({ title, isDialogOpen, setDialogOpen }: HeroSlideshowProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [slideImages, setSlideImages] = React.useState<SlideImage[]>(defaultSlideImages);
@@ -145,56 +147,44 @@ export default function HeroSlideshow({ title }: HeroSlideshowProps) {
 
   return (
     <div className="relative">
-      <Dialog>
-        <DialogTrigger asChild disabled={!isAdmin}>
-            <div className={cn("group", isAdmin && "cursor-pointer")}>
-                <Carousel 
-                    plugins={[autoplay.current]}
-                    className="w-full"
-                >
-                    <CarouselContent>
-                    {slideImages.map((image, index) => (
-                        <CarouselItem key={index}>
-                        <Card className="overflow-hidden relative backdrop-blur-sm bg-card/80">
-                            <CardContent className="p-0">
-                            <Image
-                                alt={image.alt}
-                                className="aspect-[3/1] w-full object-cover"
-                                height="400"
-                                src={image.src}
-                                width="1200"
-                                data-ai-hint={image.hint}
-                                priority={index === 0} // Prioritize loading the first image
-                            />
-                            <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center p-4">
-                                <div className="flex items-center gap-4 bg-black/50 p-6 rounded-lg">
-                                    <BusyBeeLogo className="h-16 w-16 text-white" />
-                                    <div>
-                                        <h2 className="text-xl font-semibold text-white/90 tracking-wide">Aunty Bernard DayCare and Pre-school</h2>
-                                        <h1 className="text-5xl font-bold text-white tracking-wider">
-                                            {title}
-                                        </h1>
-                                    </div>
-                                </div>
+      <Dialog open={isAdmin && isDialogOpen} onOpenChange={setDialogOpen}>
+        <Carousel 
+            plugins={[autoplay.current]}
+            className="w-full"
+        >
+            <CarouselContent>
+            {slideImages.map((image, index) => (
+                <CarouselItem key={index}>
+                <Card className="overflow-hidden relative backdrop-blur-sm bg-card/80">
+                    <CardContent className="p-0">
+                    <Image
+                        alt={image.alt}
+                        className="aspect-[3/1] w-full object-cover"
+                        height="400"
+                        src={image.src}
+                        width="1200"
+                        data-ai-hint={image.hint}
+                        priority={index === 0} // Prioritize loading the first image
+                    />
+                    <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center p-4">
+                        <div className="flex items-center gap-4 bg-black/50 p-6 rounded-lg">
+                            <BusyBeeLogo className="h-16 w-16 text-white" />
+                            <div>
+                                <h2 className="text-xl font-semibold text-white/90 tracking-wide">Aunty Bernard DayCare and Pre-school</h2>
+                                <h1 className="text-5xl font-bold text-white tracking-wider">
+                                    {title}
+                                </h1>
                             </div>
-                            </CardContent>
-                        </Card>
-                        </CarouselItem>
-                    ))}
-                    </CarouselContent>
-                    <CarouselPrevious className="absolute left-4" />
-                    <CarouselNext className="absolute right-4" />
-                </Carousel>
-                {isAdmin && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
-                        <div className="flex items-center gap-2 text-white bg-black/70 p-3 rounded-md">
-                            <ImageIcon className="h-5 w-5" />
-                            <span className="font-semibold">Manage Slideshow Images</span>
                         </div>
                     </div>
-                )}
-            </div>
-        </DialogTrigger>
+                    </CardContent>
+                </Card>
+                </CarouselItem>
+            ))}
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-4" />
+            <CarouselNext className="absolute right-4" />
+        </Carousel>
 
         <DialogContent className="sm:max-w-2xl">
             <DialogHeader>

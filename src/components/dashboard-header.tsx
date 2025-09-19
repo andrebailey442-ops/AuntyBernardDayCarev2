@@ -178,7 +178,11 @@ function LogoUpdateDialog({ onOpenChange }: { onOpenChange: (open: boolean) => v
     );
   }
 
-export function DashboardHeader() {
+type DashboardHeaderProps = {
+  setSlideshowDialogOpen: (open: boolean) => void;
+}
+
+export function DashboardHeader({ setSlideshowDialogOpen }: DashboardHeaderProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -253,6 +257,7 @@ export function DashboardHeader() {
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
+      <Dialog>
         <div className="flex items-center gap-2">
             <Link
                 href="/dashboard"
@@ -301,6 +306,12 @@ export function DashboardHeader() {
                     <span>Update Logo</span>
                 </DropdownMenuItem>
                 )}
+                {user?.role === 'Admin' && showSlideshow && (
+                  <DropdownMenuItem onSelect={() => setSlideshowDialogOpen(true)}>
+                    <ImageIcon className="mr-2 h-4 w-4" />
+                    <span>Manage Images</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={downloadHandbook}>
                 <BookOpen className="mr-2 h-4 w-4" />
                 <span>Handbook</span>
@@ -317,6 +328,7 @@ export function DashboardHeader() {
         <Dialog open={isLogoDialogOpen} onOpenChange={setIsLogoDialogOpen}>
             <LogoUpdateDialog onOpenChange={setIsLogoDialogOpen} />
         </Dialog>
+      </Dialog>
     </header>
   );
 }
