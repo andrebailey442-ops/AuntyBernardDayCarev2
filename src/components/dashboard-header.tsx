@@ -289,9 +289,10 @@ export function DashboardHeader() {
     }
   }
   
-  const showSlideshow = pathname.startsWith('/dashboard/preschool') || pathname.startsWith('/dashboard/after-care');
+  const showSlideshow = pathname.startsWith('/dashboard/preschool') || pathname.startsWith('/dashboard/after-care') || pathname.startsWith('/dashboard/nursery');
 
   return (
+    <Dialog>
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
         <div className="flex items-center gap-2">
             <Link
@@ -365,7 +366,8 @@ export function DashboardHeader() {
         <Dialog open={isLogoDialogOpen} onOpenChange={setIsLogoDialogOpen}>
             <LogoUpdateDialog onOpenChange={setIsLogoDialogOpen} />
         </Dialog>
-
     </header>
+    </Dialog>
   );
 }
+

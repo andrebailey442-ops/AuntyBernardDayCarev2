@@ -15,6 +15,12 @@ import { useAuth } from '@/hooks/use-auth';
 const getTitleFromPathname = (pathname: string): string => {
     if (pathname === '/dashboard') return 'Dashboard';
     const segment = pathname.split('/')[2] || 'Dashboard';
+    // a few special cases
+    if (segment === 'preschool') return 'Preschool';
+    if (segment === 'after-care') return 'After-Care';
+    if (segment === 'nursery') return 'Nursery';
+    if (segment === 'staff') return 'Staff Management';
+
     return segment
       .split('-')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -54,7 +60,7 @@ export default function DashboardLayout({
     );
   }
   
-  const showSlideshow = pathname !== '/dashboard' && !pathname.includes('/new') && !pathname.includes('/edit') && !pathname.split('/')[3];
+  const showSlideshow = (pathname.startsWith('/dashboard/preschool') || pathname.startsWith('/dashboard/after-care') || pathname.startsWith('/dashboard/nursery')) && !pathname.includes('/new') && !pathname.includes('/edit') && !pathname.split('/')[3];
   const slideshowTitle = getTitleFromPathname(pathname);
 
   return (
