@@ -28,121 +28,81 @@ import { useLogo } from '@/hooks/use-logo';
 
 
 const handbookContent = `
-# Aunty Bernard’s School App: Handbook
+# Aunty Bernard’s School App: Grown-Up's Guide
 
-Welcome to our school's app! This little book will help you learn how to use it. It’s like a helper for keeping track of all our wonderful students.
+This is a special guide for grown-ups who are in charge (Administrators). It shows you how to do special things that only you can do!
 
----
-
-## Getting Started
-
-### How to Open the App
-
-1.  Go to the login page.
-2.  Type in your special \`username\` and \`password\`.
-3.  Here are the secret words to start:
-    *   **Admin:** \`Admin\` / \`admin\`
-    *   **Teacher:** \`Teacher\` / \`teacher\`
-
-### The First Page
-
-After you log in, you will see two big choices: **Preschool** and **After-Care**. Just pick the one you need to work on!
+For everything else, you can read the other **School App Handbook**.
 
 ---
 
-## Looking After the Preschool
+## What Grown-Ups Can Do
 
-This is where you do all the fun things for our school day.
+You can do everything in the app, plus these special things:
 
-### Your Main Screen
+*   **Add New People:** You can add new teachers and grown-ups to the app.
+*   **Set the Rules:** You can choose what pages teachers are allowed to see.
 
-The main screen is called the Dashboard. It shows you lots of things at a glance:
-*   **Total Students:** How many friends are in our school.
-*   **Attendance:** How many friends are here today.
-*   **Forms:** Important papers you can print.
-*   **Money:** How much money the school has.
-*   **Student List:** A list of all our friends.
-*   **Pictures:** Fun charts that show you who is here this week and what grades they have.
-
-### Quick Buttons
-
-The "Actions" section has buttons that let you do things with just one click, like adding a new student or checking attendance.
+You can find these tools in your menu at the top of the screen. Look for **Manage Users**.
 
 ---
 
-## What You Can Do
+## Adding and Removing People
 
-### Look at Students
+This is where you can see everyone who uses the app.
 
-*   **See All Friends:** You can see a list of every student. You can even search for them by name!
-*   **Do Things for a Student:**
-    *   **View/Edit Profile:** Look at or change a student's information.
-    *   **Report Summary:** See a quick note about their grades and attendance.
-    *   **Full Report Page:** See their full report card that you can print.
-    *   **Graduate:** When a student is ready to move up, you can mark them as "graduated."
-    *   **Remove:** If a student leaves, you can remove them from the list.
+### See Who Is Here
 
-### Adding a New Friend
+*   You will see a list of all the grown-ups and what their job is (\`Admin\` or \`Teacher\`).
 
-*   This is a simple page to add a new student.
-*   **Student ID:** The app makes a special ID number for you!
-*   **Birthday:** Pick the month, day, and year. The app will figure out how old they are.
-*   **Payment:** Choose a payment plan. The app tells you how much is needed to start.
-*   **Status:** New friends are "Pending." Once their family pays the first part, they become "Enrolled."
-*   **Print Form:** You can print a blank paper form if you need one.
+### Add a New Person
 
-### Who's Here Today? (Attendance)
+1.  Click the **Add User** button.
+2.  A little box will pop up.
+    *   **Username:** Type in a name for them to use.
+    *   **Password:** Give them a secret password.
+    *   **Role:** Choose if they are an \`Admin\` or a \`Teacher\`.
+3.  Click **Add User**. All done! They are now in the list.
 
-*   Pick a day on the calendar.
-*   For each student, choose if they are \`Present\`, \`Absent\`, or \`Tardy\` (a little late).
-*   Click **Save Attendance** when you're done.
+### Change or Remove a Person
 
-### Checking Report Cards (Grades)
+Click the three little dots next to a person's name to open a menu.
 
-*   Give each student a grade for each subject (like \`A\`, \`B\`, or \`C\`).
-*   Click **Save All Grades** to save everything.
+#### Give a New Password
 
-### Money Stuff (Financial)
+1.  Choose **Reset Password**.
+2.  Type in a new secret password for them.
+3.  Click the button. It works right away!
 
-*   See a list of all students and if their families have paid (\`Paid\`, \`Pending\`, \`Overdue\`).
-*   **Make a Payment:**
-    *   Choose "Make Payment" from a student's menu.
-    *   Type in how much they are paying.
-    *   Click **Process Payment**. If they pay enough, they will be enrolled!
-*   **View Invoice:**
-    *   Choose "View Invoice" to see what they owe.
-    *   You can also print it out.
+#### Take a Person Away
 
-### Important Papers (Forms)
-
-*   This is a library of papers like the \`New Student Application\`.
-*   Click **Download PDF** to print a blank copy.
-
-### Making Reports
-
-*   Search for any student, even ones who have graduated.
-*   Click **View Report** to see their report card with grades, attendance, and notes from the teacher.
-*   You can also print a fancy PDF of the report card.
-
-### Moving Up! (Graduation)
-
-*   **Ready to Graduate:** See a list of all the big kids ready to move up. Click **Graduate** to add them to the graduated list.
-*   **Graduated Friends:** See all the friends who have graduated from our school.
-*   **Get a Certificate:** For any graduated friend, click **Generate Certificate** to print a special paper just for them!
+1.  Choose **Remove User**.
+2.  A message will ask if you are sure.
+3.  Click **Continue** to take them off the list for good. You can’t get them back!
 
 ---
 
-## After-Care
+## Setting Rules for Teachers
 
-This page is for our friends who stay a little longer after school.
+On the same page, you will see "Teacher Role Permissions." This is where you decide what teachers can see and do.
 
-*   **Hello and Goodbye:**
-    *   The list shows all the students in after-care.
-    *   Click **Check In** when a student arrives.
-    *   Click **Check Out** when they go home.
-*   **Quick Look:** You can see how many students are here right now.
+### How It Works
 
-That's it! We hope this little book helps you use our school's app. For special grown-up tasks, please read the **Administrator's Guide**.
+*   If you **check a box**, teachers will see a link for that page in their menu.
+*   If you **uncheck a box**, the link will disappear. Teachers can't go to that page anymore.
+
+### Changing the Rules
+
+1.  Look at the list of pages.
+2.  **Check the box** to give permission.
+3.  **Uncheck the box** to take it away.
+4.  Click **Save Changes** when you are finished.
+
+The rules change for all teachers right away!
+
+---
+
+That’s all for the grown-up's guide! For everything else, please read the main **School App Handbook**.
 `;
 
 function LogoUpdateDialog({ onOpenChange }: { onOpenChange: (open: boolean) => void }) {
@@ -292,7 +252,6 @@ export function DashboardHeader() {
   const showSlideshow = pathname.startsWith('/dashboard/preschool') || pathname.startsWith('/dashboard/after-care') || pathname.startsWith('/dashboard/nursery');
 
   return (
-    <Dialog>
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
         <div className="flex items-center gap-2">
             <Link
@@ -336,20 +295,12 @@ export function DashboardHeader() {
                         </Link>
                     </DropdownMenuItem>
                 )}
-                {user?.role === 'Admin' && showSlideshow && (
-                    <DialogTrigger asChild>
-                        <DropdownMenuItem>
-                            <ImageIcon className="mr-2 h-4 w-4" />
-                            <span>Manage Images</span>
-                        </DropdownMenuItem>
-                    </DialogTrigger>
+                {user?.role === 'Admin' && (
+                <DropdownMenuItem onSelect={() => setIsLogoDialogOpen(true)}>
+                    <ImageIcon className="mr-2 h-4 w-4" />
+                    <span>Update Logo</span>
+                </DropdownMenuItem>
                 )}
-                    {user?.role === 'Admin' && (
-                    <DropdownMenuItem onSelect={() => setIsLogoDialogOpen(true)}>
-                        <ImageIcon className="mr-2 h-4 w-4" />
-                        <span>Update Logo</span>
-                    </DropdownMenuItem>
-                    )}
                 <DropdownMenuItem onClick={downloadHandbook}>
                 <BookOpen className="mr-2 h-4 w-4" />
                 <span>Handbook</span>
@@ -367,7 +318,5 @@ export function DashboardHeader() {
             <LogoUpdateDialog onOpenChange={setIsLogoDialogOpen} />
         </Dialog>
     </header>
-    </Dialog>
   );
 }
-
