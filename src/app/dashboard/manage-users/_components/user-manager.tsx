@@ -180,7 +180,7 @@ export default function UserManager() {
             <DialogTrigger asChild>
                 <Button>
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Add User
+                    Add Staff
                 </Button>
             </DialogTrigger>
             <DialogContent>
@@ -215,7 +215,7 @@ export default function UserManager() {
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button onClick={handleAddUser}>Add User</Button>
+                    <Button onClick={handleAddUser}>Add Staff</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
