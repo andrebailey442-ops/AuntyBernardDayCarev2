@@ -29,8 +29,7 @@ export type Student = {
   status?: 'enrolled' | 'graduated' | 'pending';
   graduationDate?: string;
   // Extended details from form
-  guardian1: Guardian;
-  guardian2?: Guardian;
+  guardians: Guardian[];
   address?: string;
   city?: string;
   state?: string;

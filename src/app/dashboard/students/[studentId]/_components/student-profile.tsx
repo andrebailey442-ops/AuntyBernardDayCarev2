@@ -123,30 +123,23 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
             <div>
                 <h3 className="text-xl font-semibold mb-4">Guardian Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                    {/* Guardian 1 */}
-                    <div className="space-y-4 rounded-lg border p-4">
-                        <h4 className="font-medium">Guardian 1</h4>
-                        <Separator />
-                        <div><p className="text-sm text-muted-foreground">Name</p><p>{student.guardian1.firstName} {student.guardian1.lastName}</p></div>
-                        <div><p className="text-sm text-muted-foreground">Relationship</p><p>{student.guardian1.relationship}</p></div>
-                        <div><p className="text-sm text-muted-foreground">Email</p><p>{student.guardian1.contact}</p></div>
-                        <div><p className="text-sm text-muted-foreground">Phone</p><p>{student.guardian1.phone}</p></div>
-                    </div>
-                    {/* Guardian 2 */}
-                     <div className="space-y-4 rounded-lg border p-4">
-                        <h4 className="font-medium">Guardian 2</h4>
-                        <Separator />
-                        {student.guardian2 ? (
-                            <>
-                                <div><p className="text-sm text-muted-foreground">Name</p><p>{student.guardian2.firstName} {student.guardian2.lastName}</p></div>
-                                <div><p className="text-sm text-muted-foreground">Relationship</p><p>{student.guardian2.relationship}</p></div>
-                                <div><p className="text-sm text-muted-foreground">Email</p><p>{student.guardian2.contact}</p></div>
-                                <div><p className="text-sm text-muted-foreground">Phone</p><p>{student.guardian2.phone}</p></div>
-                            </>
-                        ) : (
+                    {student.guardians.map((guardian, index) => (
+                        <div key={index} className="space-y-4 rounded-lg border p-4">
+                            <h4 className="font-medium">Guardian {index + 1}</h4>
+                            <Separator />
+                            <div><p className="text-sm text-muted-foreground">Name</p><p>{guardian.firstName} {guardian.lastName}</p></div>
+                            <div><p className="text-sm text-muted-foreground">Relationship</p><p>{guardian.relationship}</p></div>
+                            <div><p className="text-sm text-muted-foreground">Email</p><p>{guardian.contact}</p></div>
+                            <div><p className="text-sm text-muted-foreground">Phone</p><p>{guardian.phone}</p></div>
+                        </div>
+                    ))}
+                    {student.guardians.length < 2 && (
+                         <div className="space-y-4 rounded-lg border p-4 border-dashed">
+                            <h4 className="font-medium">Guardian 2</h4>
+                            <Separator />
                             <p className="text-sm text-muted-foreground">No information provided for a second guardian.</p>
-                        )}
-                    </div>
+                        </div>
+                    )}
                     <div className="md:col-span-2"><p className="text-sm text-muted-foreground">Address</p><p>{`${student.address || ''}, ${student.city || ''}, ${student.state || ''}`}</p></div>
                 </div>
             </div>

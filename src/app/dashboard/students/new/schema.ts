@@ -49,8 +49,7 @@ export const newStudentSchema = z.object({
     age: z.number().optional().refine(age => age === undefined || age <= 6, {
         message: "Student's age cannot exceed 6 years for online registration.",
     }),
-    guardian1: guardianSchema,
-    guardian2: guardianSchema.partial().optional(),
+    guardians: z.array(guardianSchema).min(1, 'At least one guardian is required.').max(2, 'You can add a maximum of 2 guardians.'),
     address: z.string().min(5, 'Address is required and must be at least 5 characters.'),
     city: z.string().min(2, 'City is required.'),
     state: z.string({ required_error: 'Parish is required.' }).min(1, 'Parish is required.'),

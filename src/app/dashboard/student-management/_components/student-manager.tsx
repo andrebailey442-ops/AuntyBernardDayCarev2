@@ -89,7 +89,7 @@ export default function StudentManager() {
 
   React.useEffect(() => {
     const results = allStudents.filter(student =>
-      (student.name.toLowerCase().includes(searchTerm.toLowerCase()) || student.id.includes(searchTerm)) && student.status !== 'graduated'
+      (student?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || student?.id.includes(searchTerm)) && student.status !== 'graduated'
     );
     setFilteredStudents(results);
   }, [searchTerm, allStudents]);
@@ -178,14 +178,14 @@ export default function StudentManager() {
         Name: s.name,
         Age: s.age,
         Birthday: s.dob,
-        'Guardian 1 Name': `${s.guardian1.firstName} ${s.guardian1.lastName}`,
-        'Guardian 1 Relationship': s.guardian1.relationship,
-        'Guardian 1 Email': s.guardian1.contact,
-        'Guardian 1 Phone': s.guardian1.phone,
-        'Guardian 2 Name': s.guardian2 ? `${s.guardian2.firstName} ${s.guardian2.lastName}` : '',
-        'Guardian 2 Relationship': s.guardian2 ? s.guardian2.relationship : '',
-        'Guardian 2 Email': s.guardian2 ? s.guardian2.contact : '',
-        'Guardian 2 Phone': s.guardian2 ? s.guardian2.phone : '',
+        'Guardian 1 Name': s.guardians[0] ? `${s.guardians[0].firstName} ${s.guardians[0].lastName}` : '',
+        'Guardian 1 Relationship': s.guardians[0] ? s.guardians[0].relationship : '',
+        'Guardian 1 Email': s.guardians[0] ? s.guardians[0].contact : '',
+        'Guardian 1 Phone': s.guardians[0] ? s.guardians[0].phone : '',
+        'Guardian 2 Name': s.guardians[1] ? `${s.guardians[1].firstName} ${s.guardians[1].lastName}` : '',
+        'Guardian 2 Relationship': s.guardians[1] ? s.guardians[1].relationship : '',
+        'Guardian 2 Email': s.guardians[1] ? s.guardians[1].contact : '',
+        'Guardian 2 Phone': s.guardians[1] ? s.guardians[1].phone : '',
         Address: s.address,
         City: s.city,
         State: s.state,
@@ -231,14 +231,18 @@ export default function StudentManager() {
             mappedStudents.forEach(studentData => {
                 const newId = `SID-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
                 
+                const guardians = [studentData.guardian1];
+                if (studentData.guardian2) {
+                    guardians.push(studentData.guardian2);
+                }
+
                 const finalStudentData = {
                     name: studentData.name,
                     age: studentData.age || 0,
                     dob: studentData.dob || new Date().toISOString(),
                     avatarUrl: `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/100/100`,
                     imageHint: 'child portrait',
-                    guardian1: studentData.guardian1,
-                    guardian2: studentData.guardian2,
+                    guardians,
                     address: studentData.address || '',
                     city: studentData.city || '',
                     state: studentData.state || '',

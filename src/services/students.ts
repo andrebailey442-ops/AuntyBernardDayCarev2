@@ -1,6 +1,6 @@
 
 
-import type { Student } from '@/lib/types';
+import type { Student, Guardian } from '@/lib/types';
 import { STUDENTS } from '@/lib/data';
 import { deleteFeeByStudentId } from './fees';
 import { deleteGradesByStudentId } from './grades';
@@ -45,7 +45,7 @@ export const getStudent = (id: string): Student | null => {
     return allStudents.find(s => s.id === id) || archivedStudents.find(s => s.id === id) || null;
 }
 
-export const addStudent = (id: string, student: Omit<Student, 'id' | 'status' | 'guardian1'> & { guardian1: any, guardian2?: any }) => {
+export const addStudent = (id: string, student: Omit<Student, 'id' | 'status'>) => {
     const students = getStoredStudents();
     const status = (student.afterCare || student.preschool) ? 'enrolled' : 'pending';
     
@@ -53,20 +53,6 @@ export const addStudent = (id: string, student: Omit<Student, 'id' | 'status' | 
         ...student,
         id,
         status,
-        guardian1: {
-            firstName: student.guardian1.firstName,
-            lastName: student.guardian1.lastName,
-            relationship: student.guardian1.relationship,
-            contact: student.guardian1.contact,
-            phone: student.guardian1.phone,
-        },
-        guardian2: student.guardian2?.firstName ? {
-            firstName: student.guardian2.firstName,
-            lastName: student.guardian2.lastName,
-            relationship: student.guardian2.relationship,
-            contact: student.guardian2.contact,
-            phone: student.guardian2.phone,
-        } : undefined,
     };
     students.push(newStudent);
     setStoredStudents(students);

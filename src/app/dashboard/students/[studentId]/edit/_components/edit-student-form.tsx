@@ -25,7 +25,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { ArrowLeft, Trash2, PlusCircle } from 'lucide-react';
-import { format, getYear, getMonth, getDate } from 'date-fns';
+import { format, getYear, getMonth, getDate, parseISO } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 import { BusyBeeLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
@@ -80,8 +80,7 @@ const editStudentSchema = z.object({
     age: z.number().optional().refine(age => age === undefined || age <= 6, {
         message: "Student's age cannot exceed 6 years for online registration.",
     }),
-    guardian1: guardianSchema,
-    guardian2: guardianSchema.partial().optional(),
+    guardians: z.array(guardianSchema).min(1, 'At least one guardian is required.').max(2, 'You can add a maximum of 2 guardians.'),
     address: z.string().min(5, 'Address is required and must be at least 5 characters.'),
     city: z.string().min(2, 'City is required.'),
     state: z.string({ required_error: 'Parish is required.' }).min(1, 'Parish is required.'),
@@ -120,8 +119,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     defaultValues: {
         firstName: '',
         lastName: '',
-        guardian1: { firstName: '', lastName: '', relationship: '', contact: '', phone: '' },
-        guardian2: { firstName: '', lastName: '', relationship: '', contact: '', phone: '' },
+        guardians: [],
         address: '',
         city: '',
         state: '',
@@ -133,7 +131,12 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     }
   });
   
-    const { fields, append, remove } = useFieldArray({
+    const { fields: guardianFields, append: appendGuardian, remove: removeGuardian } = useFieldArray({
+      control: form.control,
+      name: "guardians",
+    });
+
+    const { fields: pickupFields, append: appendPickup, remove: removePickup } = useFieldArray({
       control: form.control,
       name: "authorizedPickups",
     });
@@ -152,8 +155,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                 lastName: lastName.join(' '),
                 dob: dob,
                 age: studentData.age,
-                guardian1: studentData.guardian1,
-                guardian2: studentData.guardian2 || { firstName: '', lastName: '', relationship: '', contact: '', phone: '' },
+                guardians: studentData.guardians,
                 address: studentData.address || '',
                 city: studentData.city || '',
                 state: studentData.state || '',
@@ -212,8 +214,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
             name: `${data.firstName} ${data.lastName}`,
             age: data.age,
             dob: data.dob.toISOString(),
-            guardian1: data.guardian1,
-            guardian2: data.guardian2?.firstName ? data.guardian2 : undefined,
+            guardians: data.guardians,
             address: data.address,
             city: data.city,
             state: data.state,
@@ -413,56 +414,41 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
 
             <Separator />
             
-            {/* Guardian 1 */}
             <div className="space-y-4">
-                <h3 className="text-xl font-semibold">Guardian 1 Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="guardian1.firstName" render={({ field }) => (
-                        <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="guardian1.lastName" render={({ field }) => (
-                        <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-semibold">Guardian Information</h3>
+                  <p className="text-sm text-muted-foreground">You can add up to 2 guardians.</p>
                 </div>
-                <FormField control={form.control} name="guardian1.relationship" render={({ field }) => (
-                        <FormItem><FormLabel>Relationship</FormLabel><FormControl><Input {...field} placeholder="e.g. Mother, Father, Guardian" /></FormControl><FormMessage /></FormItem>
-                )} />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="guardian1.contact" render={({ field }) => (
-                        <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="guardian1@example.com" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="guardian1.phone" render={({ field }) => (
-                        <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="876-555-5555" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
+                <Button type="button" variant="outline" size="sm" onClick={() => appendGuardian({ firstName: '', lastName: '', relationship: '', contact: '', phone: '' })} disabled={guardianFields.length >= 2}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Guardian
+                </Button>
+              </div>
+              {guardianFields.map((field, index) => (
+                <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-md">Guardian {index + 1}</h4>
+                    {index > 0 && (
+                      <Button type="button" variant="destructive" size="icon" onClick={() => removeGuardian(index)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name={`guardians.${index}.firstName`} render={({ field }) => (<FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name={`guardians.${index}.lastName`} render={({ field }) => (<FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                  </div>
+                  <FormField control={form.control} name={`guardians.${index}.relationship`} render={({ field }) => (<FormItem><FormLabel>Relationship</FormLabel><FormControl><Input {...field} placeholder="e.g. Mother, Father, Guardian" /></FormControl><FormMessage /></FormItem>)} />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name={`guardians.${index}.contact`} render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder={`guardian${index+1}@example.com`} {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name={`guardians.${index}.phone`} render={({ field }) => (<FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="876-555-5555" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                  </div>
                 </div>
+              ))}
+              <FormField control={form.control} name="guardians" render={() => ( <FormItem><FormMessage /></FormItem> )} />
             </div>
 
-            <Separator />
-
-            {/* Guardian 2 */}
-            <div className="space-y-4">
-                <h3 className="text-xl font-semibold">Guardian 2 Information (Optional)</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="guardian2.firstName" render={({ field }) => (
-                        <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="guardian2.lastName" render={({ field }) => (
-                        <FormItem><FormLabel>Last Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                </div>
-                 <FormField control={form.control} name="guardian2.relationship" render={({ field }) => (
-                        <FormItem><FormLabel>Relationship</FormLabel><FormControl><Input {...field} placeholder="e.g. Mother, Father, Guardian" /></FormControl><FormMessage /></FormItem>
-                )} />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="guardian2.contact" render={({ field }) => (
-                        <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="guardian2@example.com" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                    <FormField control={form.control} name="guardian2.phone" render={({ field }) => (
-                        <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input placeholder="876-555-5555" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                </div>
-            </div>
-            
             <Separator />
 
              <div className="space-y-4">
@@ -582,12 +568,12 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                     <h3 className="text-xl font-semibold">Authorized Pickup Persons</h3>
                     <p className="text-sm text-muted-foreground">You can add up to 5 authorized persons.</p>
                 </div>
-                <Button type="button" variant="outline" size="sm" onClick={() => append({ name: '', relationship: '', phone: '' })} disabled={fields.length >= 5}>
+                <Button type="button" variant="outline" size="sm" onClick={() => appendPickup({ name: '', relationship: '', phone: '' })} disabled={pickupFields.length >= 5}>
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Add Person
                 </Button>
               </div>
-              {fields.map((field, index) => (
+              {pickupFields.map((field, index) => (
                 <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
                   <h4 className="font-medium text-md">Person {index + 1}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -601,7 +587,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                   <FormField control={form.control} name={`authorizedPickups.${index}.phone`} render={({ field }) => (
                       <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input {...field} placeholder="876-555-5555" /></FormControl><FormMessage /></FormItem>
                     )} />
-                  <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}>
+                  <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2" onClick={() => removePickup(index)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
