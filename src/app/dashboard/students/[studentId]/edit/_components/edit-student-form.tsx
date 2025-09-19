@@ -439,7 +439,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                   <h3 className="text-xl font-semibold">Guardian Information</h3>
                   <p className="text-sm text-muted-foreground">You can add up to 2 guardians.</p>
                 </div>
-                <Button type="button" variant="outline" size="sm" onClick={() => appendGuardian({ firstName: '', lastName: '', relationship: '', contact: '', phone: '' })} disabled={guardianFields.length >= 2}>
+                <Button type="button" variant="outline" size="sm" onClick={() => appendGuardian({ firstName: '', lastName: '', relationship: '', contact: '', phone: '', occupation: '', placeOfEmployment: '', workNumber: '' })} disabled={guardianFields.length >= 2}>
                   <PlusCircle className="mr-2 h-4 w-4" />
                   Add Guardian
                 </Button>
