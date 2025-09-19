@@ -84,6 +84,14 @@ export const newStudentSchema = z.object({
             });
         }
     }
+     // At least one program must be selected
+    if (!data.preschool && !data.afterCare && !data.nursery) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ['preschool'], // You can attach the error to one of the fields
+            message: 'At least one program (Preschool, After-Care, or Nursery) must be selected.',
+        });
+    }
 });
 
 
