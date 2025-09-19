@@ -64,6 +64,10 @@ const relationshipOptions = [
     'Mother', 'Father', 'Guardian', 'Grandmother', 'Grandfather', 'Aunt', 'Uncle', 'Brother', 'Sister', 'Other'
 ];
 
+const formSchema = newStudentSchema.extend({
+    studentId: z.string(),
+});
+
 export function NewStudentForm() {
   const { toast } = useToast();
   const router = useRouter();
@@ -85,7 +89,7 @@ export function NewStudentForm() {
   });
 
   const form = useForm<NewStudentFormValues & { studentId: string }>({
-    resolver: zodResolver(newStudentSchema.extend({ studentId: z.string() })),
+    resolver: zodResolver(formSchema),
     defaultValues: {
         studentId: '',
         firstName: '',
@@ -744,3 +748,5 @@ export function NewStudentForm() {
     </Card>
   );
 }
+
+    
