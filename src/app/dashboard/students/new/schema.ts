@@ -36,6 +36,12 @@ const guardianSchema = z.object({
     phone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
 });
 
+const authorizedPickupSchema = z.object({
+    name: z.string().min(2, 'Name must be at least 2 characters.'),
+    relationship: z.string().min(2, 'Relationship is required.'),
+    phone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
+  });
+
 export const newStudentSchema = z.object({
     firstName: z.string().min(2, 'First name must be at least 2 characters.').max(50, 'First name cannot exceed 50 characters.'),
     lastName: z.string().min(2, 'Last name must be at least 2 characters.').max(50, 'Last name cannot exceed 50 characters.'),
@@ -54,6 +60,7 @@ export const newStudentSchema = z.object({
     emergencyContactName: z.string().min(2, 'Emergency contact name is required.').max(100, 'Name is too long'),
     emergencyContactPhone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
     medicalConditions: z.string().max(500, 'Medical conditions cannot exceed 500 characters.').optional(),
+    authorizedPickups: z.array(authorizedPickupSchema).max(5, 'You can add a maximum of 5 authorized pickup persons.').optional(),
 });
 
 export type NewStudentFormValues = z.infer<typeof newStudentSchema>;

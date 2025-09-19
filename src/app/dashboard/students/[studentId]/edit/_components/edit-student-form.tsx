@@ -4,7 +4,7 @@
 
 import * as React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,7 +24,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Trash2, PlusCircle } from 'lucide-react';
 import { format, getYear, getMonth, getDate } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 import { BusyBeeLogo } from '@/components/icons';
@@ -67,6 +67,12 @@ const guardianSchema = z.object({
   phone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
 });
 
+const authorizedPickupSchema = z.object({
+    name: z.string().min(2, 'Name must be at least 2 characters.'),
+    relationship: z.string().min(2, 'Relationship is required.'),
+    phone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
+});
+
 const editStudentSchema = z.object({
     firstName: z.string().min(2, 'First name must be at least 2 characters.').max(50, 'First name cannot exceed 50 characters.'),
     lastName: z.string().min(2, 'Last name must be at least 2 characters.').max(50, 'Last name cannot exceed 50 characters.'),
@@ -83,6 +89,7 @@ const editStudentSchema = z.object({
     emergencyContactName: z.string().min(2, 'Emergency contact name is required.').max(100, 'Name is too long'),
     emergencyContactPhone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
     medicalConditions: z.string().max(500, 'Medical conditions cannot exceed 500 characters.').optional(),
+    authorizedPickups: z.array(authorizedPickupSchema).max(5, 'You can add a maximum of 5 authorized pickup persons.').optional(),
     birthCertificate: uploadDocumentSchema.shape.birthCertificate,
     immunizationRecord: uploadDocumentSchema.shape.immunizationRecord,
     proofOfAddress: uploadDocumentSchema.shape.proofOfAddress,
@@ -122,8 +129,14 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
         emergencyContactName: '',
         emergencyContactPhone: '',
         medicalConditions: '',
+        authorizedPickups: [],
     }
   });
+  
+    const { fields, append, remove } = useFieldArray({
+      control: form.control,
+      name: "authorizedPickups",
+    });
 
   React.useEffect(() => {
     const fetchStudent = () => {
@@ -147,7 +160,8 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                 afterCare: studentData.afterCare || false,
                 emergencyContactName: studentData.emergencyContactName || '',
                 emergencyContactPhone: studentData.emergencyContactPhone || '',
-                medicalConditions: studentData.medicalConditions || ''
+                medicalConditions: studentData.medicalConditions || '',
+                authorizedPickups: studentData.authorizedPickups || [],
             });
 
             setDobState({
@@ -207,6 +221,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
             emergencyContactName: data.emergencyContactName,
             emergencyContactPhone: data.emergencyContactPhone,
             medicalConditions: data.medicalConditions,
+            authorizedPickups: data.authorizedPickups,
         };
         updateStudent(studentId, updatedData);
 
@@ -557,6 +572,45 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                         <FormMessage />
                     </FormItem>
                  )} />
+            </div>
+
+            <Separator />
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                    <h3 className="text-xl font-semibold">Authorized Pickup Persons</h3>
+                    <p className="text-sm text-muted-foreground">You can add up to 5 authorized persons.</p>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={() => append({ name: '', relationship: '', phone: '' })} disabled={fields.length >= 5}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Person
+                </Button>
+              </div>
+              {fields.map((field, index) => (
+                <div key={field.id} className="p-4 border rounded-lg space-y-4 relative">
+                  <h4 className="font-medium text-md">Person {index + 1}</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField control={form.control} name={`authorizedPickups.${index}.name`} render={({ field }) => (
+                      <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input {...field} placeholder="e.g., Jane Doe" /></FormControl><FormMessage /></FormItem>
+                    )} />
+                    <FormField control={form.control} name={`authorizedPickups.${index}.relationship`} render={({ field }) => (
+                      <FormItem><FormLabel>Relationship</FormLabel><FormControl><Input {...field} placeholder="e.g., Aunt, Grandfather" /></FormControl><FormMessage /></FormItem>
+                    )} />
+                  </div>
+                  <FormField control={form.control} name={`authorizedPickups.${index}.phone`} render={({ field }) => (
+                      <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input {...field} placeholder="876-555-5555" /></FormControl><FormMessage /></FormItem>
+                    )} />
+                  <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2" onClick={() => remove(index)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+                <FormField control={form.control} name="authorizedPickups" render={() => (
+                    <FormItem>
+                        <FormMessage />
+                    </FormItem>
+                )} />
             </div>
 
             <div className="flex gap-4">

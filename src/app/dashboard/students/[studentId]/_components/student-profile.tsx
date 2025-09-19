@@ -150,6 +150,27 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                     <div className="md:col-span-2"><p className="text-sm text-muted-foreground">Address</p><p>{`${student.address || ''}, ${student.city || ''}, ${student.state || ''}`}</p></div>
                 </div>
             </div>
+            
+            <Separator />
+
+            {student.authorizedPickups && student.authorizedPickups.length > 0 && (
+                <>
+                <div>
+                    <h3 className="text-xl font-semibold mb-4">Authorized Pickup Persons</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {student.authorizedPickups.map((person, index) => (
+                        <div key={index} className="p-4 border rounded-lg space-y-2">
+                        <h4 className="font-medium">Person {index + 1}</h4>
+                        <div><p className="text-sm text-muted-foreground">Name</p><p>{person.name}</p></div>
+                        <div><p className="text-sm text-muted-foreground">Relationship</p><p>{person.relationship}</p></div>
+                        <div><p className="text-sm text-muted-foreground">Phone</p><p>{person.phone}</p></div>
+                        </div>
+                    ))}
+                    </div>
+                </div>
+                <Separator />
+                </>
+            )}
 
             <Separator />
 

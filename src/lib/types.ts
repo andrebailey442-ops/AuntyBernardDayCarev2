@@ -10,6 +10,12 @@ export type Guardian = {
   phone: string;
 };
 
+export type AuthorizedPickup = {
+  name: string;
+  relationship: string;
+  phone: string;
+};
+
 export type Student = {
   id: string;
   name: string;
@@ -31,6 +37,7 @@ export type Student = {
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   medicalConditions?: string;
+  authorizedPickups?: AuthorizedPickup[];
 };
 
 export type GradeCategory = 'daily' | 'projects' | 'tests' | 'quizzes';
