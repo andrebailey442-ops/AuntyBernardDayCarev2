@@ -28,126 +28,124 @@ import { useLogo } from '@/hooks/use-logo';
 
 
 const handbookContent = `
-# Aunty Bernard DayCare and Pre-school Application Handbook
+# Aunty Bernard’s School App: Handbook
 
-## 1. Introduction
-
-Welcome to Aunty Bernard DayCare and Pre-school! This handbook is your guide to using the application to manage your preschool and after-care programs. We've designed it to be a simple and powerful tool for handling student records, attendance, grades, payments, and more.
+Welcome to our school's app! This little book will help you learn how to use it. It’s like a helper for keeping track of all our wonderful students.
 
 ---
 
-## 2. Getting Started
+## Getting Started
 
-### 2.1. Logging In
+### How to Open the App
 
--   Go to the login page.
--   Enter your \`username\` and \`password\`.
--   The default login details are:
-    -   **Admin:** \`Admin\` / \`admin\`
-    -   **Teacher:** \`Teacher\` / \`teacher\`
+1.  Go to the login page.
+2.  Type in your special \`username\` and \`password\`.
+3.  Here are the secret words to start:
+    *   **Admin:** \`Admin\` / \`admin\`
+    *   **Teacher:** \`Teacher\` / \`teacher\`
 
-### 2.2. The Main Hub
+### The First Page
 
-After logging in, you'll see the main hub. From here, you can choose to manage the **Preschool** or the **After-Care** program.
-
----
-
-## 3. Preschool Management
-
-This is where you'll handle all the day-to-day tasks for the preschool.
-
-### 3.1. Dashboard Overview
-
-The dashboard gives you a quick look at important information:
--   **Total Students:** The number of enrolled students.
--   **Attendance Rate:** The average attendance for the current month.
--   **Active Forms:** How many downloadable forms are available.
--   **Revenue:** Total income from paid fees.
--   **Student List:** A list of all your students.
--   **Charts:** Visual summaries of the week's attendance and overall grade distribution.
-
-### 3.2. Quick Actions
-
-The "Actions" section gives you one-click access to common tasks like adding a new student, managing finances, or taking attendance.
+After you log in, you will see two big choices: **Preschool** and **After-Care**. Just pick the one you need to work on!
 
 ---
 
-## 4. Main Features
+## Looking After the Preschool
 
-### 4.1. Student Management
+This is where you do all the fun things for our school day.
 
--   **View Students:** See a complete list of your enrolled students. You can search for students by name.
--   **Actions for Each Student:**
-    -   **View/Edit Profile:** Look at or update a student's detailed information.
-    -   **View Report Summary:** See a quick summary of a student's grades and attendance.
-    -   **View Full Report Page:** Go to a printable report card for the student.
-    -   **Graduate Student:** Mark a student as "graduated" and move them to the graduated students list.
-    -   **Remove Student:** Permanently delete a student's record.
+### Your Main Screen
 
-### 4.2. New Student Registration
+The main screen is called the Dashboard. It shows you lots of things at a glance:
+*   **Total Students:** How many friends are in our school.
+*   **Attendance:** How many friends are here today.
+*   **Forms:** Important papers you can print.
+*   **Money:** How much money the school has.
+*   **Student List:** A list of all our friends.
+*   **Pictures:** Fun charts that show you who is here this week and what grades they have.
 
--   A simple form to register a new student.
--   **Automatic Student ID:** A unique ID is created for you.
--   **Date of Birth:** Use the dropdown menus to select the Month, Day, and Year. The student's age will be calculated for you.
--   **Payment Plan:** Choose a payment plan. The required 30% enrollment deposit is calculated and shown on the screen.
--   **Enrollment Status:** New students are "Pending" until at least 30% of their fee is paid. Once paid, their status automatically becomes "Enrolled".
--   **Download PDF:** You can download a blank, printable version of the registration form.
+### Quick Buttons
 
-### 4.3. Attendance
-
--   Choose a date from the calendar.
--   For each student, select \`Present\`, \`Absent\`, or \`Tardy\` for each subject.
--   Click **Save Attendance** to save your work.
-
-### 4.4. Grades
-
--   Enter a grade (\`A\`, \`B\`, \`C\`, \`D\`, \`F\`, or \`Incomplete\`) for each student in each subject.
--   Click **Save All Grades** to update all records at once.
-
-### 4.5. Financial
-
--   See a list of all students and their payment status (\`Paid\`, \`Pending\`, \`Overdue\`).
--   **Make a Payment:**
-    -   From the menu on a student's row, select "Make Payment."
-    -   Enter the amount being paid.
-    -   Click **Process Payment**. If the payment meets the 30% requirement, the student will be enrolled.
--   **View Invoice:**
-    -   From the menu, select "View Invoice" for an on-screen summary.
-    -   You can also download a PDF of the invoice.
-
-### 4.6. Forms
-
--   A library of important documents like the \`New Student Application\` and \`Medical & Consent Form\`.
--   Click **Download PDF** to get a blank, printable copy of any form.
-
-### 4.7. Reports
-
--   Search for any student, including those who have graduated.
--   Click **View Report** to see a detailed, printable report card with grades, attendance, and teacher comments.
--   You can also download a formal PDF of the report card from this page.
-
-### 4.8. Graduation
-
--   **Enrolled Students List:** See all students who are ready to graduate. Click **Graduate** to move them to the graduated list.
--   **Graduated Students List:** See all your past graduates.
--   **Generate Certificate:** For any graduated student, click **Generate Certificate** to download a personalized graduation certificate.
+The "Actions" section has buttons that let you do things with just one click, like adding a new student or checking attendance.
 
 ---
 
-## 5. After-Care Management
+## What You Can Do
 
-This page is for managing students in the after-care program.
+### Look at Students
 
--   **Check-in / Check-out:**
-    -   The main table lists all students in the program.
-    -   Click **Check In** to log a student's arrival time.
-    -   Click **Check Out** to log their departure time.
--   **Dashboard Cards:** See live counts of total students, how many are currently checked in, and how many have checked out.
+*   **See All Friends:** You can see a list of every student. You can even search for them by name!
+*   **Do Things for a Student:**
+    *   **View/Edit Profile:** Look at or change a student's information.
+    *   **Report Summary:** See a quick note about their grades and attendance.
+    *   **Full Report Page:** See their full report card that you can print.
+    *   **Graduate:** When a student is ready to move up, you can mark them as "graduated."
+    *   **Remove:** If a student leaves, you can remove them from the list.
 
-This handbook should help you get comfortable with the Aunty Bernard DayCare and Pre-school application. For administrator-only features, please see the **Administrator User Manual**.
+### Adding a New Friend
+
+*   This is a simple page to add a new student.
+*   **Student ID:** The app makes a special ID number for you!
+*   **Birthday:** Pick the month, day, and year. The app will figure out how old they are.
+*   **Payment:** Choose a payment plan. The app tells you how much is needed to start.
+*   **Status:** New friends are "Pending." Once their family pays the first part, they become "Enrolled."
+*   **Print Form:** You can print a blank paper form if you need one.
+
+### Who's Here Today? (Attendance)
+
+*   Pick a day on the calendar.
+*   For each student, choose if they are \`Present\`, \`Absent\`, or \`Tardy\` (a little late).
+*   Click **Save Attendance** when you're done.
+
+### Checking Report Cards (Grades)
+
+*   Give each student a grade for each subject (like \`A\`, \`B\`, or \`C\`).
+*   Click **Save All Grades** to save everything.
+
+### Money Stuff (Financial)
+
+*   See a list of all students and if their families have paid (\`Paid\`, \`Pending\`, \`Overdue\`).
+*   **Make a Payment:**
+    *   Choose "Make Payment" from a student's menu.
+    *   Type in how much they are paying.
+    *   Click **Process Payment**. If they pay enough, they will be enrolled!
+*   **View Invoice:**
+    *   Choose "View Invoice" to see what they owe.
+    *   You can also print it out.
+
+### Important Papers (Forms)
+
+*   This is a library of papers like the \`New Student Application\`.
+*   Click **Download PDF** to print a blank copy.
+
+### Making Reports
+
+*   Search for any student, even ones who have graduated.
+*   Click **View Report** to see their report card with grades, attendance, and notes from the teacher.
+*   You can also print a fancy PDF of the report card.
+
+### Moving Up! (Graduation)
+
+*   **Ready to Graduate:** See a list of all the big kids ready to move up. Click **Graduate** to add them to the graduated list.
+*   **Graduated Friends:** See all the friends who have graduated from our school.
+*   **Get a Certificate:** For any graduated friend, click **Generate Certificate** to print a special paper just for them!
+
+---
+
+## After-Care
+
+This page is for our friends who stay a little longer after school.
+
+*   **Hello and Goodbye:**
+    *   The list shows all the students in after-care.
+    *   Click **Check In** when a student arrives.
+    *   Click **Check Out** when they go home.
+*   **Quick Look:** You can see how many students are here right now.
+
+That's it! We hope this little book helps you use our school's app. For special grown-up tasks, please read the **Administrator's Guide**.
 `;
 
-function LogoUpdateDialog() {
+function LogoUpdateDialog({ onOpenChange }: { onOpenChange: (open: boolean) => void }) {
     const { logoUrl, setLogoUrl, clearLogo } = useLogo();
     const { toast } = useToast();
     const uploadInputRef = React.useRef<HTMLInputElement>(null);
@@ -173,6 +171,7 @@ function LogoUpdateDialog() {
           title: 'Logo Updated',
           description: 'Your new application logo has been saved.',
         });
+        onOpenChange(false);
       };
       reader.readAsDataURL(file);
     };
@@ -183,6 +182,7 @@ function LogoUpdateDialog() {
         title: 'Logo Reset',
         description: 'The application logo has been reset to the default.',
       });
+      onOpenChange(false);
     };
   
     return (
@@ -224,6 +224,7 @@ export function DashboardHeader() {
   const pathname = usePathname();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const [isLogoDialogOpen, setIsLogoDialogOpen] = React.useState(false);
 
   const handleLogout = () => {
     logout();
@@ -292,79 +293,79 @@ export function DashboardHeader() {
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
-        <Dialog>
-            <div className="flex items-center gap-2">
-                <Link
-                    href="/dashboard"
-                    className="flex items-center gap-2 font-semibold"
-                >
-                    <BusyBeeLogo className="h-6 w-6 text-primary" />
-                    <span className="font-bold text-sm md:text-base whitespace-nowrap">Aunty Bernard DayCare and Pre-school</span>
-                </Link>
-            </div>
+        <div className="flex items-center gap-2">
+            <Link
+                href="/dashboard"
+                className="flex items-center gap-2 font-semibold"
+            >
+                <BusyBeeLogo className="h-6 w-6 text-primary" />
+                <span className="font-bold text-sm md:text-base whitespace-nowrap">Aunty Bernard DayCare and Pre-school</span>
+            </Link>
+        </div>
 
-            <div className="flex w-full items-center gap-4 justify-end">
-                <Button variant="ghost" size="icon" className="rounded-full">
-                <Bell className="h-5 w-5" />
-                <span className="sr-only">Toggle notifications</span>
+        <div className="flex w-full items-center gap-4 justify-end">
+            <Button variant="ghost" size="icon" className="rounded-full">
+            <Bell className="h-5 w-5" />
+            <span className="sr-only">Toggle notifications</span>
+            </Button>
+            <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-9 w-9">
+                    <AvatarImage
+                    src={user?.avatarUrl}
+                    alt={user?.username}
+                    />
+                    <AvatarFallback>{user?.username.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
                 </Button>
-                <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-9 w-9">
-                        <AvatarImage
-                        src={user?.avatarUrl}
-                        alt={user?.username}
-                        />
-                        <AvatarFallback>{user?.username.charAt(0).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>{user?.username}</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>{user?.username}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+                </DropdownMenuItem>
+                {user?.role === 'Admin' && (
+                    <DropdownMenuItem asChild>
+                        <Link href="/dashboard/manage-users">
+                        <Users className="mr-2 h-4 w-4" />
+                        <span>Manage Users</span>
+                        </Link>
                     </DropdownMenuItem>
-                    {user?.role === 'Admin' && (
-                        <DropdownMenuItem asChild>
-                            <Link href="/dashboard/manage-users">
-                            <Users className="mr-2 h-4 w-4" />
-                            <span>Manage Users</span>
-                            </Link>
+                )}
+                {user?.role === 'Admin' && showSlideshow && (
+                    <DialogTrigger asChild>
+                        <DropdownMenuItem>
+                            <ImageIcon className="mr-2 h-4 w-4" />
+                            <span>Manage Images</span>
                         </DropdownMenuItem>
-                    )}
-                    {user?.role === 'Admin' && showSlideshow && (
-                        <DialogTrigger asChild>
-                            <DropdownMenuItem>
-                                <ImageIcon className="mr-2 h-4 w-4" />
-                                <span>Manage Images</span>
-                            </DropdownMenuItem>
-                        </DialogTrigger>
-                    )}
-                     {user?.role === 'Admin' && (
-                        <DialogTrigger asChild>
-                            <DropdownMenuItem>
-                                <ImageIcon className="mr-2 h-4 w-4" />
-                                <span>Update Logo</span>
-                            </DropdownMenuItem>
-                        </DialogTrigger>
-                     )}
-                    <DropdownMenuItem onClick={downloadHandbook}>
-                    <BookOpen className="mr-2 h-4 w-4" />
-                    <span>Handbook</span>
+                    </DialogTrigger>
+                )}
+                    {user?.role === 'Admin' && (
+                    <DropdownMenuItem onSelect={() => setIsLogoDialogOpen(true)}>
+                        <ImageIcon className="mr-2 h-4 w-4" />
+                        <span>Update Logo</span>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-            <LogoUpdateDialog />
-      </Dialog>
+                    )}
+                <DropdownMenuItem onClick={downloadHandbook}>
+                <BookOpen className="mr-2 h-4 w-4" />
+                <span>Handbook</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+
+        <Dialog open={isLogoDialogOpen} onOpenChange={setIsLogoDialogOpen}>
+            <LogoUpdateDialog onOpenChange={setIsLogoDialogOpen} />
+        </Dialog>
+
     </header>
   );
 }

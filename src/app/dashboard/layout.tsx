@@ -58,7 +58,6 @@ export default function DashboardLayout({
   const slideshowTitle = getTitleFromPathname(pathname);
 
   return (
-    <Dialog>
       <div className="flex min-h-screen w-full flex-col bg-background">
         <DashboardHeader />
         <main className="relative flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8 overflow-hidden">
@@ -69,6 +68,5 @@ export default function DashboardLayout({
           </div>
         </main>
       </div>
-    </Dialog>
   );
 }

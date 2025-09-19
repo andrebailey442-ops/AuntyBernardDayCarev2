@@ -15,7 +15,7 @@ import Autoplay from "embla-carousel-autoplay"
 import { BusyBeeLogo } from '@/components/icons';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
-import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Upload, Trash2, Wand2, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { resizeImage } from '@/ai/flows/resize-image';
@@ -143,44 +143,45 @@ export default function HeroSlideshow({ title }: HeroSlideshowProps) {
   return (
     <>
     <div className="relative">
-    <Carousel 
-        plugins={[autoplay.current]}
-        className="w-full"
-    >
-      <CarouselContent>
-        {slideImages.map((image, index) => (
-          <CarouselItem key={index}>
-            <Card className="overflow-hidden relative backdrop-blur-sm bg-card/80">
-              <CardContent className="p-0">
-                <Image
-                  alt={image.alt}
-                  className="aspect-[3/1] w-full object-cover"
-                  height="400"
-                  src={image.src}
-                  width="1200"
-                  data-ai-hint={image.hint}
-                  priority={index === 0} // Prioritize loading the first image
-                />
-                <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center p-4">
-                    <div className="flex items-center gap-4 bg-black/50 p-6 rounded-lg">
-                        <BusyBeeLogo className="h-16 w-16 text-white" />
-                        <div>
-                            <h2 className="text-xl font-semibold text-white/90 tracking-wide">Aunty Bernard DayCare and Pre-school</h2>
-                            <h1 className="text-5xl font-bold text-white tracking-wider">
-                                {title}
-                            </h1>
-                        </div>
-                    </div>
-                </div>
-              </CardContent>
-            </Card>
-          </CarouselItem>
-        ))}
-      </CarouselContent>
-      <CarouselPrevious className="absolute left-4" />
-      <CarouselNext className="absolute right-4" />
-    </Carousel>
-    </div>
+    <Dialog>
+      <Carousel 
+          plugins={[autoplay.current]}
+          className="w-full"
+      >
+        <CarouselContent>
+          {slideImages.map((image, index) => (
+            <CarouselItem key={index}>
+              <Card className="overflow-hidden relative backdrop-blur-sm bg-card/80">
+                <CardContent className="p-0">
+                  <Image
+                    alt={image.alt}
+                    className="aspect-[3/1] w-full object-cover"
+                    height="400"
+                    src={image.src}
+                    width="1200"
+                    data-ai-hint={image.hint}
+                    priority={index === 0} // Prioritize loading the first image
+                  />
+                  <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center p-4">
+                      <div className="flex items-center gap-4 bg-black/50 p-6 rounded-lg">
+                          <BusyBeeLogo className="h-16 w-16 text-white" />
+                          <div>
+                              <h2 className="text-xl font-semibold text-white/90 tracking-wide">Aunty Bernard DayCare and Pre-school</h2>
+                              <h1 className="text-5xl font-bold text-white tracking-wider">
+                                  {title}
+                              </h1>
+                          </div>
+                      </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <CarouselPrevious className="absolute left-4" />
+        <CarouselNext className="absolute right-4" />
+      </Carousel>
+
       <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
               <DialogTitle>Manage Slideshow Images</DialogTitle>
@@ -212,6 +213,8 @@ export default function HeroSlideshow({ title }: HeroSlideshowProps) {
               Upload Image
           </Button>
       </DialogContent>
+      </Dialog>
+    </div>
     </>
   );
 }
