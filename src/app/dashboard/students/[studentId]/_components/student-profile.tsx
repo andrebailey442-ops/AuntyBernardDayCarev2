@@ -112,8 +112,8 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
             <div>
                 <h3 className="text-xl font-semibold mb-4">Student Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><p className="text-sm text-muted-foreground">First Name</p><p>{student.name.split(' ')[0]}</p></div>
-                    <div><p className="text-sm text-muted-foreground">Last Name</p><p>{student.name.split(' ').slice(1).join(' ')}</p></div>
+                    <div><p className="text-sm text-muted-foreground">Full Name</p><p>{student.name}</p></div>
+                    <div><p className="text-sm text-muted-foreground">Gender</p><p>{student.gender}</p></div>
                     <div><p className="text-sm text-muted-foreground">Age</p><p>{student.age}</p></div>
                     <div><p className="text-sm text-muted-foreground">Date of Birth</p><p>{format(new Date(student.dob), 'PPP')}</p></div>
                 </div>

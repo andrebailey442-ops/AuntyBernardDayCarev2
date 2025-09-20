@@ -47,7 +47,7 @@ export const getStudent = (id: string): Student | null => {
 
 export const addStudent = (id: string, student: Omit<Student, 'id' | 'status'>) => {
     const students = getStoredStudents();
-    const status = (student.afterCare || student.preschool) ? 'enrolled' : 'pending';
+    const status = (student.afterCare || student.preschool) ? 'pending' : 'pending';
     
     const newStudent: Student = {
         ...student,

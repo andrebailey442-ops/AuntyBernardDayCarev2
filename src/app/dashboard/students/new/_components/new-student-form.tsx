@@ -95,6 +95,7 @@ export function NewStudentForm() {
         studentId: '',
         firstName: '',
         lastName: '',
+        gender: undefined,
         guardians: [{ firstName: '', lastName: '', relationship: '', contact: '', phone: '', occupation: '', placeOfEmployment: '', workNumber: '' }],
         preschool: fromSection === 'preschool',
         afterCare: fromSection === 'after-care',
@@ -181,7 +182,8 @@ export function NewStudentForm() {
 
         const studentData = {
             name: `${data.firstName} ${data.lastName}`,
-            age: data.age || 0,
+            age: data.age,
+            gender: data.gender,
             avatarUrl: `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/100/100`,
             imageHint: 'child portrait',
             dob: data.dob.toISOString(),
@@ -422,7 +424,27 @@ export function NewStudentForm() {
                   )}
                 />
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div></div>
+                    <FormField
+                        control={form.control}
+                        name="gender"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Gender</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select gender" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                <SelectItem value="Male">Male</SelectItem>
+                                <SelectItem value="Female">Female</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                      <FormField control={form.control} name="age" render={({ field }) => (
                         <FormItem>
                             <FormLabel>Age</FormLabel>
@@ -749,5 +771,3 @@ export function NewStudentForm() {
     </Card>
   );
 }
-
-    

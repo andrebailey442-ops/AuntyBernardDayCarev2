@@ -28,6 +28,7 @@ export type Student = {
   name: string;
   age: number;
   dob: string;
+  gender: 'Male' | 'Female';
   avatarUrl: string;
   imageHint: string;
   preschool?: boolean;

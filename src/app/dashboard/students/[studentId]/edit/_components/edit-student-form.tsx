@@ -86,6 +86,7 @@ const editStudentSchema = z.object({
     age: z.number({ required_error: 'Age is required and calculated from DOB.' }).refine(age => age <= 6, {
         message: "Student's age cannot exceed 6 years for online registration.",
     }),
+    gender: z.enum(['Male', 'Female'], { required_error: 'Gender is required.' }),
     guardians: z.array(guardianSchema).min(1, 'At least one guardian is required.').max(2, 'You can add a maximum of 2 guardians.'),
     preschool: z.boolean().default(false),
     afterCare: z.boolean().default(false),
@@ -144,6 +145,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     defaultValues: {
         firstName: '',
         lastName: '',
+        gender: undefined,
         guardians: [],
         preschool: false,
         afterCare: false,
@@ -179,6 +181,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                 lastName: lastName.join(' '),
                 dob: dob,
                 age: studentData.age,
+                gender: studentData.gender,
                 guardians: studentData.guardians.map(g => ({ ...g, occupation: g.occupation || '', placeOfEmployment: g.placeOfEmployment || '', workNumber: g.workNumber || '' })),
                 preschool: studentData.preschool || false,
                 afterCare: studentData.afterCare || false,
@@ -249,6 +252,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
             name: `${data.firstName} ${data.lastName}`,
             age: data.age,
             dob: data.dob.toISOString(),
+            gender: data.gender,
             guardians: processedGuardians,
             preschool: data.preschool,
             afterCare: data.afterCare,
@@ -432,15 +436,38 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                     </FormItem>
                   )}
                 />
-                <FormField control={form.control} name="age" render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Age</FormLabel>
-                        <FormControl>
-                            <Input type="number" placeholder="Age" {...field} value={field.value ?? ''} disabled />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                )} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                        control={form.control}
+                        name="gender"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Gender</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                                <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select gender" />
+                                </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                <SelectItem value="Male">Male</SelectItem>
+                                <SelectItem value="Female">Female</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField control={form.control} name="age" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Age</FormLabel>
+                            <FormControl>
+                                <Input type="number" placeholder="Age" {...field} value={field.value ?? ''} disabled />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                </div>
             </div>
 
             <Separator />
