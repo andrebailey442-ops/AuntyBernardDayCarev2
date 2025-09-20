@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -24,11 +25,11 @@ import { useToast } from '@/hooks/use-toast';
 import { getStaff, deleteStaff, getStaffSchedule, setStaffSchedule, getStaffAttendance, setStaffAttendance, getArchivedStaffLogs, saveArchivedStaffLogs } from '@/services/staff';
 import type { Staff, StaffRole, StaffSchedule, StaffAttendance, StaffClockRecord, ArchivedStaffLog } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MoreHorizontal, PlusCircle, Trash2, Edit, User, LogIn, LogOut, Archive, Download } from 'lucide-react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { MoreHorizontal, PlusCircle, Trash2, Edit, User, LogIn, LogOut, Archive, Download, Clock } from 'lucide-react';
+import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
-import { format, startOfWeek, addDays, eachDayOfInterval, set } from 'date-fns';
+import { format, startOfWeek, addDays, eachDayOfInterval, set, parse } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { StaffForm } from './staff-form';
 import { useRouter } from 'next/navigation';
@@ -36,6 +37,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { Label } from '@/components/ui/label';
 
 
 export const staffRoles: StaffRole[] = ['Preschool Attendant', 'Aftercare Attendant', 'Nursery Attendant'];
@@ -57,6 +59,10 @@ export default function StaffManager() {
 
   const [selectedDate, setSelectedDate] = React.useState(new Date());
   const [archivedLogs, setArchivedLogs] = React.useState<ArchivedStaffLog[]>([]);
+
+  const [isEditTimeOpen, setIsEditTimeOpen] = React.useState(false);
+  const [staffToEditTime, setStaffToEditTime] = React.useState<Staff | null>(null);
+  const [newClockInTime, setNewClockInTime] = React.useState('');
 
   const fetchData = React.useCallback(() => {
     setLoading(true);
@@ -157,6 +163,54 @@ export default function StaffManager() {
     setAttendance(updatedAttendance);
     setStaffAttendance(format(selectedDate, 'yyyy-MM-dd'), updatedAttendance);
   };
+
+  const handleEditClockInTime = () => {
+    if (!staffToEditTime || !newClockInTime) {
+      toast({ variant: 'destructive', title: 'Invalid Time', description: 'Please enter a valid time in HH:mm format.'});
+      return;
+    }
+
+    try {
+        const today = new Date();
+        const newTime = parse(newClockInTime, 'HH:mm', today);
+
+        if (isNaN(newTime.getTime())) {
+            throw new Error('Invalid time format.');
+        }
+
+        const lateThreshold = set(today, { hours: 6, minutes: 15, seconds: 0, milliseconds: 0 });
+        const isLate = newTime > lateThreshold;
+
+        const currentRecord = attendance[staffToEditTime.id] || {};
+        const newRecord: StaffClockRecord = {
+            ...currentRecord,
+            status: 'Clocked-In',
+            checkInTime: newTime.toISOString(),
+            isLate,
+        };
+
+        const updatedAttendance = { ...attendance, [staffToEditTime.id]: newRecord };
+        setAttendance(updatedAttendance);
+        setStaffAttendance(format(selectedDate, 'yyyy-MM-dd'), updatedAttendance);
+        
+        toast({ title: 'Clock-in Time Updated', description: `Clock-in time for ${staffToEditTime.name} updated to ${format(newTime, 'p')}.`});
+        setIsEditTimeOpen(false);
+        setStaffToEditTime(null);
+        setNewClockInTime('');
+
+    } catch (error) {
+        console.error("Failed to update clock-in time:", error);
+        toast({ variant: 'destructive', title: 'Update Failed', description: 'Please enter a valid time (e.g., 06:10).'});
+    }
+  }
+
+  const openEditTimeDialog = (staffMember: Staff) => {
+    setStaffToEditTime(staffMember);
+    const record = attendance[staffMember.id];
+    const initialTime = record?.checkInTime ? format(new Date(record.checkInTime), 'HH:mm') : '';
+    setNewClockInTime(initialTime);
+    setIsEditTimeOpen(true);
+  }
 
   const handleArchiveLog = () => {
     const recordsToArchive = staff
@@ -275,6 +329,8 @@ export default function StaffManager() {
         toast({ variant: 'destructive', title: 'Download Failed', description: 'Could not generate the roster PDF.' });
     }
   };
+
+  const isAdmin = user?.role === 'Admin';
 
   return (
     <div className="space-y-6">
@@ -441,7 +497,16 @@ export default function StaffManager() {
                              <TableCell>
                                 {record?.isLate ? <Badge variant="destructive">Late</Badge> : (record?.status === 'Clocked-In' ? <Badge variant="secondary">On Time</Badge> : 'N/A')}
                             </TableCell>
-                            <TableCell>{record?.checkInTime ? format(new Date(record.checkInTime), 'p') : 'N/A'}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {record?.checkInTime ? format(new Date(record.checkInTime), 'p') : 'N/A'}
+                                {isAdmin && record?.status === 'Clocked-In' && (
+                                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openEditTimeDialog(member)}>
+                                    <Clock className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
                             <TableCell>{record?.checkedInBy || 'N/A'}</TableCell>
                             <TableCell className="text-right">
                                 <Button
@@ -534,6 +599,27 @@ export default function StaffManager() {
                 ) : <div className="text-center text-muted-foreground py-8">No archived logs found.</div>}
             </CardContent>
         </Card>
+
+      <Dialog open={isEditTimeOpen} onOpenChange={setIsEditTimeOpen}>
+        <DialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Edit Clock-in Time for {staffToEditTime?.name}</AlertDialogTitle>
+            </AlertDialogHeader>
+            <div className="py-4">
+                <Label htmlFor="new-time">New Clock-in Time (24h format)</Label>
+                <Input 
+                    id="new-time"
+                    type="time" 
+                    value={newClockInTime}
+                    onChange={(e) => setNewClockInTime(e.target.value)}
+                />
+            </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setIsEditTimeOpen(false)}>Cancel</Button>
+                <Button onClick={handleEditClockInTime}>Save Time</Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
 
       <AlertDialog open={isRemoveStaffAlertOpen} onOpenChange={setIsRemoveStaffAlertOpen}>
