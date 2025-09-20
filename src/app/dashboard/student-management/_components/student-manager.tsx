@@ -5,7 +5,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { Search, Trash2, GraduationCap, Download, Upload, FileUp, FileDown, Wand2 } from 'lucide-react';
+import { Search, Trash2, GraduationCap, Download, Upload, FileUp, FileDown, Wand2, Filter, X } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
@@ -36,6 +36,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { MoreHorizontal } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import ReportCardDialog from './report-card-dialog';
@@ -57,6 +58,9 @@ import { getSubjects } from '@/services/subjects';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Checkbox } from '@/components/ui/checkbox';
 import { analyzeStudentImport } from '@/ai/flows/analyze-student-import';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
 
 
 export default function StudentManager() {
@@ -75,6 +79,15 @@ export default function StudentManager() {
 
   const [isRemoveAlertOpen, setIsRemoveAlertOpen] = React.useState(false);
   const [studentToRemove, setStudentToRemove] = React.useState<Student | null>(null);
+
+  const [statusFilter, setStatusFilter] = React.useState<'all' | 'enrolled' | 'pending'>('all');
+  const [ageRange, setAgeRange] = React.useState<[number, number]>([0, 10]);
+  const [genderFilter, setGenderFilter] = React.useState<'all' | 'Male' | 'Female'>('all');
+  const [programFilters, setProgramFilters] = React.useState({
+    preschool: false,
+    afterCare: false,
+    nursery: false,
+  });
 
   const fetchStudents = React.useCallback(() => {
     setLoading(true);
@@ -100,11 +113,42 @@ export default function StudentManager() {
   }, [fetchStudents]);
 
   React.useEffect(() => {
-    const results = allStudents.filter(student =>
+    let results = allStudents.filter(student =>
       (student?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || student?.id.includes(searchTerm)) && student.status !== 'graduated'
     );
+
+    if (statusFilter !== 'all') {
+      results = results.filter(s => s.status === statusFilter);
+    }
+    
+    results = results.filter(s => s.age >= ageRange[0] && s.age <= ageRange[1]);
+    
+    if (genderFilter !== 'all') {
+      results = results.filter(s => s.gender === genderFilter);
+    }
+
+    const activeProgramFilters = Object.entries(programFilters).filter(([, value]) => value).map(([key]) => key);
+    if (activeProgramFilters.length > 0) {
+        results = results.filter(student => 
+            activeProgramFilters.every(filterKey => {
+                const key = filterKey as keyof typeof student;
+                return student[key];
+            })
+        );
+    }
+
+
     setFilteredStudents(results);
-  }, [searchTerm, allStudents]);
+  }, [searchTerm, allStudents, statusFilter, ageRange, genderFilter, programFilters]);
+
+  const resetFilters = () => {
+    setStatusFilter('all');
+    setAgeRange([0, 10]);
+    setGenderFilter('all');
+    setProgramFilters({ preschool: false, afterCare: false, nursery: false });
+  }
+
+  const isAnyFilterActive = statusFilter !== 'all' || ageRange[0] !== 0 || ageRange[1] !== 10 || genderFilter !== 'all' || Object.values(programFilters).some(v => v);
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -181,8 +225,8 @@ export default function StudentManager() {
   }
 
   const handleExport = () => {
-    const studentsToExport = selectedStudents.length > 0
-      ? allStudents.filter(s => selectedStudents.includes(s.id))
+    const studentsToExport = filteredStudents.length > 0
+      ? selectedStudents.length > 0 ? filteredStudents.filter(s => selectedStudents.includes(s.id)) : filteredStudents
       : allStudents;
 
     const worksheet = XLSX.utils.json_to_sheet(studentsToExport.map(s => {
@@ -192,6 +236,7 @@ export default function StudentManager() {
             ID: s.id,
             Name: s.name,
             Age: s.age,
+            Gender: s.gender,
             Birthday: s.dob,
             'Guardian 1 Name': guardian1 ? `${guardian1.firstName} ${guardian1.lastName}` : '',
             'Guardian 1 Relationship': guardian1 ? guardian1.relationship : '',
@@ -203,7 +248,9 @@ export default function StudentManager() {
             'Guardian 2 Email': guardian2 ? guardian2.contact : '',
             'Guardian 2 Phone': guardian2 ? guardian2.phone : '',
             'Address 2': guardian2 ? `${guardian2.address}, ${guardian2.city}, ${guardian2.state}` : '',
+            'Preschool': s.preschool ? 'Yes' : 'No',
             'After Care': s.afterCare ? 'Yes' : 'No',
+            'Nursery': s.nursery ? 'Yes' : 'No',
             'Emergency Contact': s.emergencyContactName,
             'Emergency Phone': s.emergencyContactPhone,
             'Medical Info': s.medicalConditions
@@ -249,6 +296,7 @@ export default function StudentManager() {
                 const finalStudentData = {
                     name: studentData.name,
                     age: studentData.age || 0,
+                    gender: studentData.gender || 'Male',
                     dob: studentData.dob || new Date().toISOString(),
                     avatarUrl: `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/100/100`,
                     imageHint: 'child portrait',
@@ -280,7 +328,7 @@ export default function StudentManager() {
             }
             setIsProcessingImport(false);
         }
-    };
+    }
     reader.readAsArrayBuffer(file);
   }
 
@@ -400,6 +448,77 @@ export default function StudentManager() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 />
             </div>
+            
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button variant="outline" className="relative">
+                        <Filter className="mr-2 h-4 w-4" />
+                        Filter
+                        {isAnyFilterActive && <span className="absolute top-0 right-0 -mt-1 -mr-1 h-2 w-2 rounded-full bg-primary" />}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                    <div className="grid gap-4">
+                        <div className="space-y-2">
+                            <h4 className="font-medium leading-none">Filters</h4>
+                            <p className="text-sm text-muted-foreground">Adjust filters to refine the list.</p>
+                        </div>
+                        <div className="grid gap-2">
+                            <div className="grid grid-cols-3 items-center gap-4">
+                                <Label htmlFor="status">Status</Label>
+                                <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+                                    <SelectTrigger id="status" className="col-span-2 h-8">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All</SelectItem>
+                                        <SelectItem value="enrolled">Enrolled</SelectItem>
+                                        <SelectItem value="pending">Pending</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid grid-cols-3 items-center gap-4">
+                                <Label htmlFor="gender">Gender</Label>
+                                <Select value={genderFilter} onValueChange={(value: any) => setGenderFilter(value)}>
+                                    <SelectTrigger id="gender" className="col-span-2 h-8">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All</SelectItem>
+                                        <SelectItem value="Male">Male</SelectItem>
+                                        <SelectItem value="Female">Female</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="grid grid-cols-1 items-center gap-4">
+                                <Label>Age Range: {ageRange[0]} - {ageRange[1]}</Label>
+                                <Slider value={ageRange} onValueChange={setAgeRange} max={10} step={1} />
+                            </div>
+                            <div className="grid grid-cols-1 items-center gap-2">
+                                <Label>Programs</Label>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox id="preschool" checked={programFilters.preschool} onCheckedChange={(checked) => setProgramFilters(p => ({...p, preschool: !!checked}))} />
+                                    <Label htmlFor="preschool" className="text-sm font-normal">Preschool</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox id="afterCare" checked={programFilters.afterCare} onCheckedChange={(checked) => setProgramFilters(p => ({...p, afterCare: !!checked}))} />
+                                    <Label htmlFor="afterCare" className="text-sm font-normal">After-Care</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox id="nursery" checked={programFilters.nursery} onCheckedChange={(checked) => setProgramFilters(p => ({...p, nursery: !!checked}))} />
+                                    <Label htmlFor="nursery" className="text-sm font-normal">Nursery</Label>
+                                </div>
+                            </div>
+                            {isAnyFilterActive && (
+                                <Button variant="ghost" size="sm" onClick={resetFilters} className="justify-self-start">
+                                    <X className="mr-2 h-4 w-4" /> Clear Filters
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                </PopoverContent>
+            </Popover>
+
             <Button onClick={handleDownloadReports} disabled={selectedStudents.length === 0 || isDownloading} variant="outline">
                 <Download className="mr-2 h-4 w-4" />
                 {isDownloading ? 'Downloading...' : `Download Reports (${selectedStudents.length})`}
@@ -434,6 +553,7 @@ export default function StudentManager() {
                     </TableHead>
                   <TableHead>Student</TableHead>
                   <TableHead>Age</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -452,6 +572,7 @@ export default function StudentManager() {
                         </div>
                       </TableCell>
                       <TableCell><Skeleton className="h-4 w-[50px]" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
                       <TableCell className="text-right"><Skeleton className="h-8 w-8" /></TableCell>
                     </TableRow>
                   ))
@@ -483,6 +604,9 @@ export default function StudentManager() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">{student.age}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusVariant(student.status)}>{student.status}</Badge>
                       </TableCell>
                       <TableCell className="text-right">
                           <DropdownMenu>
