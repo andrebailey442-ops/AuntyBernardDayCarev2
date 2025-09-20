@@ -28,7 +28,7 @@ import { MoreHorizontal, PlusCircle, Trash2, Edit, User, LogIn, LogOut, Archive,
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
-import { format, startOfWeek, addDays, eachDayOfInterval } from 'date-fns';
+import { format, startOfWeek, addDays, eachDayOfInterval, set } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { StaffForm } from './staff-form';
 import { useRouter } from 'next/navigation';
@@ -128,11 +128,29 @@ export default function StaffManager() {
           description: `${staffName} has been clocked out at ${format(now, 'p')} by ${currentUsername}.`,
         });
     } else {
-        newRecord = { ...currentRecord, status: 'Clocked-In', checkInTime: now.toISOString(), checkOutTime: undefined, checkedInBy: currentUsername, checkedOutBy: undefined };
+        const startTime = set(now, { hours: 6, minutes: 0, seconds: 0, milliseconds: 0 }); // 6:00 AM
+        const lateThreshold = set(now, { hours: 6, minutes: 15, seconds: 0, milliseconds: 0 }); // 6:15 AM
+        const isLate = now > lateThreshold;
+
+        newRecord = { 
+            ...currentRecord, 
+            status: 'Clocked-In', 
+            checkInTime: now.toISOString(), 
+            checkOutTime: undefined, 
+            checkedInBy: currentUsername, 
+            checkedOutBy: undefined,
+            isLate: isLate
+        };
         toast({
           title: `Staff Clocked In`,
           description: `${staffName} has been clocked in at ${format(now, 'p')} by ${currentUsername}.`,
         });
+        if (isLate) {
+            toast({
+                title: 'Staff Member Late',
+                description: `${staffName} clocked in after 6:15 AM.`
+            })
+        }
     }
     
     const updatedAttendance = { ...attendance, [staffId]: newRecord };
@@ -403,6 +421,7 @@ export default function StaffManager() {
                 <TableRow>
                 <TableHead>Staff Member</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Lateness</TableHead>
                 <TableHead>Clock-in Time</TableHead>
                 <TableHead>Clocked In By</TableHead>
                 <TableHead className="text-right">Action</TableHead>
@@ -410,7 +429,7 @@ export default function StaffManager() {
             </TableHeader>
             <TableBody>
                 {loading ? (
-                    <TableRow><TableCell colSpan={5} className="h-24 text-center">Loading...</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={6} className="h-24 text-center">Loading...</TableCell></TableRow>
                 ) : staff.filter(s => attendance[s.id]?.status !== 'Clocked-Out' || !attendance[s.id]?.checkOutTime).map(member => {
                     const record = attendance[member.id];
                     return (
@@ -418,6 +437,9 @@ export default function StaffManager() {
                             <TableCell>{member.name}</TableCell>
                             <TableCell>
                                 <Badge variant={record?.status === 'Clocked-In' ? 'default' : 'secondary'}>{record?.status || 'Clocked-Out'}</Badge>
+                            </TableCell>
+                             <TableCell>
+                                {record?.isLate ? <Badge variant="destructive">Late</Badge> : (record?.status === 'Clocked-In' ? <Badge variant="secondary">On Time</Badge> : 'N/A')}
                             </TableCell>
                             <TableCell>{record?.checkInTime ? format(new Date(record.checkInTime), 'p') : 'N/A'}</TableCell>
                             <TableCell>{record?.checkedInBy || 'N/A'}</TableCell>

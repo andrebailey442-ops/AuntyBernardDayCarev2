@@ -136,6 +136,7 @@ export type StaffClockRecord = {
   checkOutTime?: string;
   checkedInBy?: string;
   checkedOutBy?: string;
+  isLate?: boolean;
 };
 
 export type StaffAttendance = {
