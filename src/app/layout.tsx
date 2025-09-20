@@ -10,6 +10,7 @@ import { initializeData } from '@/services/initialize';
 export const metadata: Metadata = {
   title: 'Aunty Bernard DayCare and Pre-school',
   description: 'Preschool Admin Management',
+  manifest: '/manifest.json',
 };
 
 export default function RootLayout({
