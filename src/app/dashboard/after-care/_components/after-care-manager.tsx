@@ -25,7 +25,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getStudents } from '@/services/students';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LogIn, LogOut, Users, Archive, Trash2, Download } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, set } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -41,6 +41,7 @@ type AfterCareRecord = {
   checkOutTime?: string; // Storing as ISO string
   checkedInBy?: string;
   checkedOutBy?: string;
+  overtimeMinutes?: number;
 };
 
 type StudentStatus = {
@@ -101,13 +102,28 @@ export default function AfterCareManager() {
     const studentName = students.find(s => s.id === studentId)?.name || 'Student';
 
     if (currentRecord.status === 'Checked-In') {
-        newRecord = { ...currentRecord, status: 'Checked-Out', checkOutTime: now.toISOString(), checkedOutBy: currentUsername };
+        const closingTime = set(now, { hours: 18, minutes: 0, seconds: 0, milliseconds: 0 }); // 6:00 PM
+        const overtimeThreshold = set(now, { hours: 19, minutes: 30, seconds: 0, milliseconds: 0 }); // 7:30 PM
+
+        let overtimeMinutes = 0;
+        if (now > overtimeThreshold) {
+            overtimeMinutes = Math.round((now.getTime() - closingTime.getTime()) / (1000 * 60));
+        }
+
+        newRecord = { ...currentRecord, status: 'Checked-Out', checkOutTime: now.toISOString(), checkedOutBy: currentUsername, overtimeMinutes };
         toast({
           title: `Student Checked Out`,
           description: `${studentName} has been checked out at ${format(now, 'p')} by ${currentUsername}.`,
         });
+
+        if (overtimeMinutes > 0) {
+            toast({
+                title: 'Overtime Recorded',
+                description: `${studentName} is in overtime by ${overtimeMinutes} minutes.`,
+            });
+        }
     } else {
-        newRecord = { ...currentRecord, status: 'Checked-In', checkInTime: now.toISOString(), checkOutTime: undefined, checkedInBy: currentUsername, checkedOutBy: undefined }; // Reset checkout time
+        newRecord = { ...currentRecord, status: 'Checked-In', checkInTime: now.toISOString(), checkOutTime: undefined, checkedInBy: currentUsername, checkedOutBy: undefined, overtimeMinutes: undefined }; // Reset checkout time and overtime
         toast({
           title: `Student Checked In`,
           description: `${studentName} has been checked in at ${format(now, 'p')} by ${currentUsername}.`,
@@ -198,8 +214,8 @@ export default function AfterCareManager() {
         const doc = new jsPDF();
         addLogoAndHeader(doc, `After-Care Log for ${format(new Date(log.date), 'PPP')}`);
 
-        const tableColumn = ["Student", "Check-in Time", "Checked In By", "Check-out Time", "Checked Out By"];
-        const tableRows: (string | null)[][] = [];
+        const tableColumn = ["Student", "Check-in Time", "Checked In By", "Check-out Time", "Checked Out By", "Overtime (mins)"];
+        const tableRows: (string | number | null)[][] = [];
 
         log.records.forEach(record => {
             const rowData = [
@@ -207,7 +223,8 @@ export default function AfterCareManager() {
                 record.log.checkInTime ? format(new Date(record.log.checkInTime), 'p') : 'N/A',
                 record.log.checkedInBy || 'N/A',
                 record.log.checkOutTime ? format(new Date(record.log.checkOutTime), 'p') : 'N/A',
-                record.log.checkedOutBy || 'N/A'
+                record.log.checkedOutBy || 'N/A',
+                record.log.overtimeMinutes || 0
             ];
             tableRows.push(rowData);
         });
@@ -403,12 +420,13 @@ export default function AfterCareManager() {
                         <TableHead>Checked In By</TableHead>
                         <TableHead>Check-out Time</TableHead>
                         <TableHead>Checked Out By</TableHead>
+                        <TableHead>Overtime</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {loading ? (
                              <TableRow>
-                                <TableCell colSpan={6} className="h-24 text-center">Loading Log...</TableCell>
+                                <TableCell colSpan={7} className="h-24 text-center">Loading Log...</TableCell>
                             </TableRow>
                         ) : checkedOutStudents.length > 0 ? (
                             checkedOutStudents.map(student => {
@@ -433,12 +451,17 @@ export default function AfterCareManager() {
                                         <TableCell>{record?.checkedInBy || 'N/A'}</TableCell>
                                         <TableCell>{record?.checkOutTime ? format(new Date(record.checkOutTime), 'p') : 'N/A'}</TableCell>
                                         <TableCell>{record?.checkedOutBy || 'N/A'}</TableCell>
+                                        <TableCell>
+                                            {record?.overtimeMinutes && record.overtimeMinutes > 0 ? (
+                                                <Badge variant="destructive">{record.overtimeMinutes} mins</Badge>
+                                            ) : 'N/A'}
+                                        </TableCell>
                                     </TableRow>
                                 )
                             })
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={6} className="h-24 text-center">
+                                <TableCell colSpan={7} className="h-24 text-center">
                                     No students have been checked out yet.
                                 </TableCell>
                             </TableRow>
@@ -478,6 +501,7 @@ export default function AfterCareManager() {
                                             <TableHead>Checked In By</TableHead>
                                             <TableHead>Check-out Time</TableHead>
                                             <TableHead>Checked Out By</TableHead>
+                                            <TableHead>Overtime</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -500,6 +524,11 @@ export default function AfterCareManager() {
                                                 <TableCell>{student.log.checkedInBy || 'N/A'}</TableCell>
                                                 <TableCell>{student.log.checkOutTime ? format(new Date(student.log.checkOutTime), 'p') : 'N/A'}</TableCell>
                                                 <TableCell>{student.log.checkedOutBy || 'N/A'}</TableCell>
+                                                <TableCell>
+                                                    {student.log.overtimeMinutes && student.log.overtimeMinutes > 0 ? (
+                                                        <Badge variant="destructive">{student.log.overtimeMinutes} mins</Badge>
+                                                    ) : 'N/A'}
+                                                </TableCell>
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -517,3 +546,5 @@ export default function AfterCareManager() {
     </div>
   );
 }
+
+    
