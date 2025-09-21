@@ -1,75 +1,84 @@
-# Aunty Bernard’s School App: Grown-Up's Guide
+# Aunty Bernard’s School App: Administrator's Guide
 
-This is a special guide for grown-ups who are in charge (Administrators). It shows you how to do special things that only you can do!
+This guide is exclusively for administrators. It covers special permissions and tasks that are only available to users with the 'Admin' role.
 
-For everything else, you can read the other **School App Handbook**.
-
----
-
-## What Grown-Ups Can Do
-
-You can do everything in the app, plus these special things:
-
-*   **Add New People:** You can add new teachers and grown-ups to the app.
-*   **Set the Rules:** You can choose what pages teachers are allowed to see.
-
-You can find these tools in your menu at the top of the screen. Look for **Manage Users**.
+For general application features, please refer to the main **School App Handbook**.
 
 ---
 
-## Adding and Removing People
+## Administrator-Only Capabilities
 
-This is where you can see everyone who uses the app.
+As an administrator, you have full access to all features in the app, plus these powerful tools:
 
-### See Who Is Here
-
-*   You will see a list of all the grown-ups and what their job is (`Admin` or `Teacher`).
-
-### Add a New Person
-
-1.  Click the **Add User** button.
-2.  A little box will pop up.
-    *   **Username:** Type in a name for them to use.
-    *   **Password:** Give them a secret password.
-    *   **Role:** Choose if they are an `Admin` or a `Teacher`.
-3.  Click **Add User**. All done! They are now in the list.
-
-### Change or Remove a Person
-
-Click the three little dots next to a person's name to open a menu.
-
-#### Give a New Password
-
-1.  Choose **Reset Password**.
-2.  Type in a new secret password for them.
-3.  Click the button. It works right away!
-
-#### Take a Person Away
-
-1.  Choose **Remove User**.
-2.  A message will ask if you are sure.
-3.  Click **Continue** to take them off the list for good. You can’t get them back!
+*   **Manage Users**: Add, edit, and remove user accounts (both Admins and Teachers).
+*   **Manage Role Permissions**: Control which pages and features are accessible to the 'Teacher' role.
+*   **Manage Staff**: Add, edit, and schedule staff members.
+*   **Financial Oversight**: Full access to student financial records, including processing payments.
+*   **System Configuration**: Update the application logo and slideshow images.
 
 ---
 
-## Setting Rules for Teachers
+## User & Permission Management
 
-On the same page, you will see "Teacher Role Permissions." This is where you decide what teachers can see and do.
+The **Manage Users** page (accessible from the user dropdown menu) is your central hub for controlling who can access the application and what they can do.
 
-### How It Works
+### User Management
 
-*   If you **check a box**, teachers will see a link for that page in their menu.
-*   If you **uncheck a box**, the link will disappear. Teachers can't go to that page anymore.
+This section lists all current users of the app.
 
-### Changing the Rules
+*   **View Users**: See a list of all users, their email, and their assigned role (`Admin` or `Teacher`).
+*   **Add New Staff/User**:
+    1.  Click the **Add Staff** button.
+    2.  Fill in the user's name, email, a temporary password, and assign a role.
+    3.  Click **Add Staff**. The user is now active.
+*   **Edit a User**:
+    1.  Click the three-dots menu next to a user's name and select **Edit Profile**.
+    2.  You can change their role or set a new password.
+*   **Remove a User**:
+    1.  Select **Remove User** from the dropdown menu.
+    2.  Confirm the action. This is permanent and cannot be undone.
 
-1.  Look at the list of pages.
-2.  **Check the box** to give permission.
-3.  **Uncheck the box** to take it away.
-4.  Click **Save Changes** when you are finished.
+### Role Permissions Management
 
-The rules change for all teachers right away!
+This section allows you to customize the user experience for teachers.
+
+*   **How it Works**: The grid lists all major pages of the application. Checking a box grants all users with the 'Teacher' role access to that page. Unchecking it removes the link from their navigation menu.
+*   **Default Admin Permissions**: Administrators have access to all pages. The "Manage Users" permission is locked for Admins.
+*   **Saving Changes**:
+    1.  Use the checkboxes to grant or revoke access for the 'Teacher' role.
+    2.  Click **Save Teacher Permissions**. The changes take effect immediately for all teacher accounts.
 
 ---
 
-That’s all for the grown-up's guide! For everything else, please read the main **School App Handbook**.
+## Staff Management
+
+The **Staff** section is where you manage employee profiles, schedules, and attendance.
+
+*   **Staff Profiles**: Add new staff members with their personal details and assigned roles (e.g., 'Preschool Attendant').
+*   **Weekly Schedule**: Use the interactive table to set the work schedule for each staff member for the entire week. You can also download a printable PDF of the weekly roster.
+*   **Daily Clock-in/Clock-out**: Monitor staff attendance in real-time. The system automatically flags late clock-ins.
+*   **Edit Clock-in Time**: As an admin, you can manually adjust a staff member's clock-in time if they forgot to do it themselves.
+*   **Log Archiving**: At the end of each day, archive the attendance log to keep records clean and ready for the next day.
+
+---
+
+## System Configuration
+
+### Manage Slideshow Images
+
+From any of the main dashboard pages (Preschool, After-Care, Nursery), you can manage the hero slideshow images.
+
+1.  Click your user avatar in the top-right corner.
+2.  Select **Manage Images** from the dropdown menu.
+3.  In the dialog, you can remove existing images or upload new ones.
+4.  Uploaded images are automatically resized and cropped by an AI to fit the slideshow dimensions perfectly.
+
+### Update Application Logo
+
+1.  Click your user avatar.
+2.  Select **Update Logo**.
+3.  Upload a new image file to replace the default "Busy Bee" logo throughout the application. You can also reset it back to the default.
+
+---
+
+That’s all for the administrator's guide! For all other features, please refer to the main **School App Handbook**.
