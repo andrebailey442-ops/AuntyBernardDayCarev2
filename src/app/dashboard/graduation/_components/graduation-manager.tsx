@@ -32,6 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format, getYear } from 'date-fns';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { BusyBeeLogo } from '@/components/icons';
 
 type GroupedGraduates = {
   [year: string]: Student[];
@@ -185,167 +186,159 @@ export default function GraduationManager() {
         const lightGreyColor = '#F2F2F2';
         const pageWidth = doc.internal.pageSize.getWidth();
         
-        const logoPngBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAzFBMVEUAAAD/AAD/Hh7/WFj/Zmb/goL/l5f/t7f/ycn/8/P/AAD/ERH/S0v/YGD/d3f/kJD/p6f/vr7/0ND//Pz/AAD/ExP/UFD/cnL/jY3/rq7/xsb/5+f/AAD/Fhb/V1f/bm7/iYn/qqr/w8P/4+P/AAD/Fxf/V1f/b2//iYn/qqr/w8P/4+P/AAD/GBj/WFj/cnL/jY3/rq7/xsb/5+f/AAD/GBj/WVn/c3P/jo7/r6//x8f/6Oj/AAD/Ghn/Wlr/dXX/jo7/rq7/x8f/6Oj/AAAAGiE/AAAAOXRSTlMAAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTI2Nzg5Ojs+kGyC4QAAA5JJREFUeNqV1k9vGzEQB/C9d/YBm8B8N2CIgRmC/5iF0A0MhD+gAgmoQAGlPlBBqU/UIKHUo4/Qo0dQ3/d93/e9r/Q2l8k2ttg2Vt2D5tG++50dno8xMz/gD/z4//0DqAAoAPgD4MkzSgBEwzTNIxHhBA2D4zI5/jM5BwD2x3E+LODO0u0q/S0vAHER4lQ2AMDI41zgcF/eFz3F9jtdXvA8D8yP5/k+fP894fh/8DqAIgAyB+S1s0s694e/g6iYgGgRz2yG/l4xAc4+wHAYgnA0DMMgEwSoAsB0DUDgDU2QBUIwCqRgA0WQBasgA0RwA0QwA2KwCaFQCNDcBiA8BiAyBcA0g3AGkGIM0ApBkA0SgA0SgA0SgA0SgA0SgA6fMBpM8HkF4eQE4eQG4eQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQGZeQ-Z'
-            
-            const addHeaderAndFooter = (pageNumber: number) => {
-                // Watermark
-                doc.saveGraphicsState();
-                doc.setGState(new (doc as any).GState({opacity: 0.05}));
-                doc.addImage(logoPngBase64, 'PNG', pageWidth / 2 - 50, doc.internal.pageSize.getHeight() / 2 - 50, 100, 100);
-                doc.restoreGraphicsState();
-
-                // Header
-                doc.addImage(logoPngBase64, 'PNG', 15, 12, 12, 12);
-                doc.setFontSize(22);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(primaryColor);
-                doc.text("Aunty Bernard", 30, 20);
-                doc.setDrawColor(primaryColor);
-                doc.setLineWidth(0.5);
-                doc.line(15, 25, pageWidth - 15, 25);
-                
-                // Footer
-                doc.setFontSize(8);
-                doc.setTextColor(greyColor);
-                doc.text(`Page ${pageNumber}`, pageWidth / 2, 290, { align: 'center' });
-            };
-            
-            // --- Page 1: Profile Summary ---
-            addHeaderAndFooter(1);
-            let y = 45;
-
-            doc.setFontSize(18);
+        
+        const addHeaderAndFooter = (pageNumber: number) => {
+            // Header
+            doc.setFontSize(22);
             doc.setFont('helvetica', 'bold');
-            doc.setTextColor('#000000');
-            doc.text("Graduated Student Profile", pageWidth / 2, y, { align: 'center' });
-            y += 15;
-
-            // Student Info Section
-            doc.setFontSize(14);
-            doc.text("Student Information", 15, y);
-            y += 8;
-            doc.setFillColor(lightGreyColor);
-            doc.rect(15, y, pageWidth - 30, 35, 'F');
-            doc.setFontSize(10);
-            doc.setTextColor(greyColor);
-            doc.text("Full Name", 20, y + 7);
-            doc.text("Date of Birth", 90, y + 7);
-            doc.text("Student ID", 150, y + 7);
-            doc.setFontSize(12);
-            doc.setTextColor('#000000');
-            doc.text(student.name, 20, y + 14);
-            doc.text(format(new Date(student.dob), 'PPP'), 90, y + 14);
-            doc.text(student.id, 150, y + 14);
-            y += 45;
+            doc.setTextColor(primaryColor);
+            doc.text("Aunty Bernard", 30, 20);
+            doc.setDrawColor(primaryColor);
+            doc.setLineWidth(0.5);
+            doc.line(15, 25, pageWidth - 15, 25);
             
-            // Parent Info
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text("Parent/Guardian Information", 15, y);
-            y += 8;
-            doc.setFillColor(lightGreyColor);
-            doc.rect(15, y, pageWidth - 30, 80, 'F');
+            // Footer
+            doc.setFontSize(8);
+            doc.setTextColor(greyColor);
+            doc.text(`Page ${pageNumber}`, pageWidth / 2, 290, { align: 'center' });
+        };
+        
+        // --- Page 1: Profile Summary ---
+        addHeaderAndFooter(1);
+        let y = 45;
+
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor('#000000');
+        doc.text("Graduated Student Profile", pageWidth / 2, y, { align: 'center' });
+        y += 15;
+
+        // Student Info Section
+        doc.setFontSize(14);
+        doc.text("Student Information", 15, y);
+        y += 8;
+        doc.setFillColor(lightGreyColor);
+        doc.rect(15, y, pageWidth - 30, 35, 'F');
+        doc.setFontSize(10);
+        doc.setTextColor(greyColor);
+        doc.text("Full Name", 20, y + 7);
+        doc.text("Date of Birth", 90, y + 7);
+        doc.text("Student ID", 150, y + 7);
+        doc.setFontSize(12);
+        doc.setTextColor('#000000');
+        doc.text(student.name, 20, y + 14);
+        doc.text(format(new Date(student.dob), 'PPP'), 90, y + 14);
+        doc.text(student.id, 150, y + 14);
+        y += 45;
+        
+        // Parent Info
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Parent/Guardian Information", 15, y);
+        y += 8;
+        doc.setFillColor(lightGreyColor);
+        doc.rect(15, y, pageWidth - 30, 80, 'F');
+        doc.setFontSize(10);
+        doc.setTextColor(greyColor);
+        doc.text("Guardian 1 Name", 20, y + 7);
+        doc.text("Guardian 1 Contact", 120, y + 7);
+        doc.setFontSize(12);
+        doc.setTextColor('#000000');
+        doc.text(`${student.guardians[0].firstName} ${student.guardians[0].lastName} (${student.guardians[0].relationship})`, 20, y + 14);
+        doc.text(student.guardians[0].contact, 120, y + 14);
+
+        if(student.guardians[1]) {
             doc.setFontSize(10);
             doc.setTextColor(greyColor);
-            doc.text("Guardian 1 Name", 20, y + 7);
-            doc.text("Guardian 1 Contact", 120, y + 7);
+            doc.text("Guardian 2 Name", 20, y + 26);
+            doc.text("Guardian 2 Contact", 120, y + 26);
             doc.setFontSize(12);
             doc.setTextColor('#000000');
-            doc.text(`${student.guardian1.firstName} ${student.guardian1.lastName} (${student.guardian1.relationship})`, 20, y + 14);
-            doc.text(student.guardian1.contact, 120, y + 14);
-
-            if(student.guardian2) {
-                doc.setFontSize(10);
-                doc.setTextColor(greyColor);
-                doc.text("Guardian 2 Name", 20, y + 26);
-                doc.text("Guardian 2 Contact", 120, y + 26);
-                doc.setFontSize(12);
-                doc.setTextColor('#000000');
-                doc.text(`${student.guardian2.firstName} ${student.guardian2.lastName} (${student.guardian2.relationship})`, 20, y + 33);
-                doc.text(student.guardian2.contact, 120, y + 33);
-            }
-
-            doc.setFontSize(10);
-            doc.setTextColor(greyColor);
-            doc.text("Home Address", 20, y + 45);
-            doc.setFontSize(12);
-            doc.setTextColor('#000000');
-            const address = `${student.address || ''}, ${student.city || ''}, ${student.state || ''}`;
-            doc.text(address, 20, y + 52);
-            y += 90;
-            
-            // Emergency/Health Info
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'bold');
-            doc.text("Health & Emergency Information", 15, y);
-            y += 8;
-            doc.setFillColor(lightGreyColor);
-            doc.rect(15, y, pageWidth - 30, 45, 'F');
-            doc.setFontSize(10);
-            doc.setTextColor(greyColor);
-            doc.text("Emergency Contact", 20, y + 7);
-            doc.text("Emergency Phone", 120, y + 7);
-            doc.setFontSize(12);
-            doc.setTextColor('#000000');
-            doc.text(student.emergencyContactName || 'N/A', 20, y + 14);
-            doc.text(student.emergencyContactPhone || 'N/A', 120, y + 14);
-            
-            doc.setFontSize(10);
-            doc.setTextColor(greyColor);
-            doc.text("Medical Conditions / Allergies", 20, y + 26);
-            doc.setFontSize(12);
-            doc.setTextColor('#000000');
-            const medicalLines = doc.splitTextToSize(student.medicalConditions || 'None provided', pageWidth - 40);
-            doc.text(medicalLines, 20, y + 33);
-
-
-            // --- Page 2: Grade Sheet ---
-            doc.addPage();
-            addHeaderAndFooter(2);
-            y = 45;
-
-            doc.setFontSize(18);
-            doc.setFont('helvetica', 'bold');
-            doc.text('Final Academic Report', pageWidth / 2, y, { align: 'center' });
-            y += 15;
-
-            (doc as any).autoTable({
-                startY: y,
-                head: [['Subject', 'Final Grade', 'Notes']],
-                body: grades.map(g => [
-                    getSubjectName(g.subject),
-                    g.grade || 'Incomplete',
-                    g.notes || ''
-                ]),
-                theme: 'grid',
-                headStyles: {
-                    fillColor: primaryColor,
-                    textColor: '#FFFFFF',
-                    fontStyle: 'bold'
-                },
-                styles: {
-                    cellPadding: 3,
-                    fontSize: 11,
-                },
-                alternateRowStyles: {
-                    fillColor: lightGreyColor,
-                }
-            });
-
-            doc.save(`${student.name}_Full_Profile.pdf`);
-            toast({
-                title: "Profile Downloaded",
-                description: `Full profile for ${student.name} has been downloaded.`,
-            });
-        } catch (error) {
-            console.error("Failed to generate full profile:", error);
-            toast({
-                variant: 'destructive',
-                title: "Download Failed",
-                description: "Could not generate the full student profile.",
-            });
+            doc.text(`${student.guardians[1].firstName} ${student.guardians[1].lastName} (${student.guardians[1].relationship})`, 20, y + 33);
+            doc.text(student.guardians[1].contact, 120, y + 33);
         }
-    };
+
+        doc.setFontSize(10);
+        doc.setTextColor(greyColor);
+        doc.text("Home Address", 20, y + 45);
+        doc.setFontSize(12);
+        doc.setTextColor('#000000');
+        const address = `${student.guardians[0].address || ''}, ${student.guardians[0].city || ''}, ${student.guardians[0].state || ''}`;
+        doc.text(address, 20, y + 52);
+        y += 90;
+        
+        // Emergency/Health Info
+        doc.setFontSize(14);
+        doc.setFont('helvetica', 'bold');
+        doc.text("Health & Emergency Information", 15, y);
+        y += 8;
+        doc.setFillColor(lightGreyColor);
+        doc.rect(15, y, pageWidth - 30, 45, 'F');
+        doc.setFontSize(10);
+        doc.setTextColor(greyColor);
+        doc.text("Emergency Contact", 20, y + 7);
+        doc.text("Emergency Phone", 120, y + 7);
+        doc.setFontSize(12);
+        doc.setTextColor('#000000');
+        doc.text(student.emergencyContactName || 'N/A', 20, y + 14);
+        doc.text(student.emergencyContactPhone || 'N/A', 120, y + 14);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(greyColor);
+        doc.text("Medical Conditions / Allergies", 20, y + 26);
+        doc.setFontSize(12);
+        doc.setTextColor('#000000');
+        const medicalLines = doc.splitTextToSize(student.medicalConditions || 'None provided', pageWidth - 40);
+        doc.text(medicalLines, 20, y + 33);
+
+
+        // --- Page 2: Grade Sheet ---
+        doc.addPage();
+        addHeaderAndFooter(2);
+        y = 45;
+
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Final Academic Report', pageWidth / 2, y, { align: 'center' });
+        y += 15;
+
+        (doc as any).autoTable({
+            startY: y,
+            head: [['Subject', 'Final Grade', 'Notes']],
+            body: grades.map(g => [
+                getSubjectName(g.subject),
+                g.grade || 'Incomplete',
+                g.notes || ''
+            ]),
+            theme: 'grid',
+            headStyles: {
+                fillColor: primaryColor,
+                textColor: '#FFFFFF',
+                fontStyle: 'bold'
+            },
+            styles: {
+                cellPadding: 3,
+                fontSize: 11,
+            },
+            alternateRowStyles: {
+                fillColor: lightGreyColor,
+            }
+        });
+
+        doc.save(`${student.name}_Full_Profile.pdf`);
+        toast({
+            title: "Profile Downloaded",
+            description: `Full profile for ${student.name} has been downloaded.`,
+        });
+    } catch (error) {
+        console.error("Failed to generate full profile:", error);
+        toast({
+            variant: 'destructive',
+            title: "Download Failed",
+            description: "Could not generate the full student profile.",
+        });
+    }
+  };
     
   const groupedGraduates = React.useMemo(() => {
     return graduatedStudents.reduce((acc, student) => {
