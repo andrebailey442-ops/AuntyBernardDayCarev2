@@ -25,85 +25,8 @@ import HeroSlideshow from '@/app/dashboard/_components/hero-slideshow';
 import { useIsMobile } from '@/hooks/use-mobile';
 import React from 'react';
 import { useLogo } from '@/hooks/use-logo';
+import { handbookContent, adminManualContent, readmeContent } from '@/lib/documentation-content';
 
-
-const handbookContent = `
-# Aunty Bernard’s School App: Grown-Up's Guide
-
-This is a special guide for grown-ups who are in charge (Administrators). It shows you how to do special things that only you can do!
-
-For everything else, you can read the other **School App Handbook**.
-
----
-
-## What Grown-Ups Can Do
-
-You can do everything in the app, plus these special things:
-
-*   **Add New People:** You can add new teachers and grown-ups to the app.
-*   **Set the Rules:** You can choose what pages teachers are allowed to see.
-
-You can find these tools in your menu at the top of the screen. Look for **Manage Users**.
-
----
-
-## Adding and Removing People
-
-This is where you can see everyone who uses the app.
-
-### See Who Is Here
-
-*   You will see a list of all the grown-ups and what their job is (\`Admin\` or \`Teacher\`).
-
-### Add a New Person
-
-1.  Click the **Add User** button.
-2.  A little box will pop up.
-    *   **Username:** Type in a name for them to use.
-    *   **Password:** Give them a secret password.
-    *   **Role:** Choose if they are an \`Admin\` or a \`Teacher\`.
-3.  Click **Add User**. All done! They are now in the list.
-
-### Change or Remove a Person
-
-Click the three little dots next to a person's name to open a menu.
-
-#### Give a New Password
-
-1.  Choose **Reset Password**.
-2.  Type in a new secret password for them.
-3.  Click the button. It works right away!
-
-#### Take a Person Away
-
-1.  Choose **Remove User**.
-2.  A message will ask if you are sure.
-3.  Click **Continue** to take them off the list for good. You can’t get them back!
-
----
-
-## Setting Rules for Teachers
-
-On the same page, you will see "Teacher Role Permissions." This is where you decide what teachers can see and do.
-
-### How It Works
-
-*   If you **check a box**, teachers will see a link for that page in their menu.
-*   If you **uncheck a box**, the link will disappear. Teachers can't go to that page anymore.
-
-### Changing the Rules
-
-1.  Look at the list of pages.
-2.  **Check the box** to give permission.
-3.  **Uncheck the box** to take it away.
-4.  Click **Save Changes** when you are finished.
-
-The rules change for all teachers right away!
-
----
-
-That’s all for the grown-up's guide! For everything else, please read the main **School App Handbook**.
-`;
 
 function LogoUpdateDialog({ onOpenChange }: { onOpenChange: (open: boolean) => void }) {
     const { logoUrl, setLogoUrl, clearLogo } = useLogo();
@@ -195,60 +118,99 @@ export function DashboardHeader({ setSlideshowDialogOpen }: DashboardHeaderProps
     router.push('/');
   }
 
-  const downloadHandbook = () => {
+  const downloadDocumentation = () => {
     try {
       const doc = new jsPDF();
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(12);
-
       const margin = 20;
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       const textWidth = pageWidth - margin * 2;
-
-      const lines = doc.splitTextToSize(handbookContent, textWidth);
-
       let cursorY = margin;
+      let pageNumber = 1;
 
-      lines.forEach((line: string) => {
-        if (cursorY > pageHeight - margin) {
-          doc.addPage();
-          cursorY = margin;
-        }
+      const addHeaderFooter = () => {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text('Aunty Bernard DayCare and Pre-school - Project Documentation', margin, 15);
+        doc.text(`Page ${pageNumber}`, pageWidth - margin, 15, { align: 'right' });
+        doc.line(margin, 20, pageWidth - margin, 20);
+      };
 
-        const isHeader = line.startsWith('#');
-        if (isHeader) {
-          const level = (line.match(/#/g) || []).length;
-          doc.setFont('helvetica', 'bold');
-          if (level === 1) {
-            doc.setFontSize(24);
-          } else if (level === 2) {
-            doc.setFontSize(18);
-          } else {
-            doc.setFontSize(14);
+      const addPage = () => {
+        doc.addPage();
+        pageNumber++;
+        cursorY = margin;
+        addHeaderFooter();
+      };
+
+      const processMarkdown = (markdown: string) => {
+        const lines = markdown.split('\n');
+
+        lines.forEach(line => {
+          if (cursorY > pageHeight - margin) {
+            addPage();
           }
-        }
 
-        doc.text(line.replace(/#/g, '').trim(), margin, cursorY);
-        cursorY += 7;
-
-        if (isHeader) {
-          doc.setFont('helvetica', 'normal');
-          doc.setFontSize(12);
-        }
-      });
+          if (line.startsWith('#')) {
+            const level = line.indexOf(' ');
+            const text = line.substring(level + 1);
+            doc.setFont('helvetica', 'bold');
+            if (level === 1) {
+              doc.setFontSize(22);
+              cursorY += 10;
+            } else if (level === 2) {
+              doc.setFontSize(18);
+              cursorY += 8;
+            } else {
+              doc.setFontSize(14);
+              cursorY += 6;
+            }
+            const splitText = doc.splitTextToSize(text, textWidth);
+            doc.text(splitText, margin, cursorY);
+            cursorY += (splitText.length * 7) + 5;
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(12);
+          } else if (line.startsWith('*') || line.startsWith('-')) {
+            const splitText = doc.splitTextToSize(line.substring(2), textWidth - 5);
+            doc.text(`• ${splitText[0]}`, margin + 5, cursorY);
+            cursorY += 6;
+            if (splitText.length > 1) {
+              doc.text(splitText.slice(1), margin + 5, cursorY);
+              cursorY += ((splitText.length - 1) * 6);
+            }
+          } else if (line.startsWith('---')) {
+            cursorY += 5;
+            doc.line(margin, cursorY, pageWidth - margin, cursorY);
+            cursorY += 10;
+          } else if (line.trim() === '') {
+            cursorY += 5;
+          } else {
+            const splitText = doc.splitTextToSize(line, textWidth);
+            doc.text(splitText, margin, cursorY);
+            cursorY += (splitText.length * 6);
+          }
+        });
+      };
       
-      doc.save('AuntyBernard_Handbook.pdf');
+      addHeaderFooter();
+      
+      processMarkdown(readmeContent);
+      addPage();
+      processMarkdown(handbookContent);
+      addPage();
+      processMarkdown(adminManualContent);
+      
+      doc.save('AuntyBernard_Project_Documentation.pdf');
       toast({
         title: 'Download Started',
-        description: 'The application handbook is being downloaded.',
+        description: 'The full project documentation is being downloaded.',
       });
     } catch (error) {
-        console.error("Failed to generate handbook PDF: ", error);
+        console.error("Failed to generate documentation PDF: ", error);
         toast({
             variant: 'destructive',
             title: 'Download Failed',
-            description: 'Could not generate the handbook PDF.',
+            description: 'Could not generate the documentation PDF.',
         });
     }
   }
@@ -312,9 +274,9 @@ export function DashboardHeader({ setSlideshowDialogOpen }: DashboardHeaderProps
                     <span>Manage Images</span>
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem onClick={downloadHandbook}>
+                <DropdownMenuItem onClick={downloadDocumentation}>
                 <BookOpen className="mr-2 h-4 w-4" />
-                <span>Handbook</span>
+                <span>Download Documentation</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
