@@ -25,8 +25,8 @@ import { useToast } from '@/hooks/use-toast';
 import { getStaff, deleteStaff, getStaffSchedule, setStaffSchedule, getStaffAttendance, setStaffAttendance, getArchivedStaffLogs, saveArchivedStaffLogs } from '@/services/staff';
 import type { Staff, StaffRole, StaffSchedule, StaffAttendance, StaffClockRecord, ArchivedStaffLog } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MoreHorizontal, PlusCircle, Trash2, Edit, User, LogIn, LogOut, Archive, Download, Clock, Filter, X } from 'lucide-react';
-import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
+import { MoreHorizontal, PlusCircle, Trash2, Edit, User, LogIn, LogOut, Archive, Download, Clock, Filter, X, Calendar as CalendarIcon } from 'lucide-react';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogFooter as AlertDialogFooter2 } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { format, startOfWeek, addDays, eachDayOfInterval, set, parse, isWithinInterval } from 'date-fns';
@@ -42,6 +42,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DateRange } from 'react-day-picker';
 import { Calendar } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 
 
 export const staffRoles: StaffRole[] = ['Preschool Attendant', 'Aftercare Attendant', 'Nursery Attendant'];
@@ -75,10 +76,13 @@ export default function StaffManager() {
 
   const fetchData = React.useCallback(async () => {
     setLoading(true);
-    const staffList = await getStaff();
-    const scheduleData = await getStaffSchedule();
-    const attendanceData = await getStaffAttendance(format(selectedDate, 'yyyy-MM-dd'));
-    const archivedLogsData = await getArchivedStaffLogs();
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    const [staffList, scheduleData, attendanceData, archivedLogsData] = await Promise.all([
+        getStaff(),
+        getStaffSchedule(),
+        getStaffAttendance(dateStr),
+        getArchivedStaffLogs()
+    ]);
 
     setStaff(staffList || []);
     setSchedule(scheduleData || {});
@@ -184,14 +188,13 @@ export default function StaffManager() {
     }
 
     try {
-        const today = new Date();
-        const newTime = parse(newClockInTime, 'HH:mm', today);
+        const newTime = parse(newClockInTime, 'HH:mm', selectedDate);
 
         if (isNaN(newTime.getTime())) {
             throw new Error('Invalid time format.');
         }
 
-        const lateThreshold = set(today, { hours: 6, minutes: 30, seconds: 0, milliseconds: 0 });
+        const lateThreshold = set(selectedDate, { hours: 6, minutes: 30, seconds: 0, milliseconds: 0 });
         const isLate = newTime > lateThreshold;
 
         const currentRecord = attendance[staffToEditTime.id] || {};
@@ -226,32 +229,33 @@ export default function StaffManager() {
   }
 
   const handleArchiveLog = async () => {
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
     const recordsToArchive = staff
       .filter(s => attendance[s.id]?.status === 'Clocked-Out' && attendance[s.id]?.checkOutTime)
       .map(s => ({ ...s, log: attendance[s.id] }));
 
     if (recordsToArchive.length === 0) {
-        toast({ variant: 'destructive', title: 'Nothing to Archive', description: 'No staff have been clocked out today.'});
+        toast({ variant: 'destructive', title: 'Nothing to Archive', description: `No staff were clocked out on ${dateStr}.`});
         return;
     }
 
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
-    const newArchive: ArchivedStaffLog = { date: todayStr, records: recordsToArchive };
+    const newArchive: ArchivedStaffLog = { date: dateStr, records: recordsToArchive };
 
-    const updatedLogs = [newArchive, ...archivedLogs.filter(log => log.date !== todayStr)]
+    const updatedLogs = [newArchive, ...archivedLogs.filter(log => log.date !== dateStr)]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
     setArchivedLogs(updatedLogs);
     await saveArchivedStaffLogs(updatedLogs);
 
+    // Reset attendance for that day, only for archived records
     const newAttendance = { ...attendance };
     recordsToArchive.forEach(rec => {
       newAttendance[rec.id] = { status: 'Clocked-Out' };
     });
     setAttendance(newAttendance);
-    await setStaffAttendance(todayStr, newAttendance);
+    await setStaffAttendance(dateStr, newAttendance);
 
-    toast({ title: 'Log Archived', description: 'Today\'s staff log has been archived.'});
+    toast({ title: 'Log Archived', description: `Staff log for ${dateStr} has been archived.`});
   }
 
   const downloadLogReport = (log: ArchivedStaffLog) => {
@@ -527,9 +531,35 @@ export default function StaffManager() {
       </Card>
 
         <Card className="backdrop-blur-sm bg-card/80">
-        <CardHeader>
-            <CardTitle>Daily Clock-in / Clock-out</CardTitle>
-            <CardDescription>Manage staff arrivals and departures for {format(selectedDate, 'PPP')}.</CardDescription>
+        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+                <CardTitle>Daily Clock-in / Clock-out</CardTitle>
+                <CardDescription>Manage staff arrivals and departures for {format(selectedDate, 'PPP')}.</CardDescription>
+            </div>
+             {isAdmin && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={'outline'}
+                  className={cn(
+                    'w-[280px] justify-start text-left font-normal',
+                    !selectedDate && 'text-muted-foreground'
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(day) => day && setSelectedDate(day)}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+             )}
         </CardHeader>
         <CardContent>
             <Table>
@@ -560,7 +590,7 @@ export default function StaffManager() {
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 {record?.checkInTime ? format(new Date(record.checkInTime), 'p') : 'N/A'}
-                                {isAdmin && record?.status === 'Clocked-In' && (
+                                {isAdmin && (
                                   <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openEditTimeDialog(member)}>
                                     <Clock className="h-4 w-4" />
                                   </Button>
@@ -588,18 +618,20 @@ export default function StaffManager() {
         <Card className="backdrop-blur-sm bg-card/80">
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                    <CardTitle>Today's Clocked-Out Log</CardTitle>
-                    <CardDescription>Record of all staff who have clocked out today.</CardDescription>
+                    <CardTitle>Daily Clocked-Out Log</CardTitle>
+                    <CardDescription>Record of all staff who have clocked out on {format(selectedDate, 'PPP')}.</CardDescription>
                 </div>
+                 {isAdmin && (
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button variant="outline" disabled={clockedOutStaff.length === 0}><Archive className="mr-2 h-4 w-4" />Clear &amp; Archive Log</Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
-                        <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will archive today's clock-out log and reset the status for all staff members.</AlertDialogDescription></AlertDialogHeader>
+                        <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will archive the clock-out log for {format(selectedDate, 'PPP')} and reset the status for all staff members.</AlertDialogDescription></AlertDialogHeader>
                         <AlertDialogFooter2><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleArchiveLog}>Continue</AlertDialogAction></AlertDialogFooter2>
                     </AlertDialogContent>
                 </AlertDialog>
+                 )}
             </CardHeader>
             <CardContent>
                 <Table>
@@ -626,7 +658,7 @@ export default function StaffManager() {
                                     <TableCell>{record?.checkedOutBy || 'N/A'}</TableCell>
                                 </TableRow>
                             )
-                        }) : <TableRow><TableCell colSpan={6} className="h-24 text-center">No staff have been clocked out yet.</TableCell></TableRow>}
+                        }) : <TableRow><TableCell colSpan={6} className="h-24 text-center">No staff have been clocked out yet for this day.</TableCell></TableRow>}
                     </TableBody>
                 </Table>
             </CardContent>
@@ -721,9 +753,10 @@ export default function StaffManager() {
 
       <Dialog open={isEditTimeOpen} onOpenChange={setIsEditTimeOpen}>
         <DialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Edit Clock-in Time for {staffToEditTime?.name}</AlertDialogTitle>
-            </AlertDialogHeader>
+            <DialogHeader>
+                <DialogTitle>Edit Clock-in Time for {staffToEditTime?.name}</DialogTitle>
+                <DialogDescription>Set a manual clock-in time for {format(selectedDate, 'PPP')}.</DialogDescription>
+            </DialogHeader>
             <div className="py-4">
                 <Label htmlFor="new-time">New Clock-in Time (24h format)</Label>
                 <Input 

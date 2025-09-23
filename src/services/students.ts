@@ -1,4 +1,5 @@
 
+
 import type { Student } from '@/lib/types';
 import { STUDENTS, ARCHIVED_STUDENTS } from '@/lib/data';
 import { deleteFeeByStudentId } from './fees';
@@ -8,6 +9,10 @@ import { db } from '@/lib/firebase-client';
 import { ref, get, set, update } from 'firebase/database';
 import { STUDENTS_PATH, ARCHIVED_STUDENTS_PATH } from '@/lib/firebase-db';
 
+const AFTERCARE_ATTENDANCE_PATH = 'afterCareAttendance';
+const NURSERY_ATTENDANCE_PATH = 'nurseryAttendance';
+const ARCHIVED_AFTERCARE_LOGS_PATH = 'afterCareArchivedLogs';
+const ARCHIVED_NURSERY_LOGS_PATH = 'nurseryArchivedLogs';
 
 export const getStudents = async (): Promise<Student[]> => {
     const snapshot = await get(ref(db, STUDENTS_PATH));
@@ -88,3 +93,36 @@ export const deleteStudent = async (id: string) => {
     await deleteGradesByStudentId(id);
     await deleteAttendanceByStudentId(id);
 };
+
+// After Care
+export const getAfterCareAttendance = async (date: string) => {
+    const snapshot = await get(ref(db, `${AFTERCARE_ATTENDANCE_PATH}/${date}`));
+    return snapshot.exists() ? snapshot.val() : {};
+}
+export const saveAfterCareAttendance = async (date: string, attendance: any) => {
+    await set(ref(db, `${AFTERCARE_ATTENDANCE_PATH}/${date}`), attendance);
+}
+export const getArchivedAfterCareLogs = async () => {
+    const snapshot = await get(ref(db, ARCHIVED_AFTERCARE_LOGS_PATH));
+    return snapshot.exists() ? Object.values(snapshot.val()) : [];
+}
+export const saveArchivedAfterCareLogs = async (logs: any) => {
+    await set(ref(db, ARCHIVED_AFTERCARE_LOGS_PATH), logs);
+}
+
+// Nursery
+export const getnurseryAttendance = async (date: string) => {
+    const snapshot = await get(ref(db, `${NURSERY_ATTENDANCE_PATH}/${date}`));
+    return snapshot.exists() ? snapshot.val() : {};
+}
+export const savenurseryAttendance = async (date: string, attendance: any) => {
+    await set(ref(db, `${NURSERY_ATTENDANCE_PATH}/${date}`), attendance);
+}
+export const getArchivednurseryLogs = async () => {
+    const snapshot = await get(ref(db, ARCHIVED_NURSERY_LOGS_PATH));
+    return snapshot.exists() ? Object.values(snapshot.val()) : [];
+}
+export const saveArchivednurseryLogs = async (logs: any) => {
+    await set(ref(db, ARCHIVED_NURSERY_LOGS_PATH), logs);
+}
+

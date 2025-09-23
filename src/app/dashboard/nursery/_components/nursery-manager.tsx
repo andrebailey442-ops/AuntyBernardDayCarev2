@@ -23,10 +23,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Student } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { getStudents } from '@/services/students';
+import { getStudents, getnurseryAttendance, savenurseryAttendance, getArchivednurseryLogs, saveArchivednurseryLogs } from '@/services/students';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LogIn, LogOut, Users, Archive, Download, Filter, X } from 'lucide-react';
-import { format, set, isWithinInterval } from 'date-fns';
+import { LogIn, LogOut, Users, Archive, Download, Filter, X, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { format, set, isWithinInterval, parse } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,6 +37,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DateRange } from 'react-day-picker';
 import { Calendar } from '@/components/ui/calendar';
+import { Dialog, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 
 type NurseryStatus = 'Checked-In' | 'Checked-Out';
@@ -59,9 +62,6 @@ type ArchivedLog = {
     records: (Student & { log: NurseryRecord })[];
 }
 
-const NURSERY_STORAGE_KEY = 'nurseryStatuses';
-const ARCHIVED_LOGS_STORAGE_KEY = 'nurseryArchivedLogs';
-
 export default function NurseryManager() {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -69,6 +69,12 @@ export default function NurseryManager() {
   const [studentStatuses, setStudentStatuses] = React.useState<StudentStatus>({});
   const [loading, setLoading] = React.useState(true);
   const [archivedLogs, setArchivedLogs] = React.useState<ArchivedLog[]>([]);
+  const [selectedDate, setSelectedDate] = React.useState(new Date());
+
+  const [isEditTimeOpen, setIsEditTimeOpen] = React.useState(false);
+  const [studentToEditTime, setStudentToEditTime] = React.useState<Student | null>(null);
+  const [newCheckInTime, setNewCheckInTime] = React.useState('');
+  const [newCheckOutTime, setNewCheckOutTime] = React.useState('');
 
   // Log History Filter State
   const [logDateRange, setLogDateRange] = React.useState<DateRange | undefined>();
@@ -77,14 +83,19 @@ export default function NurseryManager() {
 
   const fetchStudentsAndLogs = React.useCallback(async () => {
     setLoading(true);
-    const allStudents = await getStudents();
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    const [allStudents, savedStatuses, savedArchivedLogs] = await Promise.all([
+      getStudents(),
+      getnurseryAttendance(dateStr),
+      getArchivednurseryLogs(),
+    ]);
+
     const nurseryStudents = (allStudents || []).filter(student => student.nursery);
     setStudents(nurseryStudents);
     
-    const savedStatuses = localStorage.getItem(NURSERY_STORAGE_KEY);
     let initialStatuses: StudentStatus = {};
-    if (savedStatuses) {
-      initialStatuses = JSON.parse(savedStatuses);
+    if (Object.keys(savedStatuses).length > 0) {
+      initialStatuses = savedStatuses;
     } else {
       nurseryStudents.forEach(student => {
         initialStatuses[student.id] = { status: 'Checked-Out' };
@@ -92,19 +103,15 @@ export default function NurseryManager() {
     }
     setStudentStatuses(initialStatuses);
     
-    const savedArchivedLogs = localStorage.getItem(ARCHIVED_LOGS_STORAGE_KEY);
-    if (savedArchivedLogs) {
-        setArchivedLogs(JSON.parse(savedArchivedLogs));
-    }
-
+    setArchivedLogs(savedArchivedLogs || []);
     setLoading(false);
-  }, []);
+  }, [selectedDate]);
 
   React.useEffect(() => {
     fetchStudentsAndLogs();
   }, [fetchStudentsAndLogs]);
 
-  const handleToggleStatus = (studentId: string) => {
+  const handleToggleStatus = async (studentId: string) => {
     const currentRecord = studentStatuses[studentId] || { status: 'Checked-Out' };
     const now = new Date();
     const currentUsername = user?.username || 'Unknown';
@@ -145,7 +152,54 @@ export default function NurseryManager() {
     };
 
     setStudentStatuses(updatedStatuses);
-    localStorage.setItem(NURSERY_STORAGE_KEY, JSON.stringify(updatedStatuses));
+    await savenurseryAttendance(format(selectedDate, 'yyyy-MM-dd'), updatedStatuses);
+  };
+  
+  const handleEditTime = async () => {
+    if (!studentToEditTime) return;
+  
+    try {
+      const record = studentStatuses[studentToEditTime.id] || { status: 'Checked-Out' };
+      const newRecord = { ...record };
+  
+      if (newCheckInTime) {
+        const checkInDate = parse(newCheckInTime, 'HH:mm', selectedDate);
+        newRecord.checkInTime = checkInDate.toISOString();
+        newRecord.checkedInBy = user?.username || 'Admin';
+        newRecord.status = 'Checked-In';
+      }
+  
+      if (newCheckOutTime) {
+        const checkOutDate = parse(newCheckOutTime, 'HH:mm', selectedDate);
+        const closingTime = set(checkOutDate, { hours: 18, minutes: 0, seconds: 0, milliseconds: 0 });
+        let overtimeMinutes = 0;
+        if (checkOutDate > closingTime) {
+          overtimeMinutes = Math.round((checkOutDate.getTime() - closingTime.getTime()) / (1000 * 60));
+        }
+        newRecord.checkOutTime = checkOutDate.toISOString();
+        newRecord.checkedOutBy = user?.username || 'Admin';
+        newRecord.overtimeMinutes = overtimeMinutes;
+        newRecord.status = 'Checked-Out';
+      }
+  
+      const updatedStatuses = { ...studentStatuses, [studentToEditTime.id]: newRecord };
+      setStudentStatuses(updatedStatuses);
+      await savenurseryAttendance(format(selectedDate, 'yyyy-MM-dd'), updatedStatuses);
+  
+      toast({ title: 'Log Updated', description: `Log for ${studentToEditTime.name} has been updated.` });
+      setIsEditTimeOpen(false);
+    } catch (error) {
+      console.error("Failed to update log time:", error);
+      toast({ variant: 'destructive', title: 'Update Failed', description: 'Please enter a valid time (e.g., 09:30).' });
+    }
+  };
+
+  const openEditTimeDialog = (student: Student) => {
+    setStudentToEditTime(student);
+    const record = studentStatuses[student.id];
+    setNewCheckInTime(record?.checkInTime ? format(new Date(record.checkInTime), 'HH:mm') : '');
+    setNewCheckOutTime(record?.checkOutTime ? format(new Date(record.checkOutTime), 'HH:mm') : '');
+    setIsEditTimeOpen(true);
   };
   
   const getStatusVariant = (status: NurseryStatus) => {
@@ -158,52 +212,36 @@ export default function NurseryManager() {
 
   const checkedInCount = Object.values(studentStatuses).filter(s => s.status === 'Checked-In').length;
 
-  const handleArchiveLog = () => {
-    const recordsToArchive = checkedOutStudents.map(student => ({
+  const handleArchiveLog = async () => {
+    const dateStr = format(selectedDate, 'yyyy-MM-dd');
+    const recordsToArchive = students
+        .filter(s => studentStatuses[s.id]?.status === 'Checked-Out' && studentStatuses[s.id]?.checkOutTime)
+        .map(student => ({
         ...student,
         log: studentStatuses[student.id],
     }));
 
     if (recordsToArchive.length === 0) {
-        toast({ variant: 'destructive', title: 'Nothing to Archive', description: 'No students have been checked out today.'});
+        toast({ variant: 'destructive', title: 'Nothing to Archive', description: `No students were checked out on ${dateStr}.` });
         return;
     }
 
-    const todayStr = format(new Date(), 'yyyy-MM-dd');
-    const existingLogIndex = archivedLogs.findIndex(log => log.date === todayStr);
+    const newArchive: ArchivedLog = { date: dateStr, records: recordsToArchive };
+
+    const updatedLogs = [newArchive, ...archivedLogs.filter(log => log.date !== dateStr)]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
-    let updatedArchivedLogs: ArchivedLog[];
+    setArchivedLogs(updatedLogs);
+    await saveArchivednurseryLogs(updatedLogs);
 
-    if (existingLogIndex > -1) {
-        // Append to existing log for today
-        updatedArchivedLogs = [...archivedLogs];
-        const existingRecords = updatedArchivedLogs[existingLogIndex].records;
-        const newRecordIds = new Set(recordsToArchive.map(r => r.id));
-        // Filter out any students that might already be in the log for today to prevent duplicates
-        const updatedRecords = existingRecords.filter(r => !newRecordIds.has(r.id));
-        updatedArchivedLogs[existingLogIndex].records = [...updatedRecords, ...recordsToArchive];
-
-    } else {
-        // Create a new log for today
-        const newArchive: ArchivedLog = {
-            date: todayStr,
-            records: recordsToArchive
-        }
-        updatedArchivedLogs = [newArchive, ...archivedLogs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }
-
-    setArchivedLogs(updatedArchivedLogs);
-    localStorage.setItem(ARCHIVED_LOGS_STORAGE_KEY, JSON.stringify(updatedArchivedLogs));
-
-    // Reset student statuses for checked out students
     const newStatuses = { ...studentStatuses };
-    checkedOutStudents.forEach(student => {
-      newStatuses[student.id] = { status: 'Checked-Out' }; // Reset their record
+    recordsToArchive.forEach(rec => {
+      newStatuses[rec.id] = { status: 'Checked-Out' }; // Reset their record
     });
     setStudentStatuses(newStatuses);
-    localStorage.setItem(NURSERY_STORAGE_KEY, JSON.stringify(newStatuses));
+    await savenurseryAttendance(dateStr, newStatuses);
 
-    toast({ title: 'Log Archived', description: 'Today\'s checkout log has been archived.'});
+    toast({ title: 'Log Archived', description: `The checkout log for ${dateStr} has been archived.` });
   }
 
   const addLogoAndHeader = (doc: jsPDF, title: string) => {
@@ -301,6 +339,8 @@ export default function NurseryManager() {
     setLogOvertimeFilter('all');
   }
 
+  const isAdmin = user?.role === 'Admin';
+
   return (
     <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -342,11 +382,37 @@ export default function NurseryManager() {
             </Card>
         </div>
         <Card className="backdrop-blur-sm bg-card/80">
-        <CardHeader>
-            <CardTitle>Nursery Check-in/Check-out</CardTitle>
-            <CardDescription>
-            Manage student arrivals and departures for the nursery program.
-            </CardDescription>
+        <CardHeader className="flex flex-col md:flex-row md:items-center md:justify-between">
+            <div>
+                <CardTitle>Nursery Check-in/Check-out</CardTitle>
+                <CardDescription>
+                Manage student arrivals and departures for {format(selectedDate, 'PPP')}.
+                </CardDescription>
+            </div>
+            {isAdmin && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={'outline'}
+                  className={cn(
+                    'w-[280px] justify-start text-left font-normal',
+                    !selectedDate && 'text-muted-foreground'
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(day) => day && setSelectedDate(day)}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            )}
         </CardHeader>
         <CardContent>
             <Table>
@@ -404,7 +470,12 @@ export default function NurseryManager() {
                     <TableCell>
                         {record?.checkedInBy || 'N/A'}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right space-x-2">
+                        {isAdmin && (
+                            <Button variant="outline" size="sm" onClick={() => openEditTimeDialog(student)}>
+                                <Clock className="mr-2 h-4 w-4" /> Edit Time
+                            </Button>
+                        )}
                         <Button
                             variant={record?.status === 'Checked-In' ? 'destructive' : 'default'}
                             onClick={() => handleToggleStatus(student.id)}
@@ -433,11 +504,12 @@ export default function NurseryManager() {
         <Card className="backdrop-blur-sm bg-card/80">
             <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                    <CardTitle>Today's Checked-Out Log</CardTitle>
+                    <CardTitle>Daily Checked-Out Log</CardTitle>
                     <CardDescription>
-                    Record of all students who have been checked out today.
+                     Record of all students who have been checked out on {format(selectedDate, 'PPP')}.
                     </CardDescription>
                 </div>
+                 {isAdmin && (
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button variant="outline" disabled={checkedOutStudents.length === 0}>
@@ -449,7 +521,7 @@ export default function NurseryManager() {
                         <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will move today's checkout log to the archives and reset the check-in status for all students. This is typically done at the end of the day.
+                            This will move the checkout log for {format(selectedDate, 'PPP')} to the archives and reset the check-in status for all students.
                         </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -458,6 +530,7 @@ export default function NurseryManager() {
                         </AlertDialogFooter>
                     </AlertDialogContent>
                 </AlertDialog>
+                 )}
             </CardHeader>
             <CardContent>
                 <Table>
@@ -511,7 +584,7 @@ export default function NurseryManager() {
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={7} className="h-24 text-center">
-                                    No students have been checked out yet.
+                                    No students have been checked out yet for this day.
                                 </TableCell>
                             </TableRow>
                         )}
@@ -643,6 +716,28 @@ export default function NurseryManager() {
                 )}
             </CardContent>
         </Card>
+        <Dialog open={isEditTimeOpen} onOpenChange={setIsEditTimeOpen}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Edit Log for {studentToEditTime?.name}</DialogTitle>
+                    <DialogDescription>Manually enter check-in and check-out times for {format(selectedDate, 'PPP')}.</DialogDescription>
+                </DialogHeader>
+                <div className="py-4 space-y-4">
+                    <div>
+                        <Label htmlFor="check-in-time">Check-in Time (24h format)</Label>
+                        <Input id="check-in-time" type="time" value={newCheckInTime} onChange={(e) => setNewCheckInTime(e.target.value)} />
+                    </div>
+                    <div>
+                        <Label htmlFor="check-out-time">Check-out Time (24h format)</Label>
+                        <Input id="check-out-time" type="time" value={newCheckOutTime} onChange={(e) => setNewCheckOutTime(e.target.value)} />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsEditTimeOpen(false)}>Cancel</Button>
+                    <Button onClick={handleEditTime}>Save Log</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </div>
   );
 }
