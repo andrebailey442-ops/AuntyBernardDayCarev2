@@ -46,8 +46,8 @@ export default function LoginPage() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      emailOrUsername: 'Admin',
-      password: 'admin',
+      emailOrUsername: '',
+      password: '',
     },
   });
 
@@ -140,7 +140,7 @@ export default function LoginPage() {
                         <FormControl>
                         <Input
                             type="password"
-                            placeholder="admin"
+                            placeholder="password"
                             {...field}
                             disabled={pageLoading}
                         />
