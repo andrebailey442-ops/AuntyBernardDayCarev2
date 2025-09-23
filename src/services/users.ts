@@ -5,9 +5,17 @@ import { ref, get, set, remove, query, orderByChild, equalTo } from 'firebase/da
 import { USERS_PATH, APP_STATE_PATH } from '@/lib/firebase-db';
 
 export const isFirstRun = async (): Promise<boolean> => {
-    const appStateRef = ref(db, `${APP_STATE_PATH}/isInitialized`);
-    const snapshot = await get(appStateRef);
-    return !snapshot.exists() || !snapshot.val();
+    try {
+        const appStateRef = ref(db, `${APP_STATE_PATH}/isInitialized`);
+        const snapshot = await get(appStateRef);
+        return !snapshot.exists() || !snapshot.val();
+    } catch (error: any) {
+        if (error.code === 'PERMISSION_DENIED') {
+            console.warn("Permission denied when checking for first run. Assuming it's the first run. Please update your database rules for full functionality.");
+            return true;
+        }
+        throw error;
+    }
 }
 
 export const setFirstRunComplete = async (): Promise<void> => {
@@ -21,6 +29,7 @@ export const getUsers = async (): Promise<User[]> => {
     const snapshot = await get(usersRef);
     if (snapshot.exists()) {
         const usersData = snapshot.val();
+        // Firebase returns an object, so we convert it to an array
         return Object.keys(usersData).map(key => ({
             id: key,
             ...usersData[key]
@@ -34,8 +43,8 @@ export const findUserByUsername = async (username: string): Promise<User | null>
     const loginIdentifier = username.toLowerCase();
     
     const user = users.find(u => 
-        u.email?.toLowerCase() === loginIdentifier || 
-        u.username.toLowerCase() === loginIdentifier
+        (u.email && u.email.toLowerCase() === loginIdentifier) || 
+        (u.username && u.username.toLowerCase() === loginIdentifier)
     );
     
     return user || null;
