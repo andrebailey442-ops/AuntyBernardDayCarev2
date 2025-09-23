@@ -168,9 +168,9 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     });
 
   React.useEffect(() => {
-    const fetchStudent = () => {
+    const fetchStudent = async () => {
         setIsFetching(true);
-        const studentData = getStudent(studentId);
+        const studentData = await getStudent(studentId);
         if (studentData) {
             setStudent(studentData);
             const [firstName, ...lastName] = studentData.name.split(' ');
