@@ -25,13 +25,18 @@ import type { Student } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { getStudents } from '@/services/students';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LogIn, LogOut, Users, Archive, Trash2, Download } from 'lucide-react';
-import { format, set } from 'date-fns';
+import { LogIn, LogOut, Users, Archive, Download, Filter, X } from 'lucide-react';
+import { format, set, isWithinInterval } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DateRange } from 'react-day-picker';
+import { Calendar } from '@/components/ui/calendar';
 
 
 type AfterCareStatus = 'Checked-In' | 'Checked-Out';
@@ -64,6 +69,11 @@ export default function AfterCareManager() {
   const [studentStatuses, setStudentStatuses] = React.useState<StudentStatus>({});
   const [loading, setLoading] = React.useState(true);
   const [archivedLogs, setArchivedLogs] = React.useState<ArchivedLog[]>([]);
+
+  // Log History Filter State
+  const [logDateRange, setLogDateRange] = React.useState<DateRange | undefined>();
+  const [logStudentFilter, setLogStudentFilter] = React.useState<string>('all');
+  const [logOvertimeFilter, setLogOvertimeFilter] = React.useState<'all' | 'overtime' | 'none'>('all');
 
   const fetchStudentsAndLogs = React.useCallback(async () => {
     setLoading(true);
@@ -251,6 +261,40 @@ export default function AfterCareManager() {
     }
   }
 
+  const filteredLogs = React.useMemo(() => {
+    return archivedLogs.map(log => {
+        let filteredRecords = log.records;
+
+        if (logDateRange?.from && logDateRange?.to) {
+            const logDate = new Date(log.date + 'T00:00:00');
+            if (!isWithinInterval(logDate, { start: logDateRange.from, end: logDateRange.to })) {
+                return { ...log, records: [] };
+            }
+        }
+        
+        if (logStudentFilter !== 'all') {
+            filteredRecords = filteredRecords.filter(record => record.id === logStudentFilter);
+        }
+
+        if (logOvertimeFilter !== 'all') {
+            filteredRecords = filteredRecords.filter(record => {
+                if (logOvertimeFilter === 'overtime') return record.log.overtimeMinutes && record.log.overtimeMinutes > 0;
+                if (logOvertimeFilter === 'none') return !record.log.overtimeMinutes || record.log.overtimeMinutes === 0;
+                return true;
+            });
+        }
+        
+        return { ...log, records: filteredRecords };
+    }).filter(log => log.records.length > 0);
+  }, [archivedLogs, logDateRange, logStudentFilter, logOvertimeFilter]);
+
+  const isAnyFilterActive = logDateRange || logStudentFilter !== 'all' || logOvertimeFilter !== 'all';
+  
+  const resetLogFilters = () => {
+    setLogDateRange(undefined);
+    setLogStudentFilter('all');
+    setLogOvertimeFilter('all');
+  }
 
   return (
     <div className="space-y-6">
@@ -471,21 +515,72 @@ export default function AfterCareManager() {
             </CardContent>
         </Card>
          <Card className="backdrop-blur-sm bg-card/80">
-            <CardHeader>
-                <CardTitle>Log History</CardTitle>
-                <CardDescription>
-                Review checkout logs from previous days.
-                </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Log History</CardTitle>
+                    <CardDescription>Review checkout logs from previous days.</CardDescription>
+                </div>
+                 <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant="outline" className="relative">
+                            <Filter className="mr-2 h-4 w-4" />
+                            Filter
+                            {isAnyFilterActive && <span className="absolute top-0 right-0 -mt-1 -mr-1 h-2 w-2 rounded-full bg-primary" />}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-96">
+                        <div className="grid gap-4">
+                            <div className="space-y-2">
+                                <h4 className="font-medium leading-none">Filters</h4>
+                                <p className="text-sm text-muted-foreground">Filter the log history.</p>
+                            </div>
+                            <div className="grid gap-2">
+                                <div className="grid grid-cols-3 items-center gap-4">
+                                    <Label>Date Range</Label>
+                                    <div className="col-span-2">
+                                        <Calendar mode="range" selected={logDateRange} onSelect={setLogDateRange} />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-3 items-center gap-4">
+                                    <Label>Student</Label>
+                                    <Select value={logStudentFilter} onValueChange={setLogStudentFilter}>
+                                        <SelectTrigger className="col-span-2"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Students</SelectItem>
+                                            {students.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid grid-cols-3 items-center gap-4">
+                                    <Label>Overtime</Label>
+                                    <Select value={logOvertimeFilter} onValueChange={(v: any) => setLogOvertimeFilter(v)}>
+                                        <SelectTrigger className="col-span-2"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All</SelectItem>
+                                            <SelectItem value="overtime">Has Overtime</SelectItem>
+                                            <SelectItem value="none">No Overtime</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                {isAnyFilterActive && (
+                                    <Button variant="ghost" size="sm" onClick={resetLogFilters} className="justify-self-start">
+                                        <X className="mr-2 h-4 w-4" /> Clear Filters
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    </PopoverContent>
+                </Popover>
             </CardHeader>
             <CardContent>
-                {archivedLogs.length > 0 ? (
-                    <Tabs defaultValue={archivedLogs[0].date} className="w-full">
+                {filteredLogs.length > 0 ? (
+                    <Tabs defaultValue={filteredLogs[0].date} className="w-full">
                         <TabsList>
-                            {archivedLogs.map(log => (
+                            {filteredLogs.map(log => (
                                 <TabsTrigger key={log.date} value={log.date}>{format(new Date(log.date + 'T00:00:00'), 'PPP')}</TabsTrigger>
                             ))}
                         </TabsList>
-                        {archivedLogs.map(log => (
+                        {filteredLogs.map(log => (
                              <TabsContent key={log.date} value={log.date}>
                                 <div className="flex justify-end mb-4">
                                      <Button variant="outline" size="sm" onClick={() => downloadLogReport(log)}>
@@ -538,7 +633,7 @@ export default function AfterCareManager() {
                     </Tabs>
                 ): (
                     <div className="text-center text-muted-foreground py-8">
-                        No archived logs found.
+                        No archived logs found for the selected filters.
                     </div>
                 )}
             </CardContent>
@@ -546,9 +641,3 @@ export default function AfterCareManager() {
     </div>
   );
 }
-
-    
-
-    
-
-    

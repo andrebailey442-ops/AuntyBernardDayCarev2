@@ -25,11 +25,11 @@ import { useToast } from '@/hooks/use-toast';
 import { getStaff, deleteStaff, getStaffSchedule, setStaffSchedule, getStaffAttendance, setStaffAttendance, getArchivedStaffLogs, saveArchivedStaffLogs } from '@/services/staff';
 import type { Staff, StaffRole, StaffSchedule, StaffAttendance, StaffClockRecord, ArchivedStaffLog } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MoreHorizontal, PlusCircle, Trash2, Edit, User, LogIn, LogOut, Archive, Download, Clock } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Trash2, Edit, User, LogIn, LogOut, Archive, Download, Clock, Filter, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogFooter as AlertDialogFooter2 } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
-import { format, startOfWeek, addDays, eachDayOfInterval, set, parse } from 'date-fns';
+import { format, startOfWeek, addDays, eachDayOfInterval, set, parse, isWithinInterval } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { StaffForm } from './staff-form';
 import { useRouter } from 'next/navigation';
@@ -38,6 +38,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DateRange } from 'react-day-picker';
+import { Calendar } from '@/components/ui/calendar';
 
 
 export const staffRoles: StaffRole[] = ['Preschool Attendant', 'Aftercare Attendant', 'Nursery Attendant'];
@@ -63,6 +67,11 @@ export default function StaffManager() {
   const [isEditTimeOpen, setIsEditTimeOpen] = React.useState(false);
   const [staffToEditTime, setStaffToEditTime] = React.useState<Staff | null>(null);
   const [newClockInTime, setNewClockInTime] = React.useState('');
+  
+  // Log History Filter State
+  const [logDateRange, setLogDateRange] = React.useState<DateRange | undefined>();
+  const [logStaffFilter, setLogStaffFilter] = React.useState<string>('all');
+  const [logLatenessFilter, setLogLatenessFilter] = React.useState<'all' | 'late' | 'on-time'>('all');
 
   const fetchData = React.useCallback(async () => {
     setLoading(true);
@@ -258,13 +267,14 @@ export default function StaffManager() {
         doc.setLineWidth(0.5);
         doc.line(20, 40, 190, 40);
 
-        const tableColumn = ["Staff", "Clock-in Time", "Clocked In By", "Clock-out Time", "Clocked Out By"];
+        const tableColumn = ["Staff", "Clock-in Time", "Clocked In By", "Clock-out Time", "Clocked Out By", "Lateness"];
         const tableRows: (string | null)[][] = log.records.map(record => [
             record.name,
             record.log.checkInTime ? format(new Date(record.log.checkInTime), 'p') : 'N/A',
             record.log.checkedInBy || 'N/A',
             record.log.checkOutTime ? format(new Date(record.log.checkOutTime), 'p') : 'N/A',
-            record.log.checkedOutBy || 'N/A'
+            record.log.checkedOutBy || 'N/A',
+            record.log.isLate ? 'Late' : 'On Time'
         ]);
 
         (doc as any).autoTable({ head: [tableColumn], body: tableRows, startY: 50 });
@@ -333,6 +343,41 @@ export default function StaffManager() {
         toast({ variant: 'destructive', title: 'Download Failed', description: 'Could not generate the roster PDF.' });
     }
   };
+
+  const filteredLogs = React.useMemo(() => {
+    return archivedLogs.map(log => {
+        let filteredRecords = log.records;
+
+        if (logDateRange?.from && logDateRange?.to) {
+            const logDate = new Date(log.date + 'T00:00:00');
+            if (!isWithinInterval(logDate, { start: logDateRange.from, end: logDateRange.to })) {
+                return { ...log, records: [] };
+            }
+        }
+
+        if (logStaffFilter !== 'all') {
+            filteredRecords = filteredRecords.filter(record => record.id === logStaffFilter);
+        }
+
+        if (logLatenessFilter !== 'all') {
+            filteredRecords = filteredRecords.filter(record => {
+                if (logLatenessFilter === 'late') return record.log.isLate === true;
+                if (logLatenessFilter === 'on-time') return record.log.isLate !== true;
+                return true;
+            });
+        }
+        
+        return { ...log, records: filteredRecords };
+    }).filter(log => log.records.length > 0);
+  }, [archivedLogs, logDateRange, logStaffFilter, logLatenessFilter]);
+
+  const isAnyFilterActive = logDateRange || logStaffFilter !== 'all' || logLatenessFilter !== 'all';
+  
+  const resetLogFilters = () => {
+    setLogDateRange(undefined);
+    setLogStaffFilter('all');
+    setLogLatenessFilter('all');
+  }
 
   const isAdmin = user?.role === 'Admin';
 
@@ -551,6 +596,7 @@ export default function StaffManager() {
                         <TableRow>
                         <TableHead>Staff Member</TableHead>
                         <TableHead>Clock-in Time</TableHead>
+                        <TableHead>Lateness</TableHead>
                         <TableHead>Clocked In By</TableHead>
                         <TableHead>Clock-out Time</TableHead>
                         <TableHead>Clocked Out By</TableHead>
@@ -563,33 +609,91 @@ export default function StaffManager() {
                                 <TableRow key={member.id}>
                                     <TableCell>{member.name}</TableCell>
                                     <TableCell>{record?.checkInTime ? format(new Date(record.checkInTime), 'p') : 'N/A'}</TableCell>
+                                    <TableCell>{record?.isLate ? <Badge variant="destructive">Late</Badge> : <Badge variant="secondary">On Time</Badge>}</TableCell>
                                     <TableCell>{record?.checkedInBy || 'N/A'}</TableCell>
                                     <TableCell>{record?.checkOutTime ? format(new Date(record.checkOutTime), 'p') : 'N/A'}</TableCell>
                                     <TableCell>{record?.checkedOutBy || 'N/A'}</TableCell>
                                 </TableRow>
                             )
-                        }) : <TableRow><TableCell colSpan={5} className="h-24 text-center">No staff have been clocked out yet.</TableCell></TableRow>}
+                        }) : <TableRow><TableCell colSpan={6} className="h-24 text-center">No staff have been clocked out yet.</TableCell></TableRow>}
                     </TableBody>
                 </Table>
             </CardContent>
         </Card>
 
         <Card className="backdrop-blur-sm bg-card/80">
-            <CardHeader><CardTitle>Log History</CardTitle><CardDescription>Review clock-out logs from previous days.</CardDescription></CardHeader>
+             <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Log History</CardTitle>
+                    <CardDescription>Review clock-out logs from previous days.</CardDescription>
+                </div>
+                 <Popover>
+                    <PopoverTrigger asChild>
+                        <Button variant="outline" className="relative">
+                            <Filter className="mr-2 h-4 w-4" />
+                            Filter
+                            {isAnyFilterActive && <span className="absolute top-0 right-0 -mt-1 -mr-1 h-2 w-2 rounded-full bg-primary" />}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-96">
+                        <div className="grid gap-4">
+                            <div className="space-y-2">
+                                <h4 className="font-medium leading-none">Filters</h4>
+                                <p className="text-sm text-muted-foreground">Filter the log history.</p>
+                            </div>
+                            <div className="grid gap-2">
+                                <div className="grid grid-cols-3 items-center gap-4">
+                                    <Label>Date Range</Label>
+                                    <div className="col-span-2">
+                                        <Calendar mode="range" selected={logDateRange} onSelect={setLogDateRange} />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-3 items-center gap-4">
+                                    <Label>Staff Member</Label>
+                                    <Select value={logStaffFilter} onValueChange={setLogStaffFilter}>
+                                        <SelectTrigger className="col-span-2"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Staff</SelectItem>
+                                            {staff.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid grid-cols-3 items-center gap-4">
+                                    <Label>Lateness</Label>
+                                    <Select value={logLatenessFilter} onValueChange={(v: any) => setLogLatenessFilter(v)}>
+                                        <SelectTrigger className="col-span-2"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All</SelectItem>
+                                            <SelectItem value="late">Late</SelectItem>
+                                            <SelectItem value="on-time">On Time</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                {isAnyFilterActive && (
+                                    <Button variant="ghost" size="sm" onClick={resetLogFilters} className="justify-self-start">
+                                        <X className="mr-2 h-4 w-4" /> Clear Filters
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    </PopoverContent>
+                </Popover>
+            </CardHeader>
             <CardContent>
-                {archivedLogs.length > 0 ? (
-                    <Tabs defaultValue={archivedLogs[0].date} className="w-full">
-                        <TabsList>{archivedLogs.map(log => <TabsTrigger key={log.date} value={log.date}>{format(new Date(log.date + 'T00:00:00'), 'PPP')}</TabsTrigger>)}</TabsList>
-                        {archivedLogs.map(log => (
+                {filteredLogs.length > 0 ? (
+                    <Tabs defaultValue={filteredLogs[0].date} className="w-full">
+                        <TabsList>{filteredLogs.map(log => <TabsTrigger key={log.date} value={log.date}>{format(new Date(log.date + 'T00:00:00'), 'PPP')}</TabsTrigger>)}</TabsList>
+                        {filteredLogs.map(log => (
                              <TabsContent key={log.date} value={log.date}>
                                 <div className="flex justify-end mb-4"><Button variant="outline" size="sm" onClick={() => downloadLogReport(log)}><Download className="mr-2 h-4 w-4" />Download Log</Button></div>
                                 <Table>
-                                    <TableHeader><TableRow><TableHead>Staff</TableHead><TableHead>Clock-in</TableHead><TableHead>By</TableHead><TableHead>Clock-out</TableHead><TableHead>By</TableHead></TableRow></TableHeader>
+                                    <TableHeader><TableRow><TableHead>Staff</TableHead><TableHead>Clock-in</TableHead><TableHead>Lateness</TableHead><TableHead>By</TableHead><TableHead>Clock-out</TableHead><TableHead>By</TableHead></TableRow></TableHeader>
                                     <TableBody>
                                         {log.records.map(rec => (
                                             <TableRow key={rec.id}>
                                                 <TableCell>{rec.name}</TableCell>
                                                 <TableCell>{rec.log.checkInTime ? format(new Date(rec.log.checkInTime), 'p') : 'N/A'}</TableCell>
+                                                <TableCell>{rec.log.isLate ? <Badge variant="destructive">Late</Badge> : 'On Time'}</TableCell>
                                                 <TableCell>{rec.log.checkedInBy || 'N/A'}</TableCell>
                                                 <TableCell>{rec.log.checkOutTime ? format(new Date(rec.log.checkOutTime), 'p') : 'N/A'}</TableCell>
                                                 <TableCell>{rec.log.checkedOutBy || 'N/A'}</TableCell>
@@ -600,7 +704,7 @@ export default function StaffManager() {
                             </TabsContent>
                         ))}
                     </Tabs>
-                ) : <div className="text-center text-muted-foreground py-8">No archived logs found.</div>}
+                ) : <div className="text-center text-muted-foreground py-8">No archived logs found for the selected filters.</div>}
             </CardContent>
         </Card>
 
@@ -645,7 +749,3 @@ export default function StaffManager() {
     </div>
   );
 }
-
-    
-
-    
