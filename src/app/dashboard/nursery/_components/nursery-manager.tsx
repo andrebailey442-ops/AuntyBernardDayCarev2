@@ -37,7 +37,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DateRange } from 'react-day-picker';
 import { Calendar } from '@/components/ui/calendar';
-import { Dialog, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
@@ -386,7 +386,7 @@ export default function NurseryManager() {
             <div>
                 <CardTitle>Nursery Check-in/Check-out</CardTitle>
                 <CardDescription>
-                Manage student arrivals and departures for {format(selectedDate, 'PPP')}.
+                Manage student arrivals and departures for ${format(selectedDate, 'PPP')}.
                 </CardDescription>
             </div>
             {isAdmin && (
@@ -506,7 +506,7 @@ export default function NurseryManager() {
                 <div>
                     <CardTitle>Daily Checked-Out Log</CardTitle>
                     <CardDescription>
-                     Record of all students who have been checked out on {format(selectedDate, 'PPP')}.
+                     Record of all students who have been checked out on ${format(selectedDate, 'PPP')}.
                     </CardDescription>
                 </div>
                  {isAdmin && (
@@ -521,7 +521,7 @@ export default function NurseryManager() {
                         <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will move the checkout log for {format(selectedDate, 'PPP')} to the archives and reset the check-in status for all students.
+                            This will move the checkout log for ${format(selectedDate, 'PPP')} to the archives and reset the check-in status for all students.
                         </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -720,7 +720,7 @@ export default function NurseryManager() {
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Edit Log for {studentToEditTime?.name}</DialogTitle>
-                    <DialogDescription>Manually enter check-in and check-out times for {format(selectedDate, 'PPP')}.</DialogDescription>
+                    <DialogDescription>Manually enter check-in and check-out times for ${format(selectedDate, 'PPP')}.</DialogDescription>
                 </DialogHeader>
                 <div className="py-4 space-y-4">
                     <div>
@@ -741,3 +741,4 @@ export default function NurseryManager() {
     </div>
   );
 }
+
