@@ -34,12 +34,12 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const fetchData = () => {
+    const fetchData = async () => {
         setLoading(true);
-        const studentData = getStudent(studentId);
+        const studentData = await getStudent(studentId);
         if (studentData) {
             setStudent(studentData);
-            const feeData = getFeeByStudentId(studentId);
+            const feeData = await getFeeByStudentId(studentId);
             if (feeData) {
             setFee(feeData);
             }
@@ -99,7 +99,7 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
         <div className="flex flex-col items-center gap-4 mb-4">
             <Avatar className="h-24 w-24">
                 <AvatarImage src={student.avatarUrl} alt={student.name} />
-                <AvatarFallback>{student.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                <AvatarFallback>{student.name ? student.name.split(' ').map(n => n[0]).join('') : ''}</AvatarFallback>
             </Avatar>
             <CardTitle className="text-3xl">{student.name}</CardTitle>
         </div>
