@@ -36,36 +36,19 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-const superUserSchema = z.object({
-    username: z.string().min(3, { message: 'Username must be at least 3 characters.'}),
-    email: z.string().email({ message: 'Please enter a valid email.' }),
-    password: z.string().min(6, { message: 'Password must be at least 6 characters.'}),
-});
-
-type SuperUserFormValues = z.infer<typeof superUserSchema>;
-
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
-  const { login, user, loading: authLoading, isFirstRun, completeFirstRun } = useAuth();
+  const { login, user, loading: authLoading } = useAuth();
 
-  const loginForm = useForm<LoginFormValues>({
+  const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       emailOrUsername: 'Admin',
       password: 'admin',
     },
   });
-
-  const superUserForm = useForm<SuperUserFormValues>({
-    resolver: zodResolver(superUserSchema),
-    defaultValues: {
-        username: '',
-        email: '',
-        password: '',
-    }
-  })
 
   const handleLogin = async (data: LoginFormValues) => {
     setIsLoading(true);
@@ -91,26 +74,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleSuperUserSubmit = async (data: SuperUserFormValues) => {
-    setIsLoading(true);
-    try {
-        await completeFirstRun(data.username, data.email, data.password);
-        toast({
-            title: 'Admin Account Created!',
-            description: 'You can now log in with your new credentials.',
-        });
-        // The isFirstRun state will automatically update in useAuth, which will re-render this page to show the login form.
-    } catch (error) {
-        toast({
-            variant: 'destructive',
-            title: 'Creation Failed',
-            description: 'Could not create the admin account. Please try again.',
-        });
-    } finally {
-        setIsLoading(false);
-    }
-  }
-
   React.useEffect(() => {
     // If a user is already logged in from a previous session, redirect.
     if (user && !authLoading) {
@@ -119,55 +82,6 @@ export default function LoginPage() {
   }, [user, authLoading, router]);
 
   const pageLoading = authLoading || isLoading;
-
-  if (isFirstRun === undefined || authLoading) {
-      return (
-          <main className="relative flex min-h-screen flex-col items-center justify-center bg-background p-4 overflow-hidden">
-               <WallArt />
-               <p>Loading...</p>
-          </main>
-      )
-  }
-  
-  if (isFirstRun) {
-    return (
-        <main className="relative flex min-h-screen flex-col items-center justify-center bg-background p-4 overflow-hidden">
-             <WallArt />
-            <div className="relative z-10 w-full max-w-md space-y-6">
-                <div className="flex flex-col items-center gap-4 text-center">
-                    <BusyBeeLogo className="h-12 w-12 text-primary" />
-                    <h1 className="text-3xl font-bold">Welcome!</h1>
-                    <p className="text-muted-foreground">
-                        It looks like this is the first time you're running the app. Please create a Super Admin account to get started.
-                    </p>
-                </div>
-                <Card className="backdrop-blur-sm bg-card/80">
-                    <CardHeader>
-                        <CardTitle>Create Super Admin</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <Form {...superUserForm}>
-                            <form onSubmit={superUserForm.handleSubmit(handleSuperUserSubmit)} className="space-y-4">
-                                <FormField control={superUserForm.control} name="username" render={({ field }) => (
-                                    <FormItem><FormLabel>Username</FormLabel><FormControl><Input placeholder="e.g., SuperAdmin" {...field} /></FormControl><FormMessage /></FormItem>
-                                )}/>
-                                <FormField control={superUserForm.control} name="email" render={({ field }) => (
-                                    <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="admin@example.com" {...field} /></FormControl><FormMessage /></FormItem>
-                                )}/>
-                                 <FormField control={superUserForm.control} name="password" render={({ field }) => (
-                                    <FormItem><FormLabel>Password</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
-                                )}/>
-                                <Button type="submit" className="w-full" disabled={pageLoading}>
-                                    {pageLoading ? 'Creating Account...' : 'Create Admin Account'}
-                                </Button>
-                            </form>
-                        </Form>
-                    </CardContent>
-                </Card>
-            </div>
-        </main>
-    )
-  }
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center bg-background p-4 overflow-hidden">
@@ -188,10 +102,10 @@ export default function LoginPage() {
               <CardDescription>Use "Admin" and "admin" to sign in.</CardDescription>
             </CardHeader>
             <CardContent>
-            <Form {...loginForm}>
-                <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-4">
                   <FormField
-                      control={loginForm.control}
+                      control={form.control}
                       name="emailOrUsername"
                       render={({ field }) => (
                       <FormItem>
@@ -208,7 +122,7 @@ export default function LoginPage() {
                       )}
                   />
                   <FormField
-                      control={loginForm.control}
+                      control={form.control}
                       name="password"
                       render={({ field }) => (
                       <FormItem>

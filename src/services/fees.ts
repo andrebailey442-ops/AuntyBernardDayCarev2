@@ -1,51 +1,43 @@
 
 import type { Fee } from '@/lib/types';
-import { db } from '@/lib/firebase-client';
-import { ref, get, set, push, query, orderByChild, equalTo } from 'firebase/database';
-import { FEES_PATH } from '@/lib/firebase-db';
+import { FEES } from '@/lib/data';
 
-export const getFees = async (): Promise<Fee[]> => {
-    const feesRef = ref(db, FEES_PATH);
-    const snapshot = await get(feesRef);
-    if (snapshot.exists()) {
-        const data = snapshot.val();
-        return Object.keys(data).map(key => ({ id: key, ...data[key] }));
+const FEES_STORAGE_KEY = 'fees';
+
+export const getFees = (): Fee[] => {
+    if (typeof window === 'undefined') return [];
+    
+    const storedFees = localStorage.getItem(FEES_STORAGE_KEY);
+    if (storedFees) {
+        return JSON.parse(storedFees);
     }
-    return [];
+    localStorage.setItem(FEES_STORAGE_KEY, JSON.stringify(FEES));
+    return FEES;
 };
 
-export const getFeeByStudentId = async (studentId: string): Promise<Fee | null> => {
-    const feesRef = ref(db, FEES_PATH);
-    const q = query(feesRef, orderByChild('studentId'), equalTo(studentId));
-    const snapshot = await get(q);
-    if (snapshot.exists()) {
-        const data = snapshot.val();
-        const key = Object.keys(data)[0];
-        return { id: key, ...data[key] };
-    }
-    return null;
-};
+export const getFeeByStudentId = (studentId: string): Fee | undefined => {
+    const allFees = getFees();
+    return allFees.find(f => f.studentId === studentId);
+}
 
-export const addFee = async (fee: Omit<Fee, 'id'>): Promise<string> => {
-    const feesRef = ref(db, FEES_PATH);
-    const newFeeRef = push(feesRef);
-    await set(newFeeRef, fee);
-    return newFeeRef.key!;
-};
+export const addFee = (fee: Omit<Fee, 'id'>) => {
+    const allFees = getFees();
+    const newFee = { ...fee, id: `fee-${Date.now()}` };
+    allFees.push(newFee);
+    localStorage.setItem(FEES_STORAGE_KEY, JSON.stringify(allFees));
+}
 
-export const updateFee = async (id: string, feeUpdate: Partial<Fee>) => {
-    const feeRef = ref(db, `${FEES_PATH}/${id}`);
-    const snapshot = await get(feeRef);
-    if (snapshot.exists()) {
-        const currentFee = snapshot.val();
-        await set(feeRef, { ...currentFee, ...feeUpdate });
+export const updateFee = (id: string, feeUpdate: Partial<Fee>) => {
+    let allFees = getFees();
+    const feeIndex = allFees.findIndex(f => f.id === id);
+    if (feeIndex > -1) {
+        allFees[feeIndex] = { ...allFees[feeIndex], ...feeUpdate };
+        localStorage.setItem(FEES_STORAGE_KEY, JSON.stringify(allFees));
     }
 };
 
-export const deleteFeeByStudentId = async (studentId: string) => {
-    const fee = await getFeeByStudentId(studentId);
-    if (fee) {
-        const feeRef = ref(db, `${FEES_PATH}/${fee.id}`);
-        await remove(feeRef);
-    }
-};
+export const deleteFeeByStudentId = (studentId: string) => {
+    let allFees = getFees();
+    allFees = allFees.filter(f => f.studentId !== studentId);
+    localStorage.setItem(FEES_STORAGE_KEY, JSON.stringify(allFees));
+}

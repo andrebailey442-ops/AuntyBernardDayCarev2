@@ -1,45 +1,41 @@
 
 import type { User, UserRole } from '@/lib/types';
-import { db } from '@/lib/firebase-client';
-import { ref, get, set, remove, query, orderByChild, equalTo } from 'firebase/database';
-import { USERS_PATH, APP_STATE_PATH } from '@/lib/firebase-db';
+import { USERS } from '@/lib/data';
 
-export const isFirstRun = async (): Promise<boolean> => {
-    try {
-        const appStateRef = ref(db, `${APP_STATE_PATH}/isInitialized`);
-        const snapshot = await get(appStateRef);
-        return !snapshot.exists() || !snapshot.val();
-    } catch (error: any) {
-        if (error.code === 'PERMISSION_DENIED') {
-            console.warn("Permission denied when checking for first run. Assuming it's the first run. Please update your database rules for full functionality.");
-            return true;
-        }
-        throw error;
-    }
+const USERS_STORAGE_KEY = 'users';
+
+const isFirstRun = (): boolean => {
+    if (typeof window === 'undefined') return false;
+    return !localStorage.getItem('appInitialized');
 }
 
-export const setFirstRunComplete = async (): Promise<void> => {
-    const appStateRef = ref(db, `${APP_STATE_PATH}/isInitialized`);
-    await set(appStateRef, true);
+const completeFirstRun = () => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('appInitialized', 'true');
 }
 
-
-export const getUsers = async (): Promise<User[]> => {
-    const usersRef = ref(db, USERS_PATH);
-    const snapshot = await get(usersRef);
-    if (snapshot.exists()) {
-        const usersData = snapshot.val();
-        // Firebase returns an object, so we convert it to an array
-        return Object.keys(usersData).map(key => ({
-            id: key,
-            ...usersData[key]
-        }));
+export const getUsers = (): User[] => {
+    if (typeof window === 'undefined') return [];
+    
+    if (isFirstRun()) {
+        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(USERS));
+        completeFirstRun();
+        return USERS;
     }
+    
+    const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
+    if (storedUsers) {
+        // Handle cases where a single user might be stored as an object
+        const parsed = JSON.parse(storedUsers);
+        return Array.isArray(parsed) ? parsed : Object.values(parsed);
+    }
+    
     return [];
 };
 
-export const findUserByUsername = async (username: string): Promise<User | null> => {
-    const users = await getUsers();
+
+export const findUserByUsername = (username: string): User | null => {
+    const users = getUsers();
     const loginIdentifier = username.toLowerCase();
     
     const user = users.find(u => 
@@ -50,18 +46,16 @@ export const findUserByUsername = async (username: string): Promise<User | null>
     return user || null;
 };
 
-export const addUser = async (email: string, role: UserRole, password?: string, avatarUrl?: string, displayName?: string): Promise<User> => {
-    const users = await getUsers();
+export const addUser = (email: string, role: UserRole, password?: string, avatarUrl?: string, displayName?: string): User => {
+    const users = getUsers();
     
     const existingUser = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
     if (existingUser) {
         throw new Error('A user with this email already exists.');
     }
     
-    const userId = `user-${Date.now()}`;
-    const userRef = ref(db, `${USERS_PATH}/${userId}`);
-    
-    const newUser: Omit<User, 'id'> = {
+    const newUser: User = {
+        id: `user-${Date.now()}`,
         username: displayName || email,
         email: email.toLowerCase(),
         role,
@@ -70,40 +64,42 @@ export const addUser = async (email: string, role: UserRole, password?: string, 
         imageHint: 'person avatar'
     };
 
-    await set(userRef, newUser);
+    users.push(newUser);
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
     
-    return { ...newUser, id: userId };
+    return newUser;
 };
 
-export const updateUser = async (userId: string, updates: Partial<User>): Promise<User | null> => {
-    const userRef = ref(db, `${USERS_PATH}/${userId}`);
-    const snapshot = await get(userRef);
+export const updateUser = (userId: string, updates: Partial<User>): User | null => {
+    let users = getUsers();
+    const userIndex = users.findIndex(u => u.id === userId);
 
-    if (!snapshot.exists()) {
+    if (userIndex === -1) {
         return null;
     }
-
-    const currentUser = snapshot.val();
 
     // Ensure we don't accidentally wipe the password if it's not being updated
     if (updates.password === '') {
         delete updates.password;
     }
 
-    const updatedUser = { ...currentUser, ...updates };
-    await set(userRef, updatedUser);
+    const updatedUser = { ...users[userIndex], ...updates };
+    users[userIndex] = updatedUser;
+
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
 
     const { password, ...userWithoutPassword } = updatedUser;
-    return { ...userWithoutPassword, id: userId } as User;
+    return userWithoutPassword as User;
 }
 
-export const removeUser = async (userId: string): Promise<void> => {
-    const userRef = ref(db, `${USERS_PATH}/${userId}`);
-    await remove(userRef);
+export const removeUser = (userId: string): void => {
+    let users = getUsers();
+    users = users.filter(u => u.id !== userId);
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
 };
 
-export const authenticateUser = async (emailOrUsername: string, password?: string): Promise<User | null> => {
-    const user = await findUserByUsername(emailOrUsername);
+export const authenticateUser = (emailOrUsername: string, password?: string): User | null => {
+    const user = findUserByUsername(emailOrUsername);
 
     if (user && user.password && password) {
         if (user.password === password) {

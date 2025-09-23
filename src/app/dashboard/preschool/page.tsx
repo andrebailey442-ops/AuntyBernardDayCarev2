@@ -21,16 +21,11 @@ export default function PreschoolDashboardPage() {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = () => {
         setLoading(true);
-        const [studentsData, attendanceData, gradesData] = await Promise.all([
-            getStudents(),
-            getAttendance(),
-            getGrades()
-        ]);
-        setStudents(studentsData);
-        setAttendance(attendanceData);
-        setGrades(gradesData);
+        setStudents(getStudents());
+        setAttendance(getAttendance());
+        setGrades(getGrades());
         setLoading(false);
     }
     fetchData();

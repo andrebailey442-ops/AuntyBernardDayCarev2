@@ -1,31 +1,39 @@
 
 import { DEFAULT_TEACHER_PERMISSIONS, PERMISSIONS } from '@/lib/data';
 import type { UserRole } from '@/lib/types';
-import { db } from '@/lib/firebase-client';
-import { ref, get, set } from 'firebase/database';
-import { PERMISSIONS_PATH } from '@/lib/firebase-db';
 
-export const getPermissionsByRole = async (role: UserRole): Promise<string[]> => {
-    const permissionsRef = ref(db, `${PERMISSIONS_PATH}/${role.toLowerCase()}`);
-    const snapshot = await get(permissionsRef);
+const PERMISSIONS_STORAGE_KEY = 'permissions';
 
-    if (snapshot.exists()) {
-        return snapshot.val();
+type PermissionsStore = {
+    [role in UserRole]?: string[];
+}
+
+export const getPermissionsByRole = (role: UserRole): string[] => {
+    if (typeof window === 'undefined') return [];
+    
+    const storedPermissions = localStorage.getItem(PERMISSIONS_STORAGE_KEY);
+    const permissions: PermissionsStore = storedPermissions ? JSON.parse(storedPermissions) : {};
+    
+    if (permissions[role]) {
+        return permissions[role]!;
     }
 
-    // Return defaults if nothing is in the database
+    // Return defaults if nothing is in local storage
     if (role === 'Teacher') {
-        await savePermissionsByRole('Teacher', DEFAULT_TEACHER_PERMISSIONS);
+        savePermissionsByRole('Teacher', DEFAULT_TEACHER_PERMISSIONS);
         return DEFAULT_TEACHER_PERMISSIONS;
     }
-
+    
     // Admin gets all permissions by default
     const allPermissions = PERMISSIONS.map(p => p.id);
-    await savePermissionsByRole('Admin', allPermissions);
+    savePermissionsByRole('Admin', allPermissions);
     return allPermissions;
 };
 
-export const savePermissionsByRole = async (role: UserRole, permissions: string[]): Promise<void> => {
-     const permissionsRef = ref(db, `${PERMISSIONS_PATH}/${role.toLowerCase()}`);
-     await set(permissionsRef, permissions);
+export const savePermissionsByRole = (role: UserRole, permissions: string[]): void => {
+    const storedPermissions = localStorage.getItem(PERMISSIONS_STORAGE_KEY);
+    const currentPermissions: PermissionsStore = storedPermissions ? JSON.parse(storedPermissions) : {};
+    
+    currentPermissions[role] = permissions;
+    localStorage.setItem(PERMISSIONS_STORAGE_KEY, JSON.stringify(currentPermissions));
 };
