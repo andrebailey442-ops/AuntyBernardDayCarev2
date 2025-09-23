@@ -139,8 +139,7 @@ export default function StaffManager() {
           description: `${staffName} has been clocked out at ${format(now, 'p')} by ${currentUsername}.`,
         });
     } else {
-        const startTime = set(now, { hours: 6, minutes: 0, seconds: 0, milliseconds: 0 }); // 6:00 AM
-        const lateThreshold = set(now, { hours: 6, minutes: 15, seconds: 0, milliseconds: 0 }); // 6:15 AM
+        const lateThreshold = set(now, { hours: 6, minutes: 30, seconds: 0, milliseconds: 0 }); // 6:30 AM
         const isLate = now > lateThreshold;
 
         newRecord = { 
@@ -159,7 +158,7 @@ export default function StaffManager() {
         if (isLate) {
             toast({
                 title: 'Staff Member Late',
-                description: `${staffName} clocked in after 6:15 AM.`
+                description: `${staffName} clocked in after 6:30 AM.`
             })
         }
     }
@@ -183,7 +182,7 @@ export default function StaffManager() {
             throw new Error('Invalid time format.');
         }
 
-        const lateThreshold = set(today, { hours: 6, minutes: 15, seconds: 0, milliseconds: 0 });
+        const lateThreshold = set(today, { hours: 6, minutes: 30, seconds: 0, milliseconds: 0 });
         const isLate = newTime > lateThreshold;
 
         const currentRecord = attendance[staffToEditTime.id] || {};
@@ -646,5 +645,7 @@ export default function StaffManager() {
     </div>
   );
 }
+
+    
 
     

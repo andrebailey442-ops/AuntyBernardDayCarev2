@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -103,7 +104,7 @@ export default function AfterCareManager() {
 
     if (currentRecord.status === 'Checked-In') {
         const closingTime = set(now, { hours: 18, minutes: 0, seconds: 0, milliseconds: 0 }); // 6:00 PM
-        const overtimeThreshold = set(now, { hours: 19, minutes: 30, seconds: 0, milliseconds: 0 }); // 7:30 PM
+        const overtimeThreshold = set(now, { hours: 19, minutes: 0, seconds: 0, milliseconds: 0 }); // 7:00 PM
 
         let overtimeMinutes = 0;
         if (now > overtimeThreshold) {
@@ -212,7 +213,7 @@ export default function AfterCareManager() {
   const downloadLogReport = (log: ArchivedLog) => {
     try {
         const doc = new jsPDF();
-        addLogoAndHeader(doc, `After-Care Log for ${format(new Date(log.date), 'PPP')}`);
+        addLogoAndHeader(doc, `After-Care Log for ${format(new Date(log.date + 'T00:00:00'), 'PPP')}`);
 
         const tableColumn = ["Student", "Check-in Time", "Checked In By", "Check-out Time", "Checked Out By", "Overtime (mins)"];
         const tableRows: (string | number | null)[][] = [];
@@ -238,7 +239,7 @@ export default function AfterCareManager() {
         doc.save(`AfterCare_Log_${log.date}.pdf`);
         toast({
             title: 'Report Downloaded',
-            description: `The log for ${format(new Date(log.date), 'PPP')} has been downloaded.`
+            description: `The log for ${format(new Date(log.date + 'T00:00:00'), 'PPP')} has been downloaded.`
         });
 
     } catch (error) {
@@ -546,5 +547,7 @@ export default function AfterCareManager() {
     </div>
   );
 }
+
+    
 
     
