@@ -98,18 +98,6 @@ export default function StudentManager() {
 
   React.useEffect(() => {
     fetchStudents();
-    
-    const handleStorageChange = () => {
-        fetchStudents();
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('focus', handleStorageChange);
-
-    return () => {
-        window.removeEventListener('storage', handleStorageChange);
-        window.removeEventListener('focus', handleStorageChange);
-    };
   }, [fetchStudents]);
 
   React.useEffect(() => {
@@ -333,29 +321,29 @@ export default function StudentManager() {
   }
 
 
-  const handleDownloadReports = () => {
+  const handleDownloadReports = async () => {
     setIsDownloading(true);
     toast({
       title: 'Generating Reports',
       description: `Preparing to download ${selectedStudents.length} report(s). Please wait...`,
     });
-
+  
     for (const studentId of selectedStudents) {
       const student = allStudents.find(s => s.id === studentId);
       if (!student) continue;
-
+  
       try {
-        const grades = getGradesByStudent(studentId);
-        const attendanceRecords = getAttendanceByStudent(studentId);
+        const grades = await getGradesByStudent(studentId);
+        const attendanceRecords = await getAttendanceByStudent(studentId);
         const subjects = getSubjects();
-
+  
         const attendanceSummary = { present: 0, absent: 0, tardy: 0 };
-        attendanceRecords.forEach(a => {
+        (attendanceRecords || []).forEach(a => {
           attendanceSummary[a.status]++;
         });
         
         const getSubjectName = (subjectId: string) => subjects.find(s => s.id === subjectId)?.name || 'N/A';
-
+  
         const doc = new jsPDF();
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(24);
@@ -369,7 +357,7 @@ export default function StudentManager() {
         doc.setFontSize(12);
         doc.text(`Student ID: ${student.id}`, 20, y); y += 10;
         doc.text(`Report Date: ${format(new Date(), 'PPP')}`, 20, y); y += 15;
-
+  
         doc.setFontSize(14); doc.setFont('helvetica', 'bold');
         doc.text('Grades', 20, y); y += 10;
         doc.setFont('helvetica', 'normal'); doc.setFontSize(12);
@@ -387,9 +375,9 @@ export default function StudentManager() {
         doc.text(`Present: ${attendanceSummary.present} days`, 25, y); y += 7;
         doc.text(`Absent: ${attendanceSummary.absent} days`, 25, y); y += 7;
         doc.text(`Tardy: ${attendanceSummary.tardy} days`, 25, y);
-
+  
         doc.save(`${student.name.replace(' ', '_')}_ReportCard.pdf`);
-
+  
       } catch (error) {
         console.error(`Failed to generate report for ${student.name}:`, error);
         toast({

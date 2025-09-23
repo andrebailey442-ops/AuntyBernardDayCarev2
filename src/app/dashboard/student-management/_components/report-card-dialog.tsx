@@ -35,17 +35,17 @@ export default function ReportCardDialog({ student }: ReportCardDialogProps) {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const fetchData = () => {
+    const fetchData = async () => {
         setLoading(true);
-        const studentGrades = getGradesByStudent(student.id);
-        const studentAttendance = getAttendanceByStudent(student.id);
+        const studentGrades = await getGradesByStudent(student.id);
+        const studentAttendance = await getAttendanceByStudent(student.id);
         const subjectData = getSubjects();
         
-        setGrades(studentGrades);
-        setSubjects(subjectData);
+        setGrades(studentGrades || []);
+        setSubjects(subjectData || []);
 
         const summary = { present: 0, absent: 0, tardy: 0 };
-        studentAttendance.forEach((a) => {
+        (studentAttendance || []).forEach((a) => {
             summary[a.status]++;
         });
         setAttendance(summary);

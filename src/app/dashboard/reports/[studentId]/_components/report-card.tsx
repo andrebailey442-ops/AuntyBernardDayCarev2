@@ -201,7 +201,7 @@ export default function ReportCard({ studentId }: ReportCardProps) {
             <div className="flex items-center gap-4">
                 <Avatar className="h-20 w-20">
                     <AvatarImage src={student.avatarUrl} alt={student.name} />
-                    <AvatarFallback>{student.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                    <AvatarFallback>{student.name ? student.name.split(' ').map(n => n[0]).join('') : ''}</AvatarFallback>
                 </Avatar>
                 <div>
                     <p className="font-semibold">{student.name}</p>
@@ -270,5 +270,3 @@ export default function ReportCard({ studentId }: ReportCardProps) {
     </>
   );
 }
-
-    

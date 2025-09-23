@@ -27,7 +27,7 @@ import type { Staff, StaffRole, StaffSchedule, StaffAttendance, StaffClockRecord
 import { Skeleton } from '@/components/ui/skeleton';
 import { MoreHorizontal, PlusCircle, Trash2, Edit, User, LogIn, LogOut, Archive, Download, Clock } from 'lucide-react';
 import { Dialog, DialogContent, DialogFooter } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogFooter } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, AlertDialogFooter as AlertDialogFooter2 } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { format, startOfWeek, addDays, eachDayOfInterval, set, parse } from 'date-fns';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -542,7 +542,7 @@ export default function StaffManager() {
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                         <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle><AlertDialogDescription>This will archive today's clock-out log and reset the status for all staff members.</AlertDialogDescription></AlertDialogHeader>
-                        <AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleArchiveLog}>Continue</AlertDialogAction></AlertDialogFooter>
+                        <AlertDialogFooter2><AlertDialogCancel>Cancel</AlertDialogCancel><AlertDialogAction onClick={handleArchiveLog}>Continue</AlertDialogAction></AlertDialogFooter2>
                     </AlertDialogContent>
                 </AlertDialog>
             </CardHeader>
@@ -635,16 +635,14 @@ export default function StaffManager() {
                   This action cannot be undone. This will permanently remove {staffToRemove?.name}.
                   </AlertDialogDescription>
               </AlertDialogHeader>
-              <AlertDialogFooter>
+              <AlertDialogFooter2>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction onClick={handleRemoveStaff}>
                       Continue
                   </AlertDialogAction>
-              </AlertDialogFooter>
+              </AlertDialogFooter2>
           </AlertDialogContent>
       </AlertDialog>
     </div>
   );
 }
-
-    

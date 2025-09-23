@@ -65,9 +65,9 @@ export default function NurseryManager() {
   const [archivedLogs, setArchivedLogs] = React.useState<ArchivedLog[]>([]);
 
   React.useEffect(() => {
-    const fetchStudentsAndLogs = () => {
+    const fetchStudentsAndLogs = async () => {
       setLoading(true);
-      const allStudents = getStudents();
+      const allStudents = await getStudents();
       const nurseryStudents = allStudents.filter(student => student.nursery);
       setStudents(nurseryStudents);
       
@@ -545,5 +545,3 @@ export default function NurseryManager() {
     </div>
   );
 }
-
-    

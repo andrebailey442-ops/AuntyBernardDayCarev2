@@ -72,7 +72,11 @@ export const setStaffAttendance = async (date: string, attendance: StaffAttendan
 // Logbook
 export const getArchivedStaffLogs = async (): Promise<ArchivedStaffLog[]> => {
     const snapshot = await get(ref(db, ARCHIVED_STAFF_LOGS_PATH));
-    return snapshot.exists() ? snapshot.val() : [];
+    if (snapshot.exists()) {
+        const data = snapshot.val();
+        return Object.values(data);
+    }
+    return [];
 }
 
 export const saveArchivedStaffLogs = async (logs: ArchivedStaffLog[]) => {
