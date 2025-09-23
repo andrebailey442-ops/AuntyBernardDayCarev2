@@ -257,15 +257,21 @@ export default function StaffManager() {
   const downloadLogReport = (log: ArchivedStaffLog) => {
     try {
         const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.getWidth();
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(24);
         doc.text('Aunty Bernard', 20, 22);
-        
+
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(18);
-        doc.text(`Staff Log for ${format(new Date(log.date), 'PPP')}`, 20, 35);
+        doc.text(`Staff Log for ${format(new Date(log.date + 'T00:00:00'), 'PPP')}`, 20, 35);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(150);
+        doc.text(`Generated on: ${format(new Date(), 'PPP p')}`, pageWidth - 20, 35, { align: 'right' });
+
         doc.setLineWidth(0.5);
-        doc.line(20, 40, 190, 40);
+        doc.line(20, 42, pageWidth - 20, 42);
 
         const tableColumn = ["Staff", "Clock-in Time", "Clocked In By", "Clock-out Time", "Clocked Out By", "Lateness"];
         const tableRows: (string | null)[][] = log.records.map(record => [
@@ -279,7 +285,7 @@ export default function StaffManager() {
 
         (doc as any).autoTable({ head: [tableColumn], body: tableRows, startY: 50 });
         doc.save(`Staff_Log_${log.date}.pdf`);
-        toast({ title: 'Report Downloaded', description: `The log for ${format(new Date(log.date), 'PPP')} has been downloaded.` });
+        toast({ title: 'Report Downloaded', description: `The log for ${format(new Date(log.date + 'T00:00:00'), 'PPP')} has been downloaded.` });
     } catch (error) {
         console.error("Failed to generate PDF:", error);
         toast({ variant: 'destructive', title: 'Download Failed', description: 'Could not generate the log report.' });
@@ -308,8 +314,13 @@ export default function StaffManager() {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(16);
         doc.text(`Weekly Staff Roster - Week of ${format(startOfWeek(selectedDate, { weekStartsOn: 1 }), 'PPP')}`, pageWidth / 2, 35, { align: 'center' });
+        
+        doc.setFontSize(10);
+        doc.setTextColor(150);
+        doc.text(`Generated on: ${format(new Date(), 'PPP p')}`, pageWidth - 20, 35, { align: 'right' });
+        
         doc.setLineWidth(0.5);
-        doc.line(20, 40, pageWidth - 20, 40);
+        doc.line(20, 42, pageWidth - 20, 42);
 
         const tableColumn = ["Staff Member", ...weekDays];
         const tableRows = staff.map(member => {

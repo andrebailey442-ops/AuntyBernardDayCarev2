@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { jsPDF } from 'jspdf';
@@ -34,15 +35,21 @@ export default function InvoiceDialog({ student, fee }: InvoiceDetailsProps) {
     }
     
     const addLogoAndHeader = (doc: jsPDF, title: string) => {
+        const pageWidth = doc.internal.pageSize.getWidth();
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(24);
         doc.text('Aunty Bernard', 20, 22);
-        
+    
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(18);
         doc.text(title, 20, 35);
+
+        doc.setFontSize(10);
+        doc.setTextColor(150);
+        doc.text(`Generated on: ${format(new Date(), 'PPP p')}`, pageWidth - 20, 35, { align: 'right' });
+    
         doc.setLineWidth(0.5);
-        doc.line(20, 40, 190, 40);
+        doc.line(20, 42, pageWidth - 20, 42);
     };
 
     const downloadInvoice = () => {
