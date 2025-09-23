@@ -580,7 +580,7 @@ export default function StaffManager() {
             <CardContent>
                 {archivedLogs.length > 0 ? (
                     <Tabs defaultValue={archivedLogs[0].date} className="w-full">
-                        <TabsList>{archivedLogs.map(log => <TabsTrigger key={log.date} value={log.date}>{format(new Date(log.date), 'PPP')}</TabsTrigger>)}</TabsList>
+                        <TabsList>{archivedLogs.map(log => <TabsTrigger key={log.date} value={log.date}>{format(new Date(log.date + 'T00:00:00'), 'PPP')}</TabsTrigger>)}</TabsList>
                         {archivedLogs.map(log => (
                              <TabsContent key={log.date} value={log.date}>
                                 <div className="flex justify-end mb-4"><Button variant="outline" size="sm" onClick={() => downloadLogReport(log)}><Download className="mr-2 h-4 w-4" />Download Log</Button></div>
@@ -646,3 +646,5 @@ export default function StaffManager() {
     </div>
   );
 }
+
+    
