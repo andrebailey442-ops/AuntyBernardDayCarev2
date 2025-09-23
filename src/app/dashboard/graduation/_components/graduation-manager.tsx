@@ -44,28 +44,25 @@ export default function GraduationManager() {
   const [graduatedStudents, setGraduatedStudents] = React.useState<Student[]>([]);
   const [loading, setLoading] = React.useState(true);
 
-  React.useEffect(() => {
-    const fetchStudents = () => {
-      setLoading(true);
-      const enrolled = getStudents();
-      const graduated = getArchivedStudents();
-      setEnrolledStudents(enrolled);
-      setGraduatedStudents(graduated);
-      setLoading(false);
-    };
-    fetchStudents();
+  const fetchStudents = React.useCallback(async () => {
+    setLoading(true);
+    const enrolled = await getStudents();
+    const graduated = await getArchivedStudents();
+    setEnrolledStudents(enrolled || []);
+    setGraduatedStudents(graduated || []);
+    setLoading(false);
   }, []);
 
-  const handleGraduate = (studentId: string) => {
+  React.useEffect(() => {
+    fetchStudents();
+  }, [fetchStudents]);
+
+  const handleGraduate = async (studentId: string) => {
     try {
       const graduationDate = new Date().toISOString();
-      updateStudent(studentId, { status: 'graduated', graduationDate });
+      await updateStudent(studentId, { status: 'graduated', graduationDate });
       
-      const studentToGraduate = enrolledStudents.find(s => s.id === studentId);
-      if (studentToGraduate) {
-        setEnrolledStudents(prev => prev.filter(s => s.id !== studentId));
-        setGraduatedStudents(prev => [...prev, { ...studentToGraduate, status: 'graduated', graduationDate }]);
-      }
+      await fetchStudents();
 
       toast({
         title: 'Student Graduated',
@@ -96,9 +93,9 @@ export default function GraduationManager() {
     return (totalPoints / gradedSubjects).toFixed(2);
   };
 
-  const generateCertificate = (student: Student) => {
+  const generateCertificate = async (student: Student) => {
     try {
-      const grades = getGradesByStudent(student.id);
+      const grades = await getGradesByStudent(student.id);
       const gpa = calculateGPA(grades);
 
       const doc = new jsPDF({
@@ -174,9 +171,9 @@ export default function GraduationManager() {
     }
   };
   
-  const downloadFullProfile = (student: Student) => {
+  const downloadFullProfile = async (student: Student) => {
     try {
-        const grades = getGradesByStudent(student.id);
+        const grades = await getGradesByStudent(student.id);
         const subjects = getSubjects();
         const getSubjectName = (subjectId: string) => subjects.find(s => s.id === subjectId)?.name || 'N/A';
 
@@ -502,3 +499,5 @@ export default function GraduationManager() {
     </div>
   );
 }
+
+    

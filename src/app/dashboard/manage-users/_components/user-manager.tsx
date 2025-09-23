@@ -80,18 +80,19 @@ export default function UserManager() {
 
   const [isRemoveUserAlertOpen, setIsRemoveUserAlertOpen] = React.useState(false);
   const [userToRemove, setUserToRemove] = React.useState<User | null>(null);
-
-  React.useEffect(() => {
-    const fetchUsers = () => {
-      setLoading(true);
-      const userList = getUsers();
-      setUsers(userList);
-      setLoading(false);
-    };
-    fetchUsers();
+  
+  const fetchUsers = React.useCallback(async () => {
+    setLoading(true);
+    const userList = await getUsers();
+    setUsers(userList || []);
+    setLoading(false);
   }, []);
 
-  const handleAddUser = () => {
+  React.useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  const handleAddUser = async () => {
     if (!newName || !newEmail || !newPassword) {
         toast({ variant: 'destructive', title: 'Error', description: 'Name, email and password are required.'});
         return;
@@ -102,8 +103,8 @@ export default function UserManager() {
         return;
     }
     try {
-        const newUser = addUser(newEmail, newRole, newPassword, undefined, newName);
-        setUsers(prev => [...prev, newUser]);
+        await addUser(newEmail, newRole, newPassword, undefined, newName);
+        await fetchUsers();
         toast({ title: 'User Added', description: `${newName} has been added.`});
         setIsAddUserDialogOpen(false);
         setNewName('');
@@ -123,7 +124,7 @@ export default function UserManager() {
     setIsEditUserDialogOpen(true);
   };
   
-  const handleUpdateUser = () => {
+  const handleUpdateUser = async () => {
     if (!selectedUser) return;
     try {
         const updates: Partial<User> = {};
@@ -135,9 +136,9 @@ export default function UserManager() {
         }
 
         if (Object.keys(updates).length > 0) {
-            const updatedUser = updateUser(selectedUser.id, updates);
+            const updatedUser = await updateUser(selectedUser.id, updates);
             if (updatedUser) {
-                setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+                await fetchUsers();
                 toast({ title: 'User Updated', description: `${updatedUser.username}'s profile has been updated.` });
             }
         }
@@ -149,11 +150,11 @@ export default function UserManager() {
     }
   }
   
-  const handleRemoveUser = () => {
+  const handleRemoveUser = async () => {
     if (!userToRemove) return;
     try {
-        removeUser(userToRemove.id);
-        setUsers(prev => prev.filter(u => u.id !== userToRemove.id));
+        await removeUser(userToRemove.id);
+        await fetchUsers();
         toast({ title: 'User Removed', description: `${userToRemove.username} has been removed.`});
     } catch(error) {
         console.error('Failed to remove user: ', error);
@@ -340,3 +341,5 @@ export default function UserManager() {
     </Card>
   );
 }
+
+    

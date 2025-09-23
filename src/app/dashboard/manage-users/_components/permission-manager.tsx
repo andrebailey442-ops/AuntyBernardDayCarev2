@@ -27,10 +27,10 @@ export default function PermissionManager() {
   const [activeTab, setActiveTab] = React.useState<UserRole>('Teacher');
 
   React.useEffect(() => {
-    const fetchPermissions = () => {
+    const fetchPermissions = async () => {
       setLoading(true);
-      const teacherPerms = getPermissionsByRole('Teacher');
-      const adminPerms = getPermissionsByRole('Admin');
+      const teacherPerms = await getPermissionsByRole('Teacher');
+      const adminPerms = await getPermissionsByRole('Admin');
       setTeacherPermissions(teacherPerms);
       setAdminPermissions(adminPerms);
       setLoading(false);
@@ -47,11 +47,11 @@ export default function PermissionManager() {
     );
   };
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
     setSaving(true);
     try {
       const permissionsToSave = activeTab === 'Teacher' ? teacherPermissions : adminPermissions;
-      savePermissionsByRole(activeTab, permissionsToSave);
+      await savePermissionsByRole(activeTab, permissionsToSave);
       toast({
         title: 'Permissions Updated',
         description: `${activeTab} role permissions have been saved.`,
@@ -128,3 +128,5 @@ export default function PermissionManager() {
     </Card>
   );
 }
+
+    

@@ -35,11 +35,11 @@ export default function ReportManager() {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const fetchStudents = () => {
+    const fetchStudents = async () => {
         setLoading(true);
-        const studentList = getStudents();
-        const archivedList = getArchivedStudents();
-        const allStudents = [...studentList, ...archivedList];
+        const studentList = await getStudents();
+        const archivedList = await getArchivedStudents();
+        const allStudents = [...(studentList || []), ...(archivedList || [])];
         setStudents(allStudents);
         setFilteredStudents(allStudents);
         setLoading(false);
@@ -48,10 +48,12 @@ export default function ReportManager() {
   }, []);
 
   React.useEffect(() => {
-    const results = students.filter(student =>
-      student.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredStudents(results);
+    if (students) {
+      const results = students.filter(student =>
+        student.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredStudents(results);
+    }
   }, [searchTerm, students]);
 
   const handleViewReport = (studentId: string) => {
@@ -140,3 +142,5 @@ export default function ReportManager() {
     </Card>
   );
 }
+
+    

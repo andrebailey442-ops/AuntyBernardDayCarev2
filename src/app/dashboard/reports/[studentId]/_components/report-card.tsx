@@ -39,28 +39,35 @@ export default function ReportCard({ studentId }: ReportCardProps) {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const fetchData = () => {
+    const fetchData = async () => {
       setLoading(true);
-      const studentData = getStudent(studentId);
-      if (studentData) {
-        setStudent(studentData);
-        const studentGrades = getGradesByStudent(studentId);
-        const studentAttendance = getAttendanceByStudent(studentId);
-        const subjectData = getSubjects();
-        setGrades(studentGrades);
-        setSubjects(subjectData);
-        
-        const summary = { present: 0, absent: 0, tardy: 0 };
-        studentAttendance.forEach(a => {
-          summary[a.status]++;
-        });
-        setAttendance(summary);
+      try {
+        const studentData = await getStudent(studentId);
+        if (studentData) {
+          setStudent(studentData);
+          const studentGrades = await getGradesByStudent(studentId);
+          const studentAttendance = await getAttendanceByStudent(studentId);
+          const subjectData = getSubjects();
+          
+          setGrades(studentGrades || []);
+          setSubjects(subjectData || []);
+          
+          const summary = { present: 0, absent: 0, tardy: 0 };
+          (studentAttendance || []).forEach(a => {
+            summary[a.status]++;
+          });
+          setAttendance(summary);
 
-      } else {
-        toast({ variant: 'destructive', title: 'Error', description: 'Student not found.' });
-        router.push('/dashboard/reports');
+        } else {
+          toast({ variant: 'destructive', title: 'Error', description: 'Student not found.' });
+          router.push('/dashboard/reports');
+        }
+      } catch (error) {
+        console.error("Failed to fetch report data:", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to load student data.' });
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     fetchData();
   }, [studentId, router, toast]);
@@ -263,3 +270,5 @@ export default function ReportCard({ studentId }: ReportCardProps) {
     </>
   );
 }
+
+    

@@ -64,12 +64,17 @@ export default function StaffManager() {
   const [staffToEditTime, setStaffToEditTime] = React.useState<Staff | null>(null);
   const [newClockInTime, setNewClockInTime] = React.useState('');
 
-  const fetchData = React.useCallback(() => {
+  const fetchData = React.useCallback(async () => {
     setLoading(true);
-    setStaff(getStaff());
-    setSchedule(getStaffSchedule());
-    setAttendance(getStaffAttendance(format(selectedDate, 'yyyy-MM-dd')));
-    setArchivedLogs(getArchivedStaffLogs());
+    const staffList = await getStaff();
+    const scheduleData = await getStaffSchedule();
+    const attendanceData = await getStaffAttendance(format(selectedDate, 'yyyy-MM-dd'));
+    const archivedLogsData = await getArchivedStaffLogs();
+
+    setStaff(staffList || []);
+    setSchedule(scheduleData || {});
+    setAttendance(attendanceData || {});
+    setArchivedLogs(archivedLogsData || []);
     setLoading(false);
   }, [selectedDate]);
 
@@ -93,10 +98,10 @@ export default function StaffManager() {
     setIsFormOpen(true);
   };
 
-  const handleRemoveStaff = () => {
+  const handleRemoveStaff = async () => {
     if (!staffToRemove) return;
     try {
-        deleteStaff(staffToRemove.id);
+        await deleteStaff(staffToRemove.id);
         fetchData();
         toast({ title: 'Staff Member Removed', description: `${staffToRemove.name} has been removed.` });
     } catch(error) {
@@ -113,13 +118,13 @@ export default function StaffManager() {
     setIsRemoveStaffAlertOpen(true);
   };
   
-  const handleScheduleChange = (staffId: string, day: string, value: string) => {
+  const handleScheduleChange = async (staffId: string, day: string, value: string) => {
     const newSchedule = { ...schedule, [staffId]: { ...schedule[staffId], [day]: value } };
     setSchedule(newSchedule);
-    setStaffSchedule(newSchedule);
+    await setStaffSchedule(newSchedule);
   };
 
-  const handleToggleStatus = (staffId: string) => {
+  const handleToggleStatus = async (staffId: string) => {
     const currentRecord = attendance[staffId] || { status: 'Clocked-Out' };
     const now = new Date();
     const currentUsername = user?.username || 'Unknown';
@@ -161,10 +166,10 @@ export default function StaffManager() {
     
     const updatedAttendance = { ...attendance, [staffId]: newRecord };
     setAttendance(updatedAttendance);
-    setStaffAttendance(format(selectedDate, 'yyyy-MM-dd'), updatedAttendance);
+    await setStaffAttendance(format(selectedDate, 'yyyy-MM-dd'), updatedAttendance);
   };
 
-  const handleEditClockInTime = () => {
+  const handleEditClockInTime = async () => {
     if (!staffToEditTime || !newClockInTime) {
       toast({ variant: 'destructive', title: 'Invalid Time', description: 'Please enter a valid time in HH:mm format.'});
       return;
@@ -191,7 +196,7 @@ export default function StaffManager() {
 
         const updatedAttendance = { ...attendance, [staffToEditTime.id]: newRecord };
         setAttendance(updatedAttendance);
-        setStaffAttendance(format(selectedDate, 'yyyy-MM-dd'), updatedAttendance);
+        await setStaffAttendance(format(selectedDate, 'yyyy-MM-dd'), updatedAttendance);
         
         toast({ title: 'Clock-in Time Updated', description: `Clock-in time for ${staffToEditTime.name} updated to ${format(newTime, 'p')}.`});
         setIsEditTimeOpen(false);
@@ -212,7 +217,7 @@ export default function StaffManager() {
     setIsEditTimeOpen(true);
   }
 
-  const handleArchiveLog = () => {
+  const handleArchiveLog = async () => {
     const recordsToArchive = staff
       .filter(s => attendance[s.id]?.status === 'Clocked-Out' && attendance[s.id]?.checkOutTime)
       .map(s => ({ ...s, log: attendance[s.id] }));
@@ -229,14 +234,14 @@ export default function StaffManager() {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     
     setArchivedLogs(updatedLogs);
-    saveArchivedStaffLogs(updatedLogs);
+    await saveArchivedStaffLogs(updatedLogs);
 
     const newAttendance = { ...attendance };
     recordsToArchive.forEach(rec => {
       newAttendance[rec.id] = { status: 'Clocked-Out' };
     });
     setAttendance(newAttendance);
-    setStaffAttendance(todayStr, newAttendance);
+    await setStaffAttendance(todayStr, newAttendance);
 
     toast({ title: 'Log Archived', description: 'Today\'s staff log has been archived.'});
   }
@@ -641,3 +646,5 @@ export default function StaffManager() {
     </div>
   );
 }
+
+    
