@@ -89,10 +89,10 @@ export default function StudentManager() {
     nursery: false,
   });
 
-  const fetchStudents = React.useCallback(() => {
+  const fetchStudents = React.useCallback(async () => {
     setLoading(true);
-    const studentList = getStudents();
-    setAllStudents(studentList);
+    const studentList = await getStudents();
+    setAllStudents(studentList || []);
     setLoading(false);
   }, []);
 
