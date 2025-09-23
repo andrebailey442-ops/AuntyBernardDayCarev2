@@ -1,6 +1,5 @@
 
 import type { User, UserRole } from '@/lib/types';
-import { USERS } from '@/lib/data';
 import { db } from '@/lib/firebase-client';
 import { ref, get, set, update } from 'firebase/database';
 import { USERS_PATH, APP_STATE_PATH } from '@/lib/firebase-db';
@@ -65,7 +64,8 @@ export const addUser = async (email: string, role: UserRole, password?: string, 
 
     await set(ref(db, `${USERS_PATH}/${id}`), newUser);
 
-    if (users.length === 0) {
+    // If this is the very first user, mark the first run as complete.
+    if (users.length === 0 && role === 'Admin') {
         await completeFirstRun();
     }
     
