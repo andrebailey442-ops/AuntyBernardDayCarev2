@@ -1,91 +1,80 @@
 
 import type { Staff, StaffSchedule, StaffAttendance, ArchivedStaffLog } from '@/lib/types';
 import { STAFF } from '@/lib/data';
-
-const STAFF_STORAGE_KEY = 'staff';
-const STAFF_SCHEDULE_STORAGE_KEY = 'staff_schedule';
-const STAFF_ATTENDANCE_STORAGE_KEY = 'staff_attendance';
-const ARCHIVED_STAFF_LOGS_STORAGE_KEY = 'archived_staff_logs';
+import { db } from '@/lib/firebase-client';
+import { ref, get, set, update } from 'firebase/database';
+import { STAFF_PATH, STAFF_SCHEDULE_PATH, STAFF_ATTENDANCE_PATH, ARCHIVED_STAFF_LOGS_PATH } from '@/lib/firebase-db';
 
 
 // Staff Management
-export const getStaff = (): Staff[] => {
-    if (typeof window === 'undefined') return [];
-    
-    const storedStaff = localStorage.getItem(STAFF_STORAGE_KEY);
-    if (storedStaff) {
-        return JSON.parse(storedStaff);
+export const getStaff = async (): Promise<Staff[]> => {
+    const snapshot = await get(ref(db, STAFF_PATH));
+    if (snapshot.exists()) {
+        const data = snapshot.val();
+        return Object.values(data);
     }
-    localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(STAFF));
+    const initialStaff: { [key: string]: Staff } = {};
+    STAFF.forEach(s => {
+        initialStaff[s.id] = s;
+    });
+    await set(ref(db, STAFF_PATH), initialStaff);
     return STAFF;
 };
 
-export const getStaffMember = (id: string): Staff | undefined => {
-    return getStaff().find(s => s.id === id);
+export const getStaffMember = async (id: string): Promise<Staff | undefined> => {
+    const snapshot = await get(ref(db, `${STAFF_PATH}/${id}`));
+    return snapshot.exists() ? snapshot.val() : undefined;
 }
 
-export const addStaff = (staffData: Omit<Staff, 'id' | 'avatarUrl' | 'imageHint'>) => {
-    const allStaff = getStaff();
+export const addStaff = async (staffData: Omit<Staff, 'id' | 'avatarUrl' | 'imageHint'>) => {
+    const id = `staff-${Date.now()}`;
     const newStaff = { 
         ...staffData,
-        id: `staff-${Date.now()}`,
+        id,
         avatarUrl: `https://i.pravatar.cc/150?u=${staffData.name.replace(/\s/g, '')}`,
         imageHint: 'person',
      };
-    allStaff.push(newStaff);
-    localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(allStaff));
+    await set(ref(db, `${STAFF_PATH}/${id}`), newStaff);
 }
 
-export const updateStaff = (id: string, staffData: Partial<Omit<Staff, 'id'>>): Staff | undefined => {
-    const allStaff = getStaff();
-    const index = allStaff.findIndex(s => s.id === id);
-    if (index > -1) {
-        allStaff[index] = { ...allStaff[index], ...staffData };
-        localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(allStaff));
-        return allStaff[index];
-    }
-    return undefined;
+export const updateStaff = async (id: string, staffData: Partial<Omit<Staff, 'id'>>): Promise<Staff | undefined> => {
+    const staffRef = ref(db, `${STAFF_PATH}/${id}`);
+    await update(staffRef, staffData);
+    const snapshot = await get(staffRef);
+    return snapshot.val();
 }
 
-export const deleteStaff = (staffId: string) => {
-    const allStaff = getStaff();
-    const updatedStaff = allStaff.filter(s => s.id !== staffId);
-    localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(updatedStaff));
+export const deleteStaff = async (staffId: string) => {
+    await set(ref(db, `${STAFF_PATH}/${staffId}`), null);
 };
 
 
 // Schedule Management
-export const getStaffSchedule = (): StaffSchedule => {
-    if (typeof window === 'undefined') return {};
-    const stored = localStorage.getItem(STAFF_SCHEDULE_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : {};
+export const getStaffSchedule = async (): Promise<StaffSchedule> => {
+    const snapshot = await get(ref(db, STAFF_SCHEDULE_PATH));
+    return snapshot.exists() ? snapshot.val() : {};
 };
 
-export const setStaffSchedule = (schedule: StaffSchedule) => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(STAFF_SCHEDULE_STORAGE_KEY, JSON.stringify(schedule));
+export const setStaffSchedule = async (schedule: StaffSchedule) => {
+    await set(ref(db, STAFF_SCHEDULE_PATH), schedule);
 };
 
 // Attendance Management
-export const getStaffAttendance = (date: string): StaffAttendance => {
-    if (typeof window === 'undefined') return {};
-    const stored = localStorage.getItem(`${STAFF_ATTENDANCE_STORAGE_KEY}_${date}`);
-    return stored ? JSON.parse(stored) : {};
+export const getStaffAttendance = async (date: string): Promise<StaffAttendance> => {
+    const snapshot = await get(ref(db, `${STAFF_ATTENDANCE_PATH}/${date}`));
+    return snapshot.exists() ? snapshot.val() : {};
 }
 
-export const setStaffAttendance = (date: string, attendance: StaffAttendance) => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(`${STAFF_ATTENDANCE_STORAGE_KEY}_${date}`, JSON.stringify(attendance));
+export const setStaffAttendance = async (date: string, attendance: StaffAttendance) => {
+    await set(ref(db, `${STAFF_ATTENDANCE_PATH}/${date}`), attendance);
 };
 
 // Logbook
-export const getArchivedStaffLogs = (): ArchivedStaffLog[] => {
-    if (typeof window === 'undefined') return [];
-    const stored = localStorage.getItem(ARCHIVED_STAFF_LOGS_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+export const getArchivedStaffLogs = async (): Promise<ArchivedStaffLog[]> => {
+    const snapshot = await get(ref(db, ARCHIVED_STAFF_LOGS_PATH));
+    return snapshot.exists() ? snapshot.val() : [];
 }
 
-export const saveArchivedStaffLogs = (logs: ArchivedStaffLog[]) => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(ARCHIVED_STAFF_LOGS_STORAGE_KEY, JSON.stringify(logs));
+export const saveArchivedStaffLogs = async (logs: ArchivedStaffLog[]) => {
+    await set(ref(db, ARCHIVED_STAFF_LOGS_PATH), logs);
 }

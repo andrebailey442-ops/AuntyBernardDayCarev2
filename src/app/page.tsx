@@ -36,11 +36,94 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
+function CreateAdminForm() {
+    const router = useRouter();
+    const { toast } = useToast();
+    const { createAdmin, loading: authLoading } = useAuth();
+    const [isLoading, setIsLoading] = React.useState(false);
+    
+    const form = useForm<LoginFormValues>({
+        resolver: zodResolver(loginSchema),
+        defaultValues: { emailOrUsername: '', password: '' },
+    });
+
+    const handleCreateAdmin = async (data: LoginFormValues) => {
+        setIsLoading(true);
+        try {
+            const adminUser = await createAdmin(data.emailOrUsername, data.password);
+            if (adminUser) {
+                toast({
+                    title: 'Admin Account Created',
+                    description: `Welcome, ${adminUser.username}! You are now the administrator.`,
+                });
+                router.push('/dashboard');
+            } else {
+                throw new Error('Failed to create admin account.');
+            }
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'Creation Failed',
+                description: 'Could not create the administrator account.',
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
+    const pageLoading = authLoading || isLoading;
+
+    return (
+        <Card className="backdrop-blur-sm bg-card/80">
+            <CardHeader>
+              <CardTitle>Create Super Admin</CardTitle>
+              <CardDescription>Welcome! As the first user, please create your administrator account.</CardDescription>
+            </CardHeader>
+            <CardContent>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleCreateAdmin)} className="space-y-4">
+                  <FormField
+                      control={form.control}
+                      name="emailOrUsername"
+                      render={({ field }) => (
+                      <FormItem>
+                          <FormLabel>Admin Username or Email</FormLabel>
+                          <FormControl>
+                            <Input placeholder="admin" {...field} disabled={pageLoading} />
+                          </FormControl>
+                          <FormMessage />
+                      </FormItem>
+                      )}
+                  />
+                  <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                      <FormItem>
+                          <FormLabel>Admin Password</FormLabel>
+                          <FormControl>
+                            <Input type="password" {...field} disabled={pageLoading} />
+                          </FormControl>
+                          <FormMessage />
+                      </FormItem>
+                      )}
+                  />
+                  <Button type="submit" className="w-full" disabled={pageLoading}>
+                      {pageLoading ? 'Creating Account...' : 'Create Admin Account'}
+                  </Button>
+                </form>
+            </Form>
+            </CardContent>
+        </Card>
+    );
+}
+
+
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
-  const { login, user, loading: authLoading } = useAuth();
+  const { login, user, loading: authLoading, isFirstRun } = useAuth();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -83,6 +166,14 @@ export default function LoginPage() {
 
   const pageLoading = authLoading || isLoading;
 
+  if (authLoading) {
+      return (
+        <main className="relative flex min-h-screen flex-col items-center justify-center bg-background p-4 overflow-hidden">
+            <div>Loading...</div>
+        </main>
+      )
+  }
+
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center bg-background p-4 overflow-hidden">
       <WallArt />
@@ -96,58 +187,61 @@ export default function LoginPage() {
               Please sign in to continue to the dashboard.
             </p>
         </div>
-        <Card className="backdrop-blur-sm bg-card/80">
-            <CardHeader>
-              <CardTitle>Login</CardTitle>
-              <CardDescription>Use "Admin" and "admin" to sign in.</CardDescription>
-            </CardHeader>
-            <CardContent>
-            <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-4">
-                  <FormField
-                      control={form.control}
-                      name="emailOrUsername"
-                      render={({ field }) => (
-                      <FormItem>
-                          <FormLabel>Email or Username</FormLabel>
-                          <FormControl>
-                          <Input
-                              placeholder="admin or admin@example.com"
-                              {...field}
-                              disabled={pageLoading}
-                          />
-                          </FormControl>
-                          <FormMessage />
-                      </FormItem>
-                      )}
-                  />
-                  <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                      <FormItem>
-                          <FormLabel>Password</FormLabel>
-                          <FormControl>
-                          <Input
-                              type="password"
-                              placeholder="admin"
-                              {...field}
-                              disabled={pageLoading}
-                          />
-                          </FormControl>
-                          <FormMessage />
-                      </FormItem>
-                      )}
-                  />
-                  <div className="flex flex-col gap-2">
-                    <Button type="submit" className="w-full" disabled={pageLoading}>
-                        {pageLoading ? 'Signing in...' : 'Sign In'}
-                    </Button>
-                  </div>
-                </form>
-            </Form>
-            </CardContent>
-        </Card>
+        
+        {isFirstRun ? <CreateAdminForm /> : (
+            <Card className="backdrop-blur-sm bg-card/80">
+                <CardHeader>
+                <CardTitle>Login</CardTitle>
+                <CardDescription>Enter your credentials to access the dashboard.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                <Form {...form}>
+                    <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-4">
+                    <FormField
+                        control={form.control}
+                        name="emailOrUsername"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email or Username</FormLabel>
+                            <FormControl>
+                            <Input
+                                placeholder="admin or admin@example.com"
+                                {...field}
+                                disabled={pageLoading}
+                            />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                            <Input
+                                type="password"
+                                placeholder="admin"
+                                {...field}
+                                disabled={pageLoading}
+                            />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <div className="flex flex-col gap-2">
+                        <Button type="submit" className="w-full" disabled={pageLoading}>
+                            {pageLoading ? 'Signing in...' : 'Sign In'}
+                        </Button>
+                    </div>
+                    </form>
+                </Form>
+                </CardContent>
+            </Card>
+        )}
       </div>
     </main>
   );

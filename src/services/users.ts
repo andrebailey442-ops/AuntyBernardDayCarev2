@@ -1,41 +1,39 @@
 
 import type { User, UserRole } from '@/lib/types';
 import { USERS } from '@/lib/data';
+import { db } from '@/lib/firebase-client';
+import { ref, get, set, update } from 'firebase/database';
+import { USERS_PATH, APP_STATE_PATH } from '@/lib/firebase-db';
 
-const USERS_STORAGE_KEY = 'users';
-
-const isFirstRun = (): boolean => {
-    if (typeof window === 'undefined') return false;
-    return !localStorage.getItem('appInitialized');
+export const isFirstRun = async (): Promise<boolean> => {
+    const appStateRef = ref(db, `${APP_STATE_PATH}/isInitialized`);
+    try {
+        const snapshot = await get(appStateRef);
+        return !snapshot.exists() || !snapshot.val();
+    } catch (e) {
+        // If we get a permission denied, it's likely the first run and rules aren't set.
+        // We'll assume it's the first run to allow admin creation.
+        return true;
+    }
 }
 
-const completeFirstRun = () => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem('appInitialized', 'true');
+export const completeFirstRun = async () => {
+    await set(ref(db, `${APP_STATE_PATH}/isInitialized`), true);
 }
 
-export const getUsers = (): User[] => {
-    if (typeof window === 'undefined') return [];
-    
-    if (isFirstRun()) {
-        localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(USERS));
-        completeFirstRun();
-        return USERS;
+export const getUsers = async (): Promise<User[]> => {
+    const snapshot = await get(ref(db, USERS_PATH));
+    if (snapshot.exists()) {
+        const data = snapshot.val();
+        // Firebase returns an object, convert it to an array
+        return Object.values(data);
     }
-    
-    const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
-    if (storedUsers) {
-        // Handle cases where a single user might be stored as an object
-        const parsed = JSON.parse(storedUsers);
-        return Array.isArray(parsed) ? parsed : Object.values(parsed);
-    }
-    
     return [];
 };
 
 
-export const findUserByUsername = (username: string): User | null => {
-    const users = getUsers();
+export const findUserByUsername = async (username: string): Promise<User | null> => {
+    const users = await getUsers();
     const loginIdentifier = username.toLowerCase();
     
     const user = users.find(u => 
@@ -46,60 +44,59 @@ export const findUserByUsername = (username: string): User | null => {
     return user || null;
 };
 
-export const addUser = (email: string, role: UserRole, password?: string, avatarUrl?: string, displayName?: string): User => {
-    const users = getUsers();
+export const addUser = async (email: string, role: UserRole, password?: string, avatarUrl?: string, displayName?: string): Promise<User> => {
+    const users = await getUsers();
     
     const existingUser = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
     if (existingUser) {
         throw new Error('A user with this email already exists.');
     }
     
+    const id = `user-${Date.now()}`;
     const newUser: User = {
-        id: `user-${Date.now()}`,
+        id,
         username: displayName || email,
         email: email.toLowerCase(),
         role,
-        password: password,
+        password: password, // In a real app, this should be hashed
         avatarUrl: avatarUrl || `https://picsum.photos/seed/${email}/100/100`,
         imageHint: 'person avatar'
     };
 
-    users.push(newUser);
-    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+    await set(ref(db, `${USERS_PATH}/${id}`), newUser);
+
+    if (users.length === 0) {
+        await completeFirstRun();
+    }
     
     return newUser;
 };
 
-export const updateUser = (userId: string, updates: Partial<User>): User | null => {
-    let users = getUsers();
-    const userIndex = users.findIndex(u => u.id === userId);
-
-    if (userIndex === -1) {
-        return null;
-    }
+export const updateUser = async (userId: string, updates: Partial<User>): Promise<User | null> => {
+    const userRef = ref(db, `${USERS_PATH}/${userId}`);
 
     // Ensure we don't accidentally wipe the password if it's not being updated
     if (updates.password === '') {
         delete updates.password;
     }
+    
+    await update(userRef, updates);
+    const snapshot = await get(userRef);
 
-    const updatedUser = { ...users[userIndex], ...updates };
-    users[userIndex] = updatedUser;
-
-    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-
-    const { password, ...userWithoutPassword } = updatedUser;
-    return userWithoutPassword as User;
+    if(snapshot.exists()) {
+        const updatedUser = snapshot.val();
+        const { password, ...userWithoutPassword } = updatedUser;
+        return userWithoutPassword as User;
+    }
+    return null;
 }
 
-export const removeUser = (userId: string): void => {
-    let users = getUsers();
-    users = users.filter(u => u.id !== userId);
-    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+export const removeUser = async (userId: string): Promise<void> => {
+    await set(ref(db, `${USERS_PATH}/${userId}`), null);
 };
 
-export const authenticateUser = (emailOrUsername: string, password?: string): User | null => {
-    const user = findUserByUsername(emailOrUsername);
+export const authenticateUser = async (emailOrUsername: string, password?: string): Promise<User | null> => {
+    const user = await findUserByUsername(emailOrUsername);
 
     if (user && user.password && password) {
         if (user.password === password) {
