@@ -66,7 +66,7 @@ export default function AttendanceTracker() {
   }, []);
 
   React.useEffect(() => {
-    if (students.length === 0 || subjects.length === 0) return;
+    if (!students || students.length === 0 || subjects.length === 0) return;
 
     const formattedDate = format(date, 'yyyy-MM-dd');
     const fetchTodaysAttendance = async () => {
@@ -185,7 +185,7 @@ export default function AttendanceTracker() {
                         ))}
                     </TableRow>
                 ))
-            ) : students.map((student) => (
+            ) : students && students.map((student) => (
               <TableRow key={student.id}>
                 <TableCell className="font-medium sticky left-0 bg-background/80 backdrop-blur-sm">
                   <div className="flex items-center gap-3">
