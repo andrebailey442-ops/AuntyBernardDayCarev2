@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -59,7 +60,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import type { User, UserRole } from '@/lib/types';
-import { getUsers, addUser, removeUser, updateUser } from '@/services/users';
+import { getUsers, addUser, removeUser, updateUser, findUserByUsername } from '@/services/users';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function UserManager() {
@@ -97,23 +98,29 @@ export default function UserManager() {
         toast({ variant: 'destructive', title: 'Error', description: 'Name, email and password are required.'});
         return;
     }
-    // Basic email validation
     if (!/\S+@\S+\.\S+/.test(newEmail)) {
         toast({ variant: 'destructive', title: 'Error', description: 'Please enter a valid email address.'});
         return;
     }
     try {
-        await addUser(newEmail, newRole, newPassword, undefined, newName);
+        const existingUser = await findUserByUsername(newEmail);
+        if (existingUser) {
+            await updateUser(existingUser.id, { password: newPassword, role: newRole });
+             toast({ title: 'User Updated', description: `The password for ${newName} has been updated.`});
+        } else {
+            await addUser(newEmail, newRole, newPassword, undefined, newName);
+            toast({ title: 'User Added', description: `${newName} has been added.`});
+        }
+
         await fetchUsers();
-        toast({ title: 'User Added', description: `${newName} has been added.`});
         setIsAddUserDialogOpen(false);
         setNewName('');
         setNewEmail('');
         setNewPassword('');
         setNewRole('Teacher');
     } catch (error) {
-        console.error('Failed to add user: ', error);
-        toast({ variant: 'destructive', title: 'Error', description: (error as Error).message || 'Failed to add user.'});
+        console.error('Failed to add or update user: ', error);
+        toast({ variant: 'destructive', title: 'Error', description: (error as Error).message || 'Failed to save user.'});
     }
   };
 
@@ -342,4 +349,5 @@ export default function UserManager() {
   );
 }
 
+    
     
