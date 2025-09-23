@@ -65,33 +65,34 @@ export default function NurseryManager() {
   const [loading, setLoading] = React.useState(true);
   const [archivedLogs, setArchivedLogs] = React.useState<ArchivedLog[]>([]);
 
-  React.useEffect(() => {
-    const fetchStudentsAndLogs = async () => {
-      setLoading(true);
-      const allStudents = await getStudents();
-      const nurseryStudents = allStudents.filter(student => student.nursery);
-      setStudents(nurseryStudents);
-      
-      const savedStatuses = localStorage.getItem(NURSERY_STORAGE_KEY);
-      let initialStatuses: StudentStatus = {};
-      if (savedStatuses) {
-        initialStatuses = JSON.parse(savedStatuses);
-      } else {
-        nurseryStudents.forEach(student => {
-          initialStatuses[student.id] = { status: 'Checked-Out' };
-        });
-      }
-      setStudentStatuses(initialStatuses);
-      
-      const savedArchivedLogs = localStorage.getItem(ARCHIVED_LOGS_STORAGE_KEY);
-      if (savedArchivedLogs) {
-          setArchivedLogs(JSON.parse(savedArchivedLogs));
-      }
+  const fetchStudentsAndLogs = React.useCallback(async () => {
+    setLoading(true);
+    const allStudents = await getStudents();
+    const nurseryStudents = (allStudents || []).filter(student => student.nursery);
+    setStudents(nurseryStudents);
+    
+    const savedStatuses = localStorage.getItem(NURSERY_STORAGE_KEY);
+    let initialStatuses: StudentStatus = {};
+    if (savedStatuses) {
+      initialStatuses = JSON.parse(savedStatuses);
+    } else {
+      nurseryStudents.forEach(student => {
+        initialStatuses[student.id] = { status: 'Checked-Out' };
+      });
+    }
+    setStudentStatuses(initialStatuses);
+    
+    const savedArchivedLogs = localStorage.getItem(ARCHIVED_LOGS_STORAGE_KEY);
+    if (savedArchivedLogs) {
+        setArchivedLogs(JSON.parse(savedArchivedLogs));
+    }
 
-      setLoading(false);
-    };
-    fetchStudentsAndLogs();
+    setLoading(false);
   }, []);
+
+  React.useEffect(() => {
+    fetchStudentsAndLogs();
+  }, [fetchStudentsAndLogs]);
 
   const handleToggleStatus = (studentId: string) => {
     const currentRecord = studentStatuses[studentId] || { status: 'Checked-Out' };
@@ -103,10 +104,8 @@ export default function NurseryManager() {
 
     if (currentRecord.status === 'Checked-In') {
         const closingTime = set(now, { hours: 18, minutes: 0, seconds: 0, milliseconds: 0 }); // 6:00 PM
-        const overtimeThreshold = set(now, { hours: 19, minutes: 0, seconds: 0, milliseconds: 0 }); // 7:00 PM
-
         let overtimeMinutes = 0;
-        if (now > overtimeThreshold) {
+        if (now > closingTime) {
             overtimeMinutes = Math.round((now.getTime() - closingTime.getTime()) / (1000 * 60));
         }
         
@@ -546,6 +545,8 @@ export default function NurseryManager() {
     </div>
   );
 }
+
+    
 
     
 
