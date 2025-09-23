@@ -54,11 +54,11 @@ export default function AttendanceTracker() {
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
-    const fetchData = () => {
+    const fetchData = async () => {
         setLoading(true);
-        const studentList = getStudents();
+        const studentList = await getStudents();
         const subjectList = getSubjects();
-        setStudents(studentList);
+        setStudents(studentList || []);
         setSubjects(subjectList);
         setLoading(false);
     };
@@ -69,8 +69,8 @@ export default function AttendanceTracker() {
     if (students.length === 0 || subjects.length === 0) return;
 
     const formattedDate = format(date, 'yyyy-MM-dd');
-    const fetchTodaysAttendance = () => {
-      const allAttendance = getAttendance();
+    const fetchTodaysAttendance = async () => {
+      const allAttendance = await getAttendance();
       const todaysAttendance = allAttendance.filter((a) => a.date === formattedDate);
 
       const initialState: AttendanceState = {};
@@ -97,14 +97,14 @@ export default function AttendanceTracker() {
     }));
   };
 
-  const saveAttendance = () => {
+  const saveAttendance = async () => {
     setSaving(true);
     try {
-      Object.entries(attendance).forEach(([studentId, subjectStatuses]) => 
-        Object.entries(subjectStatuses).forEach(([subjectId, status]) => 
-          upsertAttendance(studentId, subjectId, date, status)
-        )
-      );
+      for (const [studentId, subjectStatuses] of Object.entries(attendance)) {
+        for (const [subjectId, status] of Object.entries(subjectStatuses)) {
+            await upsertAttendance(studentId, subjectId, date, status);
+        }
+      }
       toast({
           title: 'Attendance Saved',
           description: `Attendance for ${format(date, 'PPP')} has been successfully recorded.`,
