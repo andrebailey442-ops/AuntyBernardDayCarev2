@@ -48,11 +48,11 @@ export default function GradeManager() {
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
-    const fetchData = () => {
+    const fetchData = async () => {
         setLoading(true);
-        const studentList = getStudents();
+        const studentList = await getStudents() || [];
         const subjectList = getSubjects();
-        const gradeList = getGrades();
+        const gradeList = await getGrades() || [];
         
         setAllStudents(studentList);
         setFilteredStudents(studentList);
@@ -90,14 +90,14 @@ export default function GradeManager() {
     }));
   };
 
-  const handleSaveAll = () => {
+  const handleSaveAll = async () => {
     setSaving(true);
     try {
       for (const studentId in grades) {
         for (const subjectId in grades[studentId]) {
           const grade = grades[studentId][subjectId];
           if (grade) { // Only save if a grade is selected
-            upsertGrade(studentId, subjectId, grade);
+            await upsertGrade(studentId, subjectId, grade);
           }
         }
       }
