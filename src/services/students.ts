@@ -1,92 +1,88 @@
 
-
-import type { Student, Guardian } from '@/lib/types';
-import { STUDENTS, ARCHIVED_STUDENTS } from '@/lib/data';
+import type { Student } from '@/lib/types';
+import { db } from '@/lib/firebase-client';
+import { ref, get, set, remove } from 'firebase/database';
+import { STUDENTS_PATH, ARCHIVED_STUDENTS_PATH } from '@/lib/firebase-db';
 import { deleteFeeByStudentId } from './fees';
 import { deleteGradesByStudentId } from './grades';
 import { deleteAttendanceByStudentId } from './attendance';
 
-const STUDENTS_STORAGE_KEY = 'students';
-const ARCHIVED_STUDENTS_STORAGE_KEY = 'archivedStudents';
-
-const getStoredStudents = (): Student[] => {
-    if (typeof window === 'undefined') return [];
-    const data = localStorage.getItem(STUDENTS_STORAGE_KEY);
-    return data ? JSON.parse(data) : STUDENTS;
+const getStudentsFromPath = async (path: string): Promise<Student[]> => {
+    const studentsRef = ref(db, path);
+    const snapshot = await get(studentsRef);
+    if (snapshot.exists()) {
+        const data = snapshot.val();
+        return Object.keys(data).map(key => ({ id: key, ...data[key] }));
+    }
+    return [];
 };
 
-const setStoredStudents = (students: Student[]) => {
-    localStorage.setItem(STUDENTS_STORAGE_KEY, JSON.stringify(students));
+export const getStudents = async (): Promise<Student[]> => {
+    return getStudentsFromPath(STUDENTS_PATH);
 };
 
-const getStoredArchivedStudents = (): Student[] => {
-    if (typeof window === 'undefined') return [];
-    const data = localStorage.getItem(ARCHIVED_STUDENTS_STORAGE_KEY);
-    return data ? JSON.parse(data) : ARCHIVED_STUDENTS;
-};
-
-const setStoredArchivedStudents = (students: Student[]) => {
-    localStorage.setItem(ARCHIVED_STUDENTS_STORAGE_KEY, JSON.stringify(students));
-};
-
-
-export const getStudents = (): Student[] => {
-    const allStudents = getStoredStudents();
-    return allStudents.filter(s => s.status !== 'graduated');
-};
-
-export const getArchivedStudents = (): Student[] => {
-    return getStoredArchivedStudents();
+export const getArchivedStudents = async (): Promise<Student[]> => {
+    return getStudentsFromPath(ARCHIVED_STUDENTS_PATH);
 }
 
-export const getStudent = (id: string): Student | null => {
-    const allStudents = getStoredStudents();
-    const archivedStudents = getStoredArchivedStudents();
-    return allStudents.find(s => s.id === id) || archivedStudents.find(s => s.id === id) || null;
-}
+export const getStudent = async (id: string): Promise<Student | null> => {
+    let studentRef = ref(db, `${STUDENTS_PATH}/${id}`);
+    let snapshot = await get(studentRef);
 
-export const addStudent = (id: string, student: Omit<Student, 'id' | 'status'>) => {
-    const students = getStoredStudents();
+    if (snapshot.exists()) {
+        return { id, ...snapshot.val() };
+    }
+
+    studentRef = ref(db, `${ARCHIVED_STUDENTS_PATH}/${id}`);
+    snapshot = await get(studentRef);
+    if(snapshot.exists()) {
+        return { id, ...snapshot.val() };
+    }
     
+    return null;
+}
+
+export const addStudent = async (id: string, student: Omit<Student, 'id' | 'status'>) => {
+    const studentRef = ref(db, `${STUDENTS_PATH}/${id}`);
     const newStudent: Student = {
         ...student,
         id,
         status: 'enrolled',
     };
-    students.push(newStudent);
-    setStoredStudents(students);
+    await set(studentRef, newStudent);
 };
 
-export const updateStudent = (id: string, studentUpdate: Partial<Student>) => {
-    if (studentUpdate.status === 'graduated') {
-        const students = getStoredStudents();
-        const studentToGraduate = students.find(s => s.id === id);
-        if (studentToGraduate) {
-            const updatedStudent = { ...studentToGraduate, ...studentUpdate };
-            const remainingStudents = students.filter(s => s.id !== id);
-            setStoredStudents(remainingStudents);
-            
-            const archived = getStoredArchivedStudents();
-            archived.push(updatedStudent);
-            setStoredArchivedStudents(archived);
+export const updateStudent = async (id: string, studentUpdate: Partial<Student>) => {
+    const studentRef = ref(db, `${STUDENTS_PATH}/${id}`);
+    const snapshot = await get(studentRef);
+
+    if (snapshot.exists()) {
+        const currentData = snapshot.val();
+        if (studentUpdate.status === 'graduated') {
+            const updatedStudent = { ...currentData, ...studentUpdate, id };
+            const archivedStudentRef = ref(db, `${ARCHIVED_STUDENTS_PATH}/${id}`);
+            await set(archivedStudentRef, updatedStudent);
+            await remove(studentRef);
+        } else {
+            await set(studentRef, { ...currentData, ...studentUpdate });
         }
     } else {
-        const students = getStoredStudents();
-        const index = students.findIndex(s => s.id === id);
-        if (index > -1) {
-            students[index] = { ...students[index], ...studentUpdate };
-            setStoredStudents(students);
+        // Handle case where student might be in archives and is being updated
+        const archivedStudentRef = ref(db, `${ARCHIVED_STUDENTS_PATH}/${id}`);
+        const archivedSnapshot = await get(archivedStudentRef);
+        if (archivedSnapshot.exists()) {
+            const currentData = archivedSnapshot.val();
+            await set(archivedStudentRef, { ...currentData, ...studentUpdate });
         }
     }
 };
 
-export const deleteStudent = (id: string) => {
-    let students = getStoredStudents();
-    students = students.filter(s => s.id !== id);
-    setStoredStudents(students);
+export const deleteStudent = async (id: string) => {
+    const studentRef = ref(db, `${STUDENTS_PATH}/${id}`);
+    await remove(studentRef);
     
     // Also delete related data
-    deleteFeeByStudentId(id);
-    deleteGradesByStudentId(id);
-    deleteAttendanceByStudentId(id);
+    await deleteFeeByStudentId(id);
+    await deleteGradesByStudentId(id);
+    await deleteAttendanceByStudentId(id);
 };

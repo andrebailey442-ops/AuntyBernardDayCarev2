@@ -1,29 +1,31 @@
 
 import { DEFAULT_TEACHER_PERMISSIONS, PERMISSIONS } from '@/lib/data';
 import type { UserRole } from '@/lib/types';
+import { db } from '@/lib/firebase-client';
+import { ref, get, set } from 'firebase/database';
+import { PERMISSIONS_PATH } from '@/lib/firebase-db';
 
-const getPermissionsKey = (role: UserRole) => `${role.toLowerCase()}_permissions`;
+export const getPermissionsByRole = async (role: UserRole): Promise<string[]> => {
+    const permissionsRef = ref(db, `${PERMISSIONS_PATH}/${role.toLowerCase()}`);
+    const snapshot = await get(permissionsRef);
 
-export const getPermissionsByRole = (role: UserRole): string[] => {
-    if (typeof window === 'undefined') return [];
-    
-    const key = getPermissionsKey(role);
-    const storedPermissions = localStorage.getItem(key);
-
-    if (storedPermissions) {
-        return JSON.parse(storedPermissions);
+    if (snapshot.exists()) {
+        return snapshot.val();
     }
 
-    // Return defaults if nothing is in local storage
+    // Return defaults if nothing is in the database
     if (role === 'Teacher') {
+        await savePermissionsByRole('Teacher', DEFAULT_TEACHER_PERMISSIONS);
         return DEFAULT_TEACHER_PERMISSIONS;
     }
+
     // Admin gets all permissions by default
-    return PERMISSIONS.map(p => p.id);
+    const allPermissions = PERMISSIONS.map(p => p.id);
+    await savePermissionsByRole('Admin', allPermissions);
+    return allPermissions;
 };
 
-export const savePermissionsByRole = (role: UserRole, permissions: string[]): void => {
-     if (typeof window === 'undefined') return;
-     const key = getPermissionsKey(role);
-     localStorage.setItem(key, JSON.stringify(permissions));
+export const savePermissionsByRole = async (role: UserRole, permissions: string[]): Promise<void> => {
+     const permissionsRef = ref(db, `${PERMISSIONS_PATH}/${role.toLowerCase()}`);
+     await set(permissionsRef, permissions);
 };

@@ -1,52 +1,49 @@
 
 import type { Attendance, AttendanceStatus } from '@/lib/types';
 import { format } from 'date-fns';
+import { db } from '@/lib/firebase-client';
+import { ref, get, set, remove } from 'firebase/database';
+import { ATTENDANCE_PATH } from '@/lib/firebase-db';
 
-const ATTENDANCE_STORAGE_KEY = 'attendance';
-
-const getStoredAttendance = (): Attendance[] => {
-    if (typeof window === 'undefined') return [];
-    const data = localStorage.getItem(ATTENDANCE_STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+export const getAttendance = async (): Promise<Attendance[]> => {
+    const attendanceRef = ref(db, ATTENDANCE_PATH);
+    const snapshot = await get(attendanceRef);
+    if (snapshot.exists()) {
+        const data = snapshot.val();
+        return Object.values(data);
+    }
+    return [];
 };
 
-const setStoredAttendance = (attendance: Attendance[]) => {
-    localStorage.setItem(ATTENDANCE_STORAGE_KEY, JSON.stringify(attendance));
-};
-
-export const getAttendance = (): Attendance[] => {
-    return getStoredAttendance();
-};
-
-export const getAttendanceByStudent = (studentId: string): Attendance[] => {
-    const allAttendance = getStoredAttendance();
+export const getAttendanceByStudent = async (studentId: string): Promise<Attendance[]> => {
+    const allAttendance = await getAttendance();
     return allAttendance.filter(a => a.studentId === studentId);
 };
 
-export const upsertAttendance = (studentId: string, subject: string, date: Date, status: AttendanceStatus) => {
-    const allAttendance = getStoredAttendance();
+export const upsertAttendance = async (studentId: string, subject: string, date: Date, status: AttendanceStatus) => {
     const formattedDate = format(date, 'yyyy-MM-dd');
     const attendanceId = `${studentId}_${subject}_${formattedDate}`;
+    const attendanceRef = ref(db, `${ATTENDANCE_PATH}/${attendanceId}`);
 
-    const existingIndex = allAttendance.findIndex(a => a.id === attendanceId);
+    const newAttendance: Attendance = {
+        id: attendanceId,
+        studentId,
+        subject,
+        date: formattedDate,
+        status,
+    };
 
-    if (existingIndex > -1) {
-        allAttendance[existingIndex] = { ...allAttendance[existingIndex], status };
-    } else {
-        allAttendance.push({
-            id: attendanceId,
-            studentId,
-            subject,
-            date: formattedDate,
-            status,
-        });
-    }
-
-    setStoredAttendance(allAttendance);
+    await set(attendanceRef, newAttendance);
 };
 
-export const deleteAttendanceByStudentId = (studentId: string) => {
-    let allAttendance = getStoredAttendance();
-    allAttendance = allAttendance.filter(a => a.studentId !== studentId);
-    setStoredAttendance(allAttendance);
+export const deleteAttendanceByStudentId = async (studentId: string) => {
+    const allAttendance = await getAttendance();
+    const attendanceToDelete = allAttendance.filter(a => a.studentId === studentId);
+
+    const promises = attendanceToDelete.map(a => {
+        const attendanceRef = ref(db, `${ATTENDANCE_PATH}/${a.id}`);
+        return remove(attendanceRef);
+    });
+
+    await Promise.all(promises);
 };

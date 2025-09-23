@@ -1,52 +1,49 @@
 
 import type { Grade } from '@/lib/types';
 import { format } from 'date-fns';
+import { db } from '@/lib/firebase-client';
+import { ref, get, set, remove } from 'firebase/database';
+import { GRADES_PATH } from '@/lib/firebase-db';
 
-const GRADES_STORAGE_KEY = 'grades';
-
-const getStoredGrades = (): Grade[] => {
-    if (typeof window === 'undefined') return [];
-    const data = localStorage.getItem(GRADES_STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+export const getGrades = async (): Promise<Grade[]> => {
+    const gradesRef = ref(db, GRADES_PATH);
+    const snapshot = await get(gradesRef);
+    if (snapshot.exists()) {
+        const data = snapshot.val();
+        return Object.values(data);
+    }
+    return [];
 };
 
-const setStoredGrades = (grades: Grade[]) => {
-    localStorage.setItem(GRADES_STORAGE_KEY, JSON.stringify(grades));
-};
-
-export const getGrades = (): Grade[] => {
-    return getStoredGrades();
-};
-
-export const getGradesByStudent = (studentId: string): Grade[] => {
-    const allGrades = getStoredGrades();
+export const getGradesByStudent = async (studentId: string): Promise<Grade[]> => {
+    const allGrades = await getGrades();
     return allGrades.filter(g => g.studentId === studentId);
 };
 
-export const upsertGrade = (studentId: string, subject: string, gradeValue: string) => {
-    const allGrades = getStoredGrades();
+export const upsertGrade = async (studentId: string, subject: string, gradeValue: string) => {
     const gradeId = `${studentId}_${subject}`;
-    const existingIndex = allGrades.findIndex(g => g.id === gradeId);
+    const gradeRef = ref(db, `${GRADES_PATH}/${gradeId}`);
 
-    if (existingIndex > -1) {
-        allGrades[existingIndex].grade = gradeValue as Grade['grade'];
-    } else {
-        const newGrade: Grade = {
-            id: gradeId,
-            studentId,
-            subject,
-            grade: gradeValue as Grade['grade'],
-            category: 'daily',
-            date: format(new Date(), 'yyyy-MM-dd'),
-        };
-        allGrades.push(newGrade);
-    }
-
-    setStoredGrades(allGrades);
+    const newGrade: Grade = {
+        id: gradeId,
+        studentId,
+        subject,
+        grade: gradeValue as Grade['grade'],
+        category: 'daily',
+        date: format(new Date(), 'yyyy-MM-dd'),
+    };
+    
+    await set(gradeRef, newGrade);
 };
 
-export const deleteGradesByStudentId = (studentId: string) => {
-    let allGrades = getStoredGrades();
-    allGrades = allGrades.filter(g => g.studentId !== studentId);
-    setStoredGrades(allGrades);
+export const deleteGradesByStudentId = async (studentId: string) => {
+    const allGrades = await getGrades();
+    const gradesToDelete = allGrades.filter(g => g.studentId === studentId);
+    
+    const promises = gradesToDelete.map(g => {
+        const gradeRef = ref(db, `${GRADES_PATH}/${g.id}`);
+        return remove(gradeRef);
+    });
+
+    await Promise.all(promises);
 };
