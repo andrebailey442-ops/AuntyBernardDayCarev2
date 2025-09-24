@@ -48,11 +48,40 @@ export default function DashboardLayout({
     if (user && !loading) {
         const checkPermissions = async () => {
             const userPermissions = await getPermissionsByRole(user.role);
-            const isAllowed = pathname === '/dashboard' || userPermissions.some(p => pathname.startsWith(p));
             
+            const isRootDashboard = pathname === '/dashboard';
+            
+            const isDirectlyAllowed = userPermissions.some(p => pathname.startsWith(p));
+
+            const isSubRouteAllowed = userPermissions.some(p => {
+              if (pathname.startsWith(`${p}/`)) {
+                  // e.g. /dashboard/students/new starts with /dashboard/student-management
+                  // This simple check is not enough. We need a better way.
+                  const pathSegments = pathname.split('/');
+                  const permissionSegments = p.split('/');
+                  // /dashboard/students/new -> ['','dashboard','students','new']
+                  // /dashboard/student-management -> ['','dashboard','student-management']
+                  // This is tricky. Let's handle known cases.
+                  if (pathname.startsWith('/dashboard/students/')) {
+                      return userPermissions.includes('/dashboard/student-management');
+                  }
+                   if (pathname.startsWith('/dashboard/reports/')) {
+                      return userPermissions.includes('/dashboard/reports');
+                  }
+                  if (pathname.startsWith('/dashboard/staff/')) {
+                      return userPermissions.includes('/dashboard/staff');
+                  }
+                  return false;
+              }
+              return false;
+            });
+            
+            const isAllowed = isRootDashboard || isDirectlyAllowed || isSubRouteAllowed;
+
             if (isAllowed) {
                 setIsAuthorized(true);
             } else {
+                console.log(`Redirecting. No permission for ${pathname}`);
                 router.replace('/dashboard');
             }
         };
