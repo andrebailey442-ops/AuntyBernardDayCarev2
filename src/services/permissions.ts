@@ -6,6 +6,9 @@ import { ref, get, set } from 'firebase/database';
 import { PERMISSIONS_PATH } from '@/lib/firebase-db';
 
 export const getPermissionsByRole = async (role: UserRole): Promise<string[]> => {
+    if (!role) {
+        return [];
+    }
     const permissionsRef = ref(db, `${PERMISSIONS_PATH}/${role.toLowerCase()}`);
     try {
         const snapshot = await get(permissionsRef);
