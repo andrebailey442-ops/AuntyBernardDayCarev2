@@ -2,7 +2,6 @@
 'use client';
 
 import * as React from 'react';
-import Image from 'next/image';
 import {
   Card,
   CardContent,
@@ -82,14 +81,6 @@ export default function StudentList({ students, loading }: StudentListProps) {
                 <TableRow key={student.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                        <Image
-                            alt="Student avatar"
-                            className="aspect-square rounded-full object-cover"
-                            height="40"
-                            src={student.avatarUrl}
-                            width="40"
-                            data-ai-hint={student.imageHint}
-                        />
                         <div>
                             <div className="font-medium">{student.name}</div>
                             <div className="text-sm text-muted-foreground font-mono">{student.id}</div>
