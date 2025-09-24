@@ -243,7 +243,7 @@ export function DashboardHeader({ setSlideshowDialogOpen }: DashboardHeaderProps
                     src={user?.avatarUrl}
                     alt={user?.username}
                     />
-                    <AvatarFallback>{user?.username.charAt(0).toUpperCase()}</AvatarFallback>
+                    <AvatarFallback>{user?.username ? user.username.charAt(0).toUpperCase() : ''}</AvatarFallback>
                 </Avatar>
                 </Button>
             </DropdownMenuTrigger>
