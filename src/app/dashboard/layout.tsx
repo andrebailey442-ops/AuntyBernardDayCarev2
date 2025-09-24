@@ -10,6 +10,7 @@ import { DashboardHeader } from '@/components/dashboard-header';
 import HeroSlideshow from './_components/hero-slideshow';
 import WallArt from '@/components/wall-art';
 import { useAuth } from '@/hooks/use-auth';
+import { getPermissionsByRole } from '@/services/permissions';
 
 // A simple function to format the pathname into a title
 const getTitleFromPathname = (pathname: string): string => {
@@ -36,15 +37,31 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [isSlideshowDialogOpen, setIsSlideshowDialogOpen] = React.useState(false);
+  const [isAuthorized, setIsAuthorized] = React.useState(false);
 
   React.useEffect(() => {
     if (!loading && !user) {
         router.replace('/');
+        return;
     }
-  }, [user, loading, router]);
+
+    if (user && !loading) {
+        const checkPermissions = async () => {
+            const userPermissions = await getPermissionsByRole(user.role);
+            const isAllowed = pathname === '/dashboard' || userPermissions.some(p => pathname.startsWith(p));
+            
+            if (isAllowed) {
+                setIsAuthorized(true);
+            } else {
+                router.replace('/dashboard');
+            }
+        };
+        checkPermissions();
+    }
+  }, [user, loading, router, pathname]);
 
 
-  if (loading || !user) {
+  if (loading || !user || !isAuthorized) {
     return (
         <div className="flex min-h-screen w-full flex-col">
             <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6 z-50">
