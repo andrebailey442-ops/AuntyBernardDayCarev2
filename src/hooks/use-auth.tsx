@@ -5,8 +5,6 @@
 import * as React from 'react';
 import type { User, UserRole } from '@/lib/types';
 import { authenticateUser, addUser, isFirstRun as checkFirstRun } from '@/services/users';
-import { db } from '@/lib/firebase-client';
-import { ref, set } from 'firebase/database';
 
 const AUTH_STORAGE_KEY = 'currentUser';
 

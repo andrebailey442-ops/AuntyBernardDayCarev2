@@ -1,6 +1,5 @@
 
 import type { Attendance, AttendanceStatus } from '@/lib/types';
-import { ATTENDANCE } from '@/lib/data';
 import { format } from 'date-fns';
 import { db } from '@/lib/firebase-client';
 import { ref, get, set } from 'firebase/database';
@@ -12,9 +11,7 @@ export const getAttendance = async (): Promise<Attendance[]> => {
         const data = snapshot.val();
         return Object.values(data);
     }
-    // If no data, initialize with default and return
-    await set(ref(db, ATTENDANCE_PATH), ATTENDANCE);
-    return ATTENDANCE;
+    return [];
 };
 
 export const getAttendanceByStudent = async (studentId: string): Promise<Attendance[]> => {

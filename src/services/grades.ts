@@ -1,6 +1,5 @@
 
 import type { Grade } from '@/lib/types';
-import { GRADES } from '@/lib/data';
 import { format } from 'date-fns';
 import { db } from '@/lib/firebase-client';
 import { ref, get, set } from 'firebase/database';
@@ -13,8 +12,7 @@ export const getGrades = async (): Promise<Grade[]> => {
         const data = snapshot.val();
         return Object.values(data);
     }
-    await set(ref(db, GRADES_PATH), GRADES);
-    return GRADES;
+    return [];
 };
 
 export const getGradesByStudent = async (studentId: string): Promise<Grade[]> => {
@@ -23,7 +21,7 @@ export const getGradesByStudent = async (studentId: string): Promise<Grade[]> =>
 }
 
 export const upsertGrade = async (studentId: string, subject: string, gradeValue: string) => {
-    const gradeId = `${studentId}_${subject}`;
+    const gradeId = `${studentId}_${subject}_${format(new Date(), 'yyyyMMddHHmmss')}`;
     
     const newGrade: Grade = {
         id: gradeId,

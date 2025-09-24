@@ -1,7 +1,6 @@
 
 
 import type { Student } from '@/lib/types';
-import { STUDENTS, ARCHIVED_STUDENTS } from '@/lib/data';
 import { deleteFeeByStudentId } from './fees';
 import { deleteGradesByStudentId } from './grades';
 import { deleteAttendanceByStudentId } from './attendance';
@@ -20,13 +19,7 @@ export const getStudents = async (): Promise<Student[]> => {
         const data = snapshot.val();
         return Object.values(data);
     }
-    // If no data, initialize with default and return
-    const initialStudents: { [key: string]: Student } = {};
-    STUDENTS.forEach(student => {
-        initialStudents[student.id] = student;
-    });
-    await set(ref(db, STUDENTS_PATH), initialStudents);
-    return STUDENTS;
+    return [];
 };
 
 export const getArchivedStudents = async (): Promise<Student[]> => {
@@ -35,12 +28,7 @@ export const getArchivedStudents = async (): Promise<Student[]> => {
         const data = snapshot.val();
         return Object.values(data);
     }
-    const initialArchived: { [key: string]: Student } = {};
-    ARCHIVED_STUDENTS.forEach(student => {
-        initialArchived[student.id] = student;
-    });
-    await set(ref(db, ARCHIVED_STUDENTS_PATH), initialArchived);
-    return ARCHIVED_STUDENTS;
+    return [];
 }
 
 export const getStudent = async (id: string): Promise<Student | null> => {
@@ -125,4 +113,3 @@ export const getArchivednurseryLogs = async () => {
 export const saveArchivednurseryLogs = async (logs: any) => {
     await set(ref(db, ARCHIVED_NURSERY_LOGS_PATH), logs);
 }
-

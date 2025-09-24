@@ -1,6 +1,5 @@
 
 import type { Staff, StaffSchedule, StaffAttendance, ArchivedStaffLog } from '@/lib/types';
-import { STAFF } from '@/lib/data';
 import { db } from '@/lib/firebase-client';
 import { ref, get, set, update } from 'firebase/database';
 import { STAFF_PATH, STAFF_SCHEDULE_PATH, STAFF_ATTENDANCE_PATH, ARCHIVED_STAFF_LOGS_PATH } from '@/lib/firebase-db';
@@ -13,12 +12,7 @@ export const getStaff = async (): Promise<Staff[]> => {
         const data = snapshot.val();
         return Object.values(data);
     }
-    const initialStaff: { [key: string]: Staff } = {};
-    STAFF.forEach(s => {
-        initialStaff[s.id] = s;
-    });
-    await set(ref(db, STAFF_PATH), initialStaff);
-    return STAFF;
+    return [];
 };
 
 export const getStaffMember = async (id: string): Promise<Staff | undefined> => {
