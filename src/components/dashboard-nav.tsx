@@ -47,13 +47,16 @@ export function DashboardNav() {
   const [visibleNavItems, setVisibleNavItems] = React.useState<NavItem[]>([]);
 
   React.useEffect(() => {
-    if (user) {
-      const permissions = getPermissionsByRole(user.role);
-      const userNav = navItems.filter(item => permissions.includes(item.id));
-      setVisibleNavItems(userNav);
-    } else {
-      setVisibleNavItems([]);
-    }
+    const fetchPermissions = async () => {
+      if (user) {
+        const permissions = await getPermissionsByRole(user.role);
+        const userNav = navItems.filter(item => permissions.includes(item.id));
+        setVisibleNavItems(userNav);
+      } else {
+        setVisibleNavItems([]);
+      }
+    };
+    fetchPermissions();
   }, [user]);
 
   if (!user) {
