@@ -1,15 +1,20 @@
 
+
 'use client';
 
 import * as React from 'react';
-import type { User } from '@/lib/types';
-import { authenticateUser, findUserByUsername, addUser } from '@/services/users';
+import type { User, UserRole } from '@/lib/types';
+import { authenticateUser, addUser, isFirstRun as checkFirstRun } from '@/services/users';
+
+const AUTH_STORAGE_KEY = 'currentUser';
 
 type AuthContextType = {
   user: User | null;
   loading: boolean;
+  isFirstRun: boolean;
   login: (emailOrUsername: string, password?: string) => Promise<User | null>;
   logout: () => void;
+  createAdmin: (email: string, password: string) => Promise<User | null>;
 };
 
 const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
@@ -17,10 +22,14 @@ const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<User | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const AUTH_STORAGE_KEY = 'currentUser';
-
+  const [isFirstRun, setIsFirstRun] = React.useState(true);
+  
   React.useEffect(() => {
-    const initialize = () => {
+    const initializeAuth = async () => {
+      setLoading(true);
+      const firstRun = await checkFirstRun();
+      setIsFirstRun(firstRun);
+      
       try {
         const storedUser = localStorage.getItem(AUTH_STORAGE_KEY);
         if (storedUser) {
@@ -28,37 +37,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (error) {
         console.error("Failed to retrieve user from localStorage", error);
+        setUser(null);
       } finally {
-        setLoading(false);
+          setLoading(false);
       }
     }
-    initialize();
+
+    initializeAuth();
   }, []);
 
-  const login = async (emailOrUsername: string, password?: string) => {
+  const login = async (emailOrUsername: string, password?: string): Promise<User | null> => {
     setLoading(true);
     try {
-      const authenticatedUser = authenticateUser(emailOrUsername, password);
+      const authenticatedUser = await authenticateUser(emailOrUsername, password);
       if (authenticatedUser) {
-        setUser(authenticatedUser);
-        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authenticatedUser));
+        const { password: _, ...sessionUser } = authenticatedUser;
+        localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(sessionUser));
+        setUser(sessionUser as User);
         return authenticatedUser;
       }
       return null;
     } catch (error) {
       console.error("Login failed", error);
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+      setUser(null);
       return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem(AUTH_STORAGE_KEY);
+  const createAdmin = async (email: string, password: string): Promise<User | null> => {
+    if (!isFirstRun) {
+        throw new Error("Admin account can only be created on the first run.");
+    }
+    setLoading(true);
+    try {
+        const adminUser = await addUser(email, 'Admin', password, undefined, 'Admin');
+        setIsFirstRun(false); // Update state after admin creation
+        return adminUser;
+    } catch (error) {
+        console.error("Admin creation failed", error);
+        throw error;
+    } finally {
+        setLoading(false);
+    }
   };
 
-  const value = { user, loading, login, logout };
+  const logout = () => {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    setUser(null);
+  };
+
+  const value = { user, loading, isFirstRun, login, logout, createAdmin };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
