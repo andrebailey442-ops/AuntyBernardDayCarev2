@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -401,7 +400,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                         <FormItem className="flex flex-col items-center text-center">
                             <FormLabel>Profile Picture</FormLabel>
                             <FormControl>
-                                <>
+                                <div>
                                     <input
                                         type="file"
                                         className="hidden"
@@ -424,7 +423,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                                             <Upload className="h-6 w-6 text-white" />
                                         </div>
                                     </div>
-                                </>
+                                </div>
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -803,3 +802,5 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     </>
   );
 }
+
+    
