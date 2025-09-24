@@ -34,21 +34,35 @@ const loginSchema = z.object({
   password: z.string().min(1, { message: 'Password is required.' }),
 });
 
+const adminSchema = z.object({
+    email: z.string().email({ message: 'Please enter a valid email.' }),
+    password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+});
+
 type LoginFormValues = z.infer<typeof loginSchema>;
+type AdminFormValues = z.infer<typeof adminSchema>;
 
 
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
-  const { login, user, loading: authLoading } = useAuth();
+  const { login, user, loading: authLoading, isFirstRun, createAdmin } = useAuth();
 
-  const form = useForm<LoginFormValues>({
+  const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       emailOrUsername: '',
       password: '',
     },
+  });
+
+  const adminForm = useForm<AdminFormValues>({
+      resolver: zodResolver(adminSchema),
+      defaultValues: {
+          email: '',
+          password: '',
+      },
   });
 
   const handleLogin = async (data: LoginFormValues) => {
@@ -75,8 +89,30 @@ export default function LoginPage() {
     }
   };
 
+  const handleCreateAdmin = async (data: AdminFormValues) => {
+    setIsLoading(true);
+    try {
+        const adminUser = await createAdmin(data.email, data.password);
+        if (adminUser) {
+            toast({
+                title: 'Admin Account Created',
+                description: 'You can now log in with your new credentials.',
+            });
+        } else {
+            throw new Error('Could not create admin account.');
+        }
+    } catch (error) {
+        toast({
+            variant: 'destructive',
+            title: 'Creation Failed',
+            description: (error as Error).message || 'An unexpected error occurred.',
+        });
+    } finally {
+        setIsLoading(false);
+    }
+  }
+
   React.useEffect(() => {
-    // If a user is already logged in from a previous session, redirect.
     if (user && !authLoading) {
       router.push('/dashboard');
     }
@@ -102,60 +138,84 @@ export default function LoginPage() {
               Aunty Bernard DayCare and Pre-school
             </h1>
             <p className="text-muted-foreground">
-              Please sign in to continue to the dashboard.
+              {isFirstRun ? 'Welcome! Create your Super Admin account to get started.' : 'Please sign in to continue to the dashboard.'}
             </p>
         </div>
         
         <Card className="backdrop-blur-sm bg-card/80">
             <CardHeader>
-            <CardTitle>Login</CardTitle>
-            <CardDescription>Enter your credentials to access the dashboard.</CardDescription>
+                <CardTitle>{isFirstRun ? 'Create Super Admin' : 'Login'}</CardTitle>
+                <CardDescription>
+                    {isFirstRun ? 'This will be the primary administrator account for the application.' : 'Enter your credentials to access the dashboard.'}
+                </CardDescription>
             </CardHeader>
             <CardContent>
-            <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-4">
-                <FormField
-                    control={form.control}
-                    name="emailOrUsername"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Email or Username</FormLabel>
-                        <FormControl>
-                        <Input
-                            placeholder="admin or admin@example.com"
-                            {...field}
-                            disabled={pageLoading}
-                        />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                        <Input
-                            type="password"
-                            placeholder="password"
-                            {...field}
-                            disabled={pageLoading}
-                        />
-                        </FormControl>
-                        <FormMessage />
-                    </FormItem>
-                    )}
-                />
-                <div className="flex flex-col gap-2">
-                    <Button type="submit" className="w-full" disabled={pageLoading}>
-                        {pageLoading ? 'Signing in...' : 'Sign In'}
-                    </Button>
-                </div>
-                </form>
-            </Form>
+            {isFirstRun ? (
+                <Form {...adminForm}>
+                    <form onSubmit={adminForm.handleSubmit(handleCreateAdmin)} className="space-y-4">
+                        <FormField control={adminForm.control} name="email" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Admin Email</FormLabel>
+                                <FormControl><Input placeholder="admin@example.com" {...field} disabled={pageLoading} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField control={adminForm.control} name="password" render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Password</FormLabel>
+                                <FormControl><Input type="password" {...field} disabled={pageLoading} /></FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <Button type="submit" className="w-full" disabled={pageLoading}>
+                            {pageLoading ? 'Creating Account...' : 'Create Admin Account'}
+                        </Button>
+                    </form>
+                </Form>
+            ) : (
+                <Form {...loginForm}>
+                    <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
+                    <FormField
+                        control={loginForm.control}
+                        name="emailOrUsername"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email or Username</FormLabel>
+                            <FormControl>
+                            <Input
+                                {...field}
+                                disabled={pageLoading}
+                            />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={loginForm.control}
+                        name="password"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Password</FormLabel>
+                            <FormControl>
+                            <Input
+                                type="password"
+                                {...field}
+                                disabled={pageLoading}
+                            />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <div className="flex flex-col gap-2">
+                        <Button type="submit" className="w-full" disabled={pageLoading}>
+                            {pageLoading ? 'Signing in...' : 'Sign In'}
+                        </Button>
+                    </div>
+                    </form>
+                </Form>
+            )}
             </CardContent>
         </Card>
       </div>
