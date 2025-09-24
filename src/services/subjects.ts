@@ -1,18 +1,21 @@
 
 import type { Subject } from '@/lib/types';
 import { SUBJECTS } from '@/lib/data';
+import { db } from '@/lib/firebase-client';
+import { ref, get, set } from 'firebase/database';
+import { SUBJECTS_PATH } from '@/lib/firebase-db';
 
-const SUBJECTS_STORAGE_KEY = 'subjects';
-
-export const getSubjects = (): Subject[] => {
-    if (typeof window === 'undefined') return SUBJECTS;
-    
-    const storedSubjects = localStorage.getItem(SUBJECTS_STORAGE_KEY);
-    if (storedSubjects) {
-        return JSON.parse(storedSubjects);
-    } else {
-        // Initialize subjects if they don't exist
-        localStorage.setItem(SUBJECTS_STORAGE_KEY, JSON.stringify(SUBJECTS));
-        return SUBJECTS;
+export const getSubjects = async (): Promise<Subject[]> => {
+    const snapshot = await get(ref(db, SUBJECTS_PATH));
+    if (snapshot.exists()) {
+        const data = snapshot.val();
+        return Object.values(data);
     }
+    // If no data, initialize with default and return
+    const initialSubjects: { [key: string]: Subject } = {};
+    SUBJECTS.forEach(subject => {
+        initialSubjects[subject.id] = subject;
+    });
+    await set(ref(db, SUBJECTS_PATH), initialSubjects);
+    return SUBJECTS;
 };

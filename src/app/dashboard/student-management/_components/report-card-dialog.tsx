@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -39,7 +40,7 @@ export default function ReportCardDialog({ student }: ReportCardDialogProps) {
         setLoading(true);
         const studentGrades = await getGradesByStudent(student.id);
         const studentAttendance = await getAttendanceByStudent(student.id);
-        const subjectData = getSubjects();
+        const subjectData = await getSubjects();
         
         setGrades(studentGrades || []);
         setSubjects(subjectData || []);

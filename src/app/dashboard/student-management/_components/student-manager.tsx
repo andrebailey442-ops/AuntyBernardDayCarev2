@@ -3,7 +3,6 @@
 'use client';
 
 import * as React from 'react';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Search, Trash2, GraduationCap, Download, Upload, FileUp, FileDown, Wand2, Filter, X } from 'lucide-react';
 import { jsPDF } from 'jspdf';
@@ -335,7 +334,7 @@ export default function StudentManager() {
       try {
         const grades = await getGradesByStudent(studentId);
         const attendanceRecords = await getAttendanceByStudent(studentId);
-        const subjects = getSubjects();
+        const subjects = await getSubjects();
   
         const attendanceSummary = { present: 0, absent: 0, tardy: 0 };
         (attendanceRecords || []).forEach(a => {
@@ -576,14 +575,6 @@ export default function StudentManager() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Image
-                            alt="Student avatar"
-                            className="aspect-square rounded-full object-cover"
-                            height="40"
-                            src={student.avatarUrl}
-                            width="40"
-                            data-ai-hint={student.imageHint}
-                          />
                           <div>
                             <div className="font-medium">{student.name}</div>
                             <div className="text-sm text-muted-foreground font-mono">{student.id}</div>

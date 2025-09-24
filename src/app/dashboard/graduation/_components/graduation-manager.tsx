@@ -174,7 +174,7 @@ export default function GraduationManager() {
   const downloadFullProfile = async (student: Student) => {
     try {
         const grades = await getGradesByStudent(student.id);
-        const subjects = getSubjects();
+        const subjects = await getSubjects();
         const getSubjectName = (subjectId: string) => subjects.find(s => s.id === subjectId)?.name || 'N/A';
 
         const doc = new jsPDF();
@@ -388,14 +388,6 @@ export default function GraduationManager() {
                   <TableRow key={student.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <Image
-                          alt="Student avatar"
-                          className="aspect-square rounded-full object-cover"
-                          height="40"
-                          src={student.avatarUrl}
-                          width="40"
-                          data-ai-hint={student.imageHint}
-                        />
                         <div className="font-medium">{student.name}</div>
                       </div>
                     </TableCell>
@@ -455,14 +447,6 @@ export default function GraduationManager() {
                         <TableRow key={student.id}>
                           <TableCell>
                             <div className="flex items-center gap-3">
-                              <Image
-                                alt="Student avatar"
-                                className="aspect-square rounded-full object-cover"
-                                height="40"
-                                src={student.avatarUrl}
-                                width="40"
-                                data-ai-hint={student.imageHint}
-                              />
                               <div className="font-medium">{student.name}</div>
                             </div>
                           </TableCell>

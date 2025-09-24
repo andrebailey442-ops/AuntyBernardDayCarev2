@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -47,7 +48,7 @@ export default function ReportCard({ studentId }: ReportCardProps) {
           setStudent(studentData);
           const studentGrades = await getGradesByStudent(studentId);
           const studentAttendance = await getAttendanceByStudent(studentId);
-          const subjectData = getSubjects();
+          const subjectData = await getSubjects();
           
           setGrades(studentGrades || []);
           setSubjects(subjectData || []);

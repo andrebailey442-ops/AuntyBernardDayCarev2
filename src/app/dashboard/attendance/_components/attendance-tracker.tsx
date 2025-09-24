@@ -36,7 +36,6 @@ import {
 } from '@/components/ui/select';
 import type { AttendanceStatus, Student, Subject } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import Image from 'next/image';
 import { getStudents } from '@/services/students';
 import { getSubjects } from '@/services/subjects';
 import { getAttendance, upsertAttendance } from '@/services/attendance';
@@ -57,7 +56,7 @@ export default function AttendanceTracker() {
     const fetchData = async () => {
         setLoading(true);
         const studentList = await getStudents();
-        const subjectList = getSubjects();
+        const subjectList = await getSubjects();
         setStudents(studentList || []);
         setSubjects(subjectList);
         setLoading(false);
@@ -189,14 +188,6 @@ export default function AttendanceTracker() {
               <TableRow key={student.id}>
                 <TableCell className="font-medium sticky left-0 bg-background/80 backdrop-blur-sm">
                   <div className="flex items-center gap-3">
-                    <Image
-                      alt="Student avatar"
-                      className="aspect-square rounded-full object-cover"
-                      height="40"
-                      src={student.avatarUrl}
-                      width="40"
-                      data-ai-hint={student.imageHint}
-                    />
                     <span>{student.name}</span>
                   </div>
                 </TableCell>
