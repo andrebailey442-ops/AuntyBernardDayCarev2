@@ -24,13 +24,13 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { ArrowLeft, Trash2, PlusCircle, File, Upload, View } from 'lucide-react';
-import { format, getYear, getMonth, getDate, parseISO } from 'date-fns';
+import { ArrowLeft, Trash2, PlusCircle } from 'lucide-react';
+import { getYear, getMonth, getDate, parseISO } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 import { BusyBeeLogo } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import type { Student, StudentDocument } from '@/lib/types';
+import type { Student } from '@/lib/types';
 import { getStudent, updateStudent } from '@/services/students';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -79,12 +79,6 @@ const authorizedPickupSchema = z.object({
     phone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
 });
 
-const documentSchema = z.object({
-    name: z.string(),
-    url: z.string(),
-    type: z.string(),
-});
-
 const editStudentSchema = z.object({
     firstName: z.string().min(2, 'First name must be at least 2 characters.').max(50, 'First name cannot exceed 50 characters.'),
     lastName: z.string().min(2, 'Last name must be at least 2 characters.').max(50, 'Last name cannot exceed 50 characters.'),
@@ -101,7 +95,6 @@ const editStudentSchema = z.object({
     emergencyContactPhone: z.string().regex(phoneRegex, 'Invalid phone number format.'),
     medicalConditions: z.string().max(500, 'Medical conditions cannot exceed 500 characters.').optional(),
     authorizedPickups: z.array(authorizedPickupSchema).max(5, 'You can add a maximum of 5 authorized pickup persons.').optional(),
-    documents: z.array(documentSchema).optional(),
 }).superRefine((data, ctx) => {
     if (data.guardians[0]) {
         if (!data.guardians[0].address || !data.guardians[0].city || !data.guardians[0].state) {
@@ -141,8 +134,6 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
   const [student, setStudent] = React.useState<Student | null>(null);
   const [isAgeOverrideDialogOpen, setIsAgeOverrideDialogOpen] = React.useState(false);
 
-  const fileUploadRef = React.useRef<HTMLInputElement>(null);
-
   const [dobState, setDobState] = React.useState({
     day: '',
     month: '',
@@ -163,7 +154,6 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
         emergencyContactPhone: '',
         medicalConditions: '',
         authorizedPickups: [],
-        documents: [],
     }
   });
   
@@ -175,11 +165,6 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     const { fields: pickupFields, append: appendPickup, remove: removePickup } = useFieldArray({
       control: form.control,
       name: "authorizedPickups",
-    });
-
-    const { fields: documentFields, append: appendDocument, remove: removeDocument } = useFieldArray({
-        control: form.control,
-        name: "documents",
     });
 
   React.useEffect(() => {
@@ -205,7 +190,6 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                 emergencyContactPhone: studentData.emergencyContactPhone || '',
                 medicalConditions: studentData.medicalConditions || '',
                 authorizedPickups: studentData.authorizedPickups || [],
-                documents: studentData.documents || [],
             });
 
             setDobState({
@@ -249,35 +233,6 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     }
   }, [dobState, form]);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
-      appendDocument({
-        name: file.name,
-        url: dataUrl,
-        type: file.type,
-      });
-      toast({
-        title: 'Document Added',
-        description: `${file.name} has been staged for upload.`,
-      });
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleViewDocument = (doc: StudentDocument) => {
-    const newWindow = window.open();
-    if (newWindow) {
-      newWindow.document.write(`<iframe src="${doc.url}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
-      newWindow.document.title = doc.name;
-    }
-  };
-
-
   const onSubmit = (data: EditStudentFormValues) => {
     setIsLoading(true);
     try {
@@ -306,7 +261,6 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
             emergencyContactPhone: data.emergencyContactPhone,
             medicalConditions: data.medicalConditions,
             authorizedPickups: data.authorizedPickups,
-            documents: data.documents,
         };
         updateStudent(studentId, updatedData);
 
@@ -672,41 +626,6 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                     />
                 </div>
                  <FormField control={form.control} name="preschool" render={() => ( <FormItem><FormMessage /></FormItem> )} />
-            </div>
-
-            <Separator />
-
-             <div className="space-y-4">
-                <h3 className="text-xl font-semibold">Upload Documents</h3>
-                <input
-                    type="file"
-                    ref={fileUploadRef}
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    accept="image/*,application/pdf"
-                />
-                <Button type="button" variant="outline" onClick={() => fileUploadRef.current?.click()}>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload a File
-                </Button>
-                <div className="space-y-2">
-                    {documentFields.map((doc, index) => (
-                        <div key={doc.id} className="flex items-center justify-between p-2 border rounded-md">
-                            <div className="flex items-center gap-2">
-                                <File className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm font-medium">{doc.name}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Button size="sm" variant="ghost" onClick={() => handleViewDocument(doc as StudentDocument)}>
-                                    <View className="h-4 w-4" />
-                                </Button>
-                                <Button size="sm" variant="destructive" onClick={() => removeDocument(index)}>
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
             </div>
 
             <Separator />

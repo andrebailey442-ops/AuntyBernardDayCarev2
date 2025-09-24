@@ -60,6 +60,7 @@ import { analyzeStudentImport } from '@/ai/flows/analyze-student-import';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
+import UploadDocumentsDialog from './upload-documents-dialog';
 
 
 export default function StudentManager() {
@@ -69,7 +70,7 @@ export default function StudentManager() {
   const [allStudents, setAllStudents] = React.useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = React.useState<Student[]>([]);
   const [selectedStudentForDialog, setSelectedStudentForDialog] = React.useState<Student | null>(null);
-  const [dialogContent, setDialogContent] = React.useState<'report' | null>(null);
+  const [dialogContent, setDialogContent] = React.useState<'report' | 'upload' | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [isProcessingImport, setIsProcessingImport] = React.useState(false);
   const [selectedStudents, setSelectedStudents] = React.useState<string[]>([]);
@@ -402,7 +403,7 @@ export default function StudentManager() {
     });
   }
 
-  const openDialog = (student: Student, content: 'report') => {
+  const openDialog = (student: Student, content: 'report' | 'upload') => {
     setSelectedStudentForDialog(student);
     setDialogContent(content);
   }
@@ -607,8 +608,14 @@ export default function StudentManager() {
                               <DropdownMenuItem onClick={() => handleViewProfile(student.id)}>View Profile</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleEditProfile(student.id)}>Edit Profile</DropdownMenuItem>
                               <DropdownMenuSeparator />
+                                <DialogTrigger asChild>
+                                  <DropdownMenuItem onSelect={() => openDialog(student, 'upload')}>
+                                    <Upload className="mr-2 h-4 w-4" />
+                                    Upload Documents
+                                  </DropdownMenuItem>
+                                </DialogTrigger>
                               <DialogTrigger asChild>
-                                  <DropdownMenuItem onClick={() => openDialog(student, 'report')}>View Report Summary</DropdownMenuItem>
+                                  <DropdownMenuItem onSelect={() => openDialog(student, 'report')}>View Report Summary</DropdownMenuItem>
                               </DialogTrigger>
                               <DropdownMenuItem onClick={() => handleViewReportPage(student.id)}>
                                 View Full Report Page
@@ -642,8 +649,9 @@ export default function StudentManager() {
               </TableBody>
             </Table>
             {selectedStudentForDialog && (
-              <DialogContent className={dialogContent === 'report' ? 'sm:max-w-3xl' : 'sm:max-w-[425px]'}>
+              <DialogContent className={dialogContent === 'report' ? 'sm:max-w-3xl' : 'sm:max-w-md'}>
                 {dialogContent === 'report' && <ReportCardDialog student={selectedStudentForDialog} />}
+                {dialogContent === 'upload' && <UploadDocumentsDialog student={selectedStudentForDialog} onUploadComplete={fetchStudents} />}
               </DialogContent>
             )}
           </Dialog>
@@ -668,4 +676,5 @@ export default function StudentManager() {
     </>
   );
 }
+
 
