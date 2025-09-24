@@ -7,7 +7,6 @@ import { deleteAttendanceByStudentId } from './attendance';
 import { db } from '@/lib/firebase-client';
 import { ref, get, set, update } from 'firebase/database';
 import { STUDENTS_PATH, ARCHIVED_STUDENTS_PATH } from '@/lib/firebase-db';
-import { STUDENTS } from '@/lib/data';
 
 const AFTERCARE_ATTENDANCE_PATH = 'afterCareAttendance';
 const NURSERY_ATTENDANCE_PATH = 'nurseryAttendance';
@@ -20,13 +19,7 @@ export const getStudents = async (): Promise<Student[]> => {
         const data = snapshot.val();
         return Object.values(data);
     }
-    // If no students exist, populate with sample data
-    const updates: { [key: string]: Student } = {};
-    STUDENTS.forEach(student => {
-        updates[`${STUDENTS_PATH}/${student.id}`] = student;
-    });
-    await update(ref(db), updates);
-    return STUDENTS;
+    return [];
 };
 
 export const getArchivedStudents = async (): Promise<Student[]> => {

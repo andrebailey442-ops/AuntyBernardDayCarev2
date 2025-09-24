@@ -4,8 +4,6 @@ import type { Staff, StaffSchedule, StaffAttendance, ArchivedStaffLog } from '@/
 import { db } from '@/lib/firebase-client';
 import { ref, get, set, update } from 'firebase/database';
 import { STAFF_PATH, STAFF_SCHEDULE_PATH, STAFF_ATTENDANCE_PATH, ARCHIVED_STAFF_LOGS_PATH } from '@/lib/firebase-db';
-import { STAFF } from '@/lib/data';
-
 
 // Staff Management
 export const getStaff = async (): Promise<Staff[]> => {
@@ -14,13 +12,7 @@ export const getStaff = async (): Promise<Staff[]> => {
         const data = snapshot.val();
         return Object.values(data);
     }
-    // If no staff exist, populate with sample data
-    const updates: { [key: string]: Staff } = {};
-    STAFF.forEach(member => {
-        updates[`${STAFF_PATH}/${member.id}`] = member;
-    });
-    await update(ref(db), updates);
-    return STAFF;
+    return [];
 };
 
 export const getStaffMember = async (id: string): Promise<Staff | undefined> => {
