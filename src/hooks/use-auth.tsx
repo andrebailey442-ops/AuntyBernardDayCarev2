@@ -4,8 +4,7 @@
 
 import * as React from 'react';
 import type { User } from '@/lib/types';
-import { authenticateUser, isFirstRun, addUser } from '@/services/users';
-import { useRouter } from 'next/navigation';
+import { authenticateUser, findUserByUsername, addUser } from '@/services/users';
 
 type AuthContextType = {
   user: User | null;
@@ -20,11 +19,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = React.useState<User | null>(null);
   const [loading, setLoading] = React.useState(true);
   const AUTH_STORAGE_KEY = 'currentUser';
-  const router = useRouter();
 
   React.useEffect(() => {
-    const initialize = async () => {
-      setLoading(true);
+    const initialize = () => {
       try {
         const storedUser = localStorage.getItem(AUTH_STORAGE_KEY);
         if (storedUser) {
@@ -42,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (emailOrUsername: string, password?: string) => {
     setLoading(true);
     try {
-      const authenticatedUser = await authenticateUser(emailOrUsername, password);
+      const authenticatedUser = authenticateUser(emailOrUsername, password);
       if (authenticatedUser) {
         setUser(authenticatedUser);
         localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(authenticatedUser));
@@ -60,7 +57,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setUser(null);
     localStorage.removeItem(AUTH_STORAGE_KEY);
-    router.push('/');
   };
 
   const value = { user, loading, login, logout };
