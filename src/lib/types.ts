@@ -23,6 +23,12 @@ export type AuthorizedPickup = {
   phone: string;
 };
 
+export type StudentDocument = {
+  name: string;
+  url: string; // Data URL for the file
+  type: string; // e.g., 'application/pdf'
+};
+
 export type Student = {
   id: string;
   name: string;
@@ -42,6 +48,7 @@ export type Student = {
   emergencyContactPhone?: string;
   medicalConditions?: string;
   authorizedPickups?: AuthorizedPickup[];
+  documents?: StudentDocument[];
 };
 
 export type GradeCategory = 'daily' | 'projects' | 'tests' | 'quizzes';

@@ -11,9 +11,9 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, File, View } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import type { Student, Fee } from '@/lib/types';
+import type { Student, Fee, StudentDocument } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -50,6 +50,14 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
     }
     fetchData();
   }, [studentId, router]);
+
+  const handleViewDocument = (doc: StudentDocument) => {
+    const newWindow = window.open();
+    if (newWindow) {
+      newWindow.document.write(`<iframe src="${doc.url}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+      newWindow.document.title = doc.name;
+    }
+  };
 
   if (loading || !student) {
       return (
@@ -137,6 +145,30 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                         {student.nursery ? <CheckCircle className="h-5 w-5 text-green-500" /> : <XCircle className="h-5 w-5 text-muted-foreground" />}
                     </div>
                 </div>
+            </div>
+
+            <Separator />
+
+             <div>
+                <h3 className="text-xl font-semibold mb-4">Uploaded Documents</h3>
+                {student.documents && student.documents.length > 0 ? (
+                    <ul className="space-y-2">
+                        {student.documents.map((doc, index) => (
+                            <li key={index} className="flex items-center justify-between p-2 border rounded-md">
+                                <div className="flex items-center gap-2">
+                                    <File className="h-4 w-4 text-muted-foreground" />
+                                    <span className="text-sm font-medium">{doc.name}</span>
+                                </div>
+                                <Button size="sm" variant="outline" onClick={() => handleViewDocument(doc)}>
+                                    <View className="mr-2 h-4 w-4" />
+                                    View
+                                </Button>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="text-sm text-muted-foreground">No documents have been uploaded for this student.</p>
+                )}
             </div>
 
             <Separator />
