@@ -113,3 +113,24 @@ export const getArchivednurseryLogs = async () => {
 export const saveArchivednurseryLogs = async (logs: any) => {
     await set(ref(db, ARCHIVED_NURSERY_LOGS_PATH), logs);
 }
+
+// Global App Settings
+const APP_SETTINGS_PATH = 'appSettings';
+
+export const getSlideshowImages = async () => {
+    const snapshot = await get(ref(db, `${APP_SETTINGS_PATH}/slideshowImages`));
+    return snapshot.exists() ? snapshot.val() : null;
+};
+export const setSlideshowImages = async (images: any) => {
+    await set(ref(db, `${APP_SETTINGS_PATH}/slideshowImages`), images);
+};
+export const getLogoUrl = async () => {
+    const snapshot = await get(ref(db, `${APP_SETTINGS_PATH}/logoUrl`));
+    return snapshot.exists() ? snapshot.val() : null;
+};
+export const setLogoUrl = async (url: string) => {
+    await set(ref(db, `${APP_SETTINGS_PATH}/logoUrl`), url);
+};
+export const clearLogoUrl = async () => {
+    await set(ref(db, `${APP_SETTINGS_PATH}/logoUrl`), null);
+};

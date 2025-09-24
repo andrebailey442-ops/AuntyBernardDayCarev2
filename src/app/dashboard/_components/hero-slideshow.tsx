@@ -16,11 +16,11 @@ import { BusyBeeLogo } from '@/components/icons';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Upload, Trash2, Wand2, Image as ImageIcon } from 'lucide-react';
+import { Upload, Trash2, Wand2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { resizeImage } from '@/ai/flows/resize-image';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
+import { getSlideshowImages, setSlideshowImages } from '@/services/students';
+
 
 type SlideImage = {
     src: string;
@@ -46,8 +46,6 @@ const defaultSlideImages: SlideImage[] = [
     }
 ];
 
-const SLIDESHOW_STORAGE_KEY = 'slideshowImages';
-
 type HeroSlideshowProps = {
     title: string;
     isDialogOpen: boolean;
@@ -57,7 +55,7 @@ type HeroSlideshowProps = {
 export default function HeroSlideshow({ title, isDialogOpen, setDialogOpen }: HeroSlideshowProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [slideImages, setSlideImages] = React.useState<SlideImage[]>(defaultSlideImages);
+  const [slideImages, setSlideImagesState] = React.useState<SlideImage[]>(defaultSlideImages);
   const [isResizing, setIsResizing] = React.useState(false);
   const uploadInputRef = React.useRef<HTMLInputElement>(null);
   const autoplay = React.useRef(
@@ -65,12 +63,16 @@ export default function HeroSlideshow({ title, isDialogOpen, setDialogOpen }: He
   );
 
   React.useEffect(() => {
-      const storedImages = localStorage.getItem(SLIDESHOW_STORAGE_KEY);
-      if (storedImages) {
-          setSlideImages(JSON.parse(storedImages));
-      } else {
-          localStorage.setItem(SLIDESHOW_STORAGE_KEY, JSON.stringify(defaultSlideImages));
-      }
+      const fetchImages = async () => {
+          const storedImages = await getSlideshowImages();
+          if (storedImages) {
+              setSlideImagesState(storedImages);
+          } else {
+              await setSlideshowImages(defaultSlideImages);
+              setSlideImagesState(defaultSlideImages);
+          }
+      };
+      fetchImages();
   }, []);
   
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,11 +105,9 @@ export default function HeroSlideshow({ title, isDialogOpen, setDialogOpen }: He
                   hint: 'custom image'
               };
 
-              setSlideImages(prev => {
-                  const newImages = [...prev, newImage];
-                  localStorage.setItem(SLIDESHOW_STORAGE_KEY, JSON.stringify(newImages));
-                  return newImages;
-              });
+              const newImages = [...slideImages, newImage];
+              await setSlideshowImages(newImages);
+              setSlideImagesState(newImages);
 
               toast({
                   title: 'Image Added',
@@ -131,12 +131,10 @@ export default function HeroSlideshow({ title, isDialogOpen, setDialogOpen }: He
       reader.readAsDataURL(file);
   }
 
-  const handleRemoveImage = (index: number) => {
-      setSlideImages(prev => {
-          const newImages = prev.filter((_, i) => i !== index);
-          localStorage.setItem(SLIDESHOW_STORAGE_KEY, JSON.stringify(newImages));
-          return newImages;
-      });
+  const handleRemoveImage = async (index: number) => {
+      const newImages = slideImages.filter((_, i) => i !== index);
+      await setSlideshowImages(newImages);
+      setSlideImagesState(newImages);
       toast({
           title: 'Image Removed',
           description: 'The image has been removed from the slideshow.',

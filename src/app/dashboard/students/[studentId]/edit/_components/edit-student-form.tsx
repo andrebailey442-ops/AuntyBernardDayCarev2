@@ -24,7 +24,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { ArrowLeft, Trash2, PlusCircle } from 'lucide-react';
+import { ArrowLeft, Trash2, PlusCircle, Upload } from 'lucide-react';
 import { getYear, getMonth, getDate, parseISO } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 import { BusyBeeLogo } from '@/components/icons';
@@ -52,7 +52,8 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-  } from "@/components/ui/alert-dialog"
+  } from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const phoneRegex = new RegExp(
   /^(\+\d{1,3})?[-.\s]?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}$/
@@ -82,6 +83,7 @@ const authorizedPickupSchema = z.object({
 const editStudentSchema = z.object({
     firstName: z.string().min(2, 'First name must be at least 2 characters.').max(50, 'First name cannot exceed 50 characters.'),
     lastName: z.string().min(2, 'Last name must be at least 2 characters.').max(50, 'Last name cannot exceed 50 characters.'),
+    avatarUrl: z.string().optional(),
     dob: z.date({ required_error: 'Date of birth is required' }),
     age: z.number({ required_error: 'Age is required and calculated from DOB.' }).refine(age => age <= 6, {
         message: "Student's age cannot exceed 6 years for online registration.",
@@ -133,6 +135,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
   const [isFetching, setIsFetching] = React.useState(true);
   const [student, setStudent] = React.useState<Student | null>(null);
   const [isAgeOverrideDialogOpen, setIsAgeOverrideDialogOpen] = React.useState(false);
+  const avatarUploadRef = React.useRef<HTMLInputElement>(null);
 
   const [dobState, setDobState] = React.useState({
     day: '',
@@ -145,6 +148,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     defaultValues: {
         firstName: '',
         lastName: '',
+        avatarUrl: '',
         gender: undefined,
         guardians: [],
         preschool: false,
@@ -179,6 +183,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
             form.reset({
                 firstName: firstName,
                 lastName: lastName.join(' '),
+                avatarUrl: studentData.avatarUrl,
                 dob: dob,
                 age: studentData.age,
                 gender: studentData.gender,
@@ -209,6 +214,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
 
   const dob = form.watch('dob');
   const guardians = form.watch('guardians');
+  const avatarUrl = form.watch('avatarUrl');
 
   React.useEffect(() => {
     if (dob) {
@@ -232,6 +238,28 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
       }
     }
   }, [dobState, form]);
+  
+  const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 1 * 1024 * 1024) { // 1MB limit
+        toast({
+            variant: "destructive",
+            title: "File too large",
+            description: "Please upload an image smaller than 1MB.",
+        });
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const dataUri = e.target?.result as string;
+        form.setValue('avatarUrl', dataUri, { shouldValidate: true });
+    };
+    reader.readAsDataURL(file);
+};
+
 
   const onSubmit = (data: EditStudentFormValues) => {
     setIsLoading(true);
@@ -250,6 +278,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
 
         const updatedData: Partial<Student> = {
             name: `${data.firstName} ${data.lastName}`,
+            avatarUrl: data.avatarUrl,
             age: data.age,
             dob: data.dob.toISOString(),
             gender: data.gender,
@@ -365,6 +394,42 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
           <form onSubmit={(e) => { e.preventDefault(); handleFormSubmit(); }} className="space-y-8">
             <div className="space-y-4">
                 <h3 className="text-xl font-semibold">Student Information</h3>
+                <FormField
+                    control={form.control}
+                    name="avatarUrl"
+                    render={() => (
+                        <FormItem className="flex flex-col items-center text-center">
+                            <FormLabel>Profile Picture</FormLabel>
+                            <FormControl>
+                                <>
+                                    <input
+                                        type="file"
+                                        className="hidden"
+                                        ref={avatarUploadRef}
+                                        onChange={handleAvatarUpload}
+                                        accept="image/png, image/jpeg, image/webp"
+                                    />
+                                    <div
+                                        className="relative group cursor-pointer"
+                                        onClick={() => avatarUploadRef.current?.click()}
+                                    >
+                                        <Avatar className="h-24 w-24">
+                                            <AvatarImage src={avatarUrl} alt={form.getValues('firstName')} />
+                                            <AvatarFallback>
+                                                {form.getValues('firstName')?.[0]}
+                                                {form.getValues('lastName')?.[0]}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Upload className="h-6 w-6 text-white" />
+                                        </div>
+                                    </div>
+                                </>
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField control={form.control} name="firstName" render={({ field }) => (
                         <FormItem><FormLabel>First Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>

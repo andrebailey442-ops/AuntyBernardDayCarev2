@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import * as React from 'react';
+import { getLogoUrl, setLogoUrl as saveLogoUrl, clearLogoUrl as removeLogoUrl } from '@/services/students';
 
-const LOGO_STORAGE_KEY = 'appCustomLogo';
 
 type LogoContextType = {
   logoUrl: string | null;
@@ -18,25 +19,28 @@ export function LogoProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    try {
-      const storedLogo = localStorage.getItem(LOGO_STORAGE_KEY);
-      if (storedLogo) {
-        setLogoUrlState(storedLogo);
-      }
-    } catch (error) {
-      console.error("Failed to retrieve logo from localStorage", error);
-    } finally {
-      setLoading(false);
-    }
+    const fetchLogo = async () => {
+        try {
+            const storedLogo = await getLogoUrl();
+            if (storedLogo) {
+                setLogoUrlState(storedLogo);
+            }
+        } catch (error) {
+            console.error("Failed to retrieve logo from database", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+    fetchLogo();
   }, []);
 
-  const setLogoUrl = (url: string) => {
-    localStorage.setItem(LOGO_STORAGE_KEY, url);
+  const setLogoUrl = async (url: string) => {
+    await saveLogoUrl(url);
     setLogoUrlState(url);
   };
 
-  const clearLogo = () => {
-    localStorage.removeItem(LOGO_STORAGE_KEY);
+  const clearLogo = async () => {
+    await removeLogoUrl();
     setLogoUrlState(null);
   };
 
