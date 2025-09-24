@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -14,6 +15,7 @@ import {
   FormLabel,
   FormMessage,
   FormDescription,
+  useFormField,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
@@ -400,7 +402,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                         <FormItem className="flex flex-col items-center text-center">
                             <FormLabel>Profile Picture</FormLabel>
                             <FormControl>
-                                <div>
+                                <div id={useFormField().id} className="flex flex-col items-center gap-2">
                                     <input
                                         type="file"
                                         className="hidden"
@@ -423,6 +425,17 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
                                             <Upload className="h-6 w-6 text-white" />
                                         </div>
                                     </div>
+                                    {avatarUrl && (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => form.setValue('avatarUrl', '', { shouldValidate: true })}
+                                        >
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Remove Photo
+                                        </Button>
+                                    )}
                                 </div>
                             </FormControl>
                             <FormMessage />
@@ -802,5 +815,7 @@ export function EditStudentForm({ studentId }: EditStudentFormProps) {
     </>
   );
 }
+
+    
 
     
