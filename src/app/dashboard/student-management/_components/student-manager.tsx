@@ -287,8 +287,15 @@ export default function StudentManager() {
                     dob: studentData.dob || new Date().toISOString(),
                     avatarUrl: `https://picsum.photos/seed/${Math.floor(Math.random() * 1000)}/100/100`,
                     imageHint: 'child portrait',
-                    guardians: studentData.guardians,
+                    guardians: studentData.guardians.map(g => ({
+                        ...g,
+                        address: studentData.address,
+                        city: studentData.city,
+                        state: studentData.state,
+                    })),
+                    preschool: studentData.preschool || false,
                     afterCare: studentData.afterCare || false,
+                    nursery: studentData.nursery || false,
                     emergencyContactName: studentData.emergencyContactName || '',
                     emergencyContactPhone: studentData.emergencyContactPhone || '',
                     medicalConditions: studentData.medicalConditions || ''
@@ -661,3 +668,4 @@ export default function StudentManager() {
     </>
   );
 }
+

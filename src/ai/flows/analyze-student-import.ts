@@ -33,6 +33,7 @@ The JSON data is:
 Please analyze the keys and values in the JSON to intelligently map them to the following fields:
 - \`name\`: The student's full name. If you find separate first and last name columns, combine them.
 - \`age\`: The student's age. If a date of birth is present, calculate the age based on the current year.
+- \`gender\`: The student's gender ('Male' or 'Female').
 - \`dob\`: The student's date of birth. Convert it to YYYY-MM-DD ISO format.
 - \`guardians\`: An array for guardians. Map the first parent/guardian to the first object in the array. This is a required field.
   - \`firstName\`: Guardian's first name.
@@ -40,9 +41,14 @@ Please analyze the keys and values in the JSON to intelligently map them to the 
   - \`relationship\`: Guardian's relationship to the child (e.g., Mother, Father).
   - \`contact\`: Guardian's email address.
   - \`phone\`: Guardian's phone number.
+  - \`occupation\`: Guardian's job or profession.
+  - \`placeOfEmployment\`: Guardian's place of work.
+  - \`workNumber\`: Guardian's work phone number.
 - Map a second parent/guardian to the second object in the array if present.
-- \`address\`, \`city\`, \`state\`: Address components.
-- \`afterCare\`: A boolean indicating if they are in after-care. Look for "yes", "true", or similar values.
+- \`address\`, \`city\`, \`state\`: Address components for the first guardian.
+- \`preschool\`: A boolean indicating if they are in the preschool program. Look for "yes", "true", or similar values.
+- \`afterCare\`: A boolean indicating if they are in the after-care program. Look for "yes", "true", or similar values.
+- \`nursery\`: A boolean indicating if they are in the nursery program. Look for "yes", "true", or similar values.
 - \`emergencyContactName\`, \`emergencyContactPhone\`: Emergency contact details.
 - \`medicalConditions\`: Information about allergies or medical needs.
 
@@ -64,3 +70,4 @@ const analyzeStudentImportFlow = ai.defineFlow(
     return output || [];
   }
 );
+

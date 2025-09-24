@@ -11,17 +11,23 @@ const GuardianSchema = z.object({
     relationship: z.string().describe("Guardian's relationship to the child."),
     contact: z.string().email("Guardian's email address."),
     phone: z.string().describe("Guardian's phone number."),
+    occupation: z.string().optional().describe("Guardian's occupation."),
+    placeOfEmployment: z.string().optional().describe("Guardian's place of employment."),
+    workNumber: z.string().optional().describe("Guardian's work phone number."),
 });
 
 export const MappedStudentSchema = z.object({
     name: z.string().describe("The student's full name."),
     age: z.number().describe("The student's age, calculated from date of birth if possible."),
+    gender: z.enum(['Male', 'Female']).optional().describe("The student's gender."),
     dob: z.string().describe("The student's date of birth in ISO 8601 format (YYYY-MM-DD)."),
     guardians: z.array(GuardianSchema).describe("An array of guardian information."),
     address: z.string().optional().describe("The student's home address."),
     city: z.string().optional().describe("The city of the student's address."),
     state: z.string().optional().describe("The state of the student's address."),
+    preschool: z.boolean().optional().describe("Whether the student is enrolled in preschool."),
     afterCare: z.boolean().optional().describe("Whether the student is enrolled in after-care."),
+    nursery: z.boolean().optional().describe("Whether the student is enrolled in nursery."),
     emergencyContactName: z.string().optional().describe("The name of the emergency contact."),
     emergencyContactPhone: z.string().optional().describe("The phone number of the emergency contact."),
     medicalConditions: z.string().optional().describe("Any medical conditions or allergies."),
@@ -46,3 +52,4 @@ export const ResizeImageOutputSchema = z.object({
     imageUrl: z.string().describe('The data URI of the resized image.'),
 });
 export type ResizeImageOutput = z.infer<typeof ResizeImageOutputSchema>;
+
