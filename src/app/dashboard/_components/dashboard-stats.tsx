@@ -2,20 +2,22 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, Users, CheckCircle, FileText } from 'lucide-react';
+import { Activity, Users, CheckCircle, FileText, Archive } from 'lucide-react';
 import type { Student, Attendance } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FORMS } from '@/lib/data';
 
 type DashboardStatsProps = {
     students: Student[];
+    archivedStudents: Student[];
     attendance: Attendance[];
     loading: boolean;
 }
 
-export default function DashboardStats({ students, attendance, loading }: DashboardStatsProps) {
-    const { totalStudents, attendanceRate } = React.useMemo(() => {
+export default function DashboardStats({ students, archivedStudents, attendance, loading }: DashboardStatsProps) {
+    const { totalStudents, attendanceRate, totalArchived } = React.useMemo(() => {
         // Calculate total students (enrolled only)
         const enrolledStudents = students.filter(s => s.status === 'enrolled');
         const total = enrolledStudents.length;
@@ -27,12 +29,13 @@ export default function DashboardStats({ students, attendance, loading }: Dashbo
             rate = (presentCount / attendance.length) * 100;
         }
 
-        return { totalStudents: total, attendanceRate: rate };
-    }, [students, attendance]);
+        return { totalStudents: total, attendanceRate: rate, totalArchived: archivedStudents.length };
+    }, [students, attendance, archivedStudents]);
 
     if (loading) {
         return (
             <>
+                <Card className="backdrop-blur-sm bg-card/80"><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
                 <Card className="backdrop-blur-sm bg-card/80"><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
                 <Card className="backdrop-blur-sm bg-card/80"><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
                 <Card className="backdrop-blur-sm bg-card/80"><CardHeader><Skeleton className="h-4 w-2/3" /></CardHeader><CardContent><Skeleton className="h-8 w-1/3" /></CardContent></Card>
@@ -78,6 +81,20 @@ export default function DashboardStats({ students, attendance, loading }: Dashbo
                     </p>
                 </CardContent>
             </Card>
+            <Link href="/dashboard/archive" className="flex">
+                <Card className="w-full backdrop-blur-sm bg-card/80 hover:bg-muted/50 transition-colors">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle className="text-sm font-medium">Archived Students</CardTitle>
+                        <Archive className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{totalArchived}</div>
+                        <p className="text-xs text-muted-foreground">
+                            View and restore students
+                        </p>
+                    </CardContent>
+                </Card>
+            </Link>
         </>
     );
 }

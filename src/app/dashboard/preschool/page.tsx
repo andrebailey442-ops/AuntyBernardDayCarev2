@@ -9,13 +9,14 @@ import AttendanceChart from '../_components/attendance-chart';
 import GradeOverview from '../_components/grade-overview';
 import { getAttendance } from '@/services/attendance';
 import { getGrades } from '@/services/grades';
-import { getStudents } from '@/services/students';
+import { getStudents, getArchivedStudents } from '@/services/students';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Attendance, Grade, Student } from '@/lib/types';
 
 
 export default function PreschoolDashboardPage() {
   const [students, setStudents] = React.useState<Student[]>([]);
+  const [archivedStudents, setArchivedStudents] = React.useState<Student[]>([]);
   const [attendance, setAttendance] = React.useState<Attendance[]>([]);
   const [grades, setGrades] = React.useState<Grade[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -23,10 +24,14 @@ export default function PreschoolDashboardPage() {
   React.useEffect(() => {
     const fetchData = async () => {
         setLoading(true);
-        const studentData = await getStudents();
-        const attendanceData = await getAttendance();
-        const gradeData = await getGrades();
+        const [studentData, archivedData, attendanceData, gradeData] = await Promise.all([
+          getStudents(),
+          getArchivedStudents(),
+          getAttendance(),
+          getGrades()
+        ]);
         setStudents(studentData);
+        setArchivedStudents(archivedData);
         setAttendance(attendanceData);
         setGrades(gradeData);
         setLoading(false);
@@ -40,7 +45,7 @@ export default function PreschoolDashboardPage() {
             <QuickLinks key="quick-links" />
         </div>
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 col-span-1 lg:col-span-3">
-            <DashboardStats students={students} attendance={attendance} loading={loading} />
+            <DashboardStats students={students} attendance={attendance} archivedStudents={archivedStudents} loading={loading} />
         </div>
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3 col-span-1 lg:col-span-3">
             <div className="lg:col-span-2 xl:col-span-2">
