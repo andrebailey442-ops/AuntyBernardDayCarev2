@@ -120,90 +120,138 @@ export function DashboardHeader({ setSlideshowDialogOpen }: DashboardHeaderProps
 
   const downloadDocumentation = () => {
     try {
-      const doc = new jsPDF();
-      const margin = 20;
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const textWidth = pageWidth - margin * 2;
-      let cursorY = margin;
-      let pageNumber = 1;
+        const doc = new jsPDF();
+        const margin = 20;
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const textWidth = pageWidth - margin * 2;
+        let cursorY = margin;
+        let pageNumber = 1;
 
-      const addHeaderFooter = () => {
+        const addPageBorder = () => {
+            doc.setDrawColor(40, 40, 40);
+            doc.setLineWidth(2);
+            doc.rect(5, 5, pageWidth - 10, pageHeight - 10);
+            doc.setLineWidth(0.5);
+            doc.rect(8, 8, pageWidth - 16, pageHeight - 16);
+        };
+
+        const addHeaderFooter = () => {
+            addPageBorder();
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(150);
+            doc.text('Aunty Bernard DayCare and Pre-school - User Guide', margin, pageHeight - 12);
+            doc.text(`Page ${pageNumber}`, pageWidth - margin, pageHeight - 12, { align: 'right' });
+        };
+        
+        // --- Cover Page ---
+        addPageBorder();
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(26);
+        doc.text('Aunty Bernard DayCare', pageWidth / 2, 80, { align: 'center' });
+        doc.text('and Pre-school', pageWidth / 2, 95, { align: 'center' });
+        
+        doc.setFontSize(18);
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(10);
-        doc.text('Aunty Bernard DayCare and Pre-school - User Documentation', margin, 15);
-        doc.text(`Page ${pageNumber}`, pageWidth - margin, 15, { align: 'right' });
-        doc.line(margin, 20, pageWidth - margin, 20);
-      };
+        doc.text('Application User Guide', pageWidth / 2, 120, { align: 'center' });
 
-      const addPage = () => {
+        doc.setFontSize(12);
+        doc.setTextColor(100);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, pageHeight - 40, { align: 'center' });
+
+
+        // --- Table of Contents ---
         doc.addPage();
         pageNumber++;
-        cursorY = margin;
         addHeaderFooter();
-      };
+        cursorY = 40;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(22);
+        doc.setTextColor(0);
+        doc.text('Table of Contents', margin, cursorY);
+        cursorY += 20;
 
-      const processMarkdown = (markdown: string) => {
-        const lines = markdown.split('\n');
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(14);
+        doc.setTextColor(0, 0, 200); // Link-like color
+        doc.textWithLink('User Handbook', margin, cursorY, {});
+        cursorY += 10;
+        doc.textWithLink('Administrator\'s Guide', margin, cursorY, {});
 
-        lines.forEach(line => {
-          if (cursorY > pageHeight - margin - 20) { // Add some bottom margin
-            addPage();
-          }
 
-          if (line.startsWith('#')) {
-            const level = line.indexOf(' ');
-            const text = line.substring(level + 1);
-            doc.setFont('helvetica', 'bold');
-            if (level === 1) { // #
-              doc.setFontSize(22);
-              cursorY += 15;
-            } else if (level === 2) { // ##
-              doc.setFontSize(18);
-              cursorY += 12;
-            } else { // ###
-              doc.setFontSize(14);
-              cursorY += 10;
+        const processMarkdown = (markdown: string) => {
+            const lines = markdown.split('\n');
+
+            lines.forEach(line => {
+            if (cursorY > pageHeight - margin - 20) {
+                doc.addPage();
+                pageNumber++;
+                addHeaderFooter();
+                cursorY = margin + 20;
             }
-            const splitText = doc.splitTextToSize(text, textWidth);
-            doc.text(splitText, margin, cursorY);
-            cursorY += (splitText.length * 8) + 8; // Increased spacing
+
+            // Reset font for each line
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(12);
-          } else if (line.startsWith('*') || line.startsWith('-')) {
-            const text = line.substring(line.indexOf(' ') + 1);
-            const splitText = doc.splitTextToSize(text, textWidth - 5);
-            doc.text(`• ${splitText[0]}`, margin + 5, cursorY);
-            cursorY += 8; // Increased line spacing
-            if (splitText.length > 1) {
-              doc.text(splitText.slice(1), margin + 10, cursorY);
-              cursorY += ((splitText.length - 1) * 8); // Increased line spacing
+            doc.setTextColor(0);
+
+            if (line.startsWith('# ')) {
+                doc.setFontSize(20);
+                doc.setFont('helvetica', 'bold');
+                const text = line.substring(2);
+                doc.text(text, margin, cursorY);
+                cursorY += 14;
+            } else if (line.startsWith('## ')) {
+                doc.setFontSize(16);
+                doc.setFont('helvetica', 'bold');
+                const text = line.substring(3);
+                doc.text(text, margin, cursorY);
+                cursorY += 10;
+            } else if (line.startsWith('### ')) {
+                doc.setFontSize(14);
+                doc.setFont('helvetica', 'bold');
+                const text = line.substring(4);
+                doc.text(text, margin, cursorY);
+                cursorY += 8;
+            } else if (line.startsWith('* ') || line.startsWith('- ')) {
+                const text = line.substring(2);
+                const splitText = doc.splitTextToSize(text, textWidth - 5);
+                doc.text(`•`, margin, cursorY, {charSpace: 0});
+                doc.text(splitText, margin + 5, cursorY);
+                cursorY += (splitText.length * 7) + 4;
+            } else if (line.startsWith('---')) {
+                cursorY += 4;
+                doc.setDrawColor(200);
+                doc.line(margin, cursorY, pageWidth - margin, cursorY);
+                cursorY += 8;
+            } else if (line.trim() === '') {
+                cursorY += 6; // Paragraph break
+            } else {
+                const splitText = doc.splitTextToSize(line, textWidth);
+                doc.text(splitText, margin, cursorY);
+                cursorY += (splitText.length * 7) + 4;
             }
-          } else if (line.startsWith('---')) {
-            cursorY += 8;
-            doc.line(margin, cursorY, pageWidth - margin, cursorY);
-            cursorY += 12;
-          } else if (line.trim() === '') {
-            cursorY += 8; // Add space for paragraphs
-          } else {
-            const splitText = doc.splitTextToSize(line, textWidth);
-            doc.text(splitText, margin, cursorY);
-            cursorY += (splitText.length * 8); // Increased paragraph line spacing
-          }
+            });
+        };
+        
+        doc.addPage();
+        pageNumber = 1; // Reset for content pages
+        addHeaderFooter();
+        cursorY = margin + 20;
+        processMarkdown(handbookContent);
+
+        doc.addPage();
+        pageNumber++;
+        addHeaderFooter();
+        cursorY = margin + 20;
+        processMarkdown(adminManualContent);
+        
+        doc.save('AuntyBernard_User_Documentation.pdf');
+        toast({
+            title: 'Download Started',
+            description: 'The user documentation is being downloaded.',
         });
-      };
-      
-      addHeaderFooter();
-      
-      processMarkdown(handbookContent);
-      addPage();
-      processMarkdown(adminManualContent);
-      
-      doc.save('AuntyBernard_User_Documentation.pdf');
-      toast({
-        title: 'Download Started',
-        description: 'The user documentation is being downloaded.',
-      });
     } catch (error) {
         console.error("Failed to generate documentation PDF: ", error);
         toast({
