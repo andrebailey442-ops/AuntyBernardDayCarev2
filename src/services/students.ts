@@ -79,6 +79,7 @@ export const deleteStudent = async (id: string) => {
     if (studentData) {
         const archivedStudent = { 
             ...studentData, 
+            status: studentData.status || 'enrolled',
             archivedOn: new Date().toISOString()
         };
         const updates: { [key: string]: any } = {};
@@ -100,8 +101,8 @@ export const restoreStudent = async (studentId: string) => {
         const studentToRestore = { 
             ...studentToRestoreData, 
             status: originalStatus, 
-            archivedOn: undefined, // Remove archivedOn date
-            graduationDate: studentToRestoreData.status === 'graduated' ? studentToRestoreData.graduationDate : undefined // Keep graduation date if they were graduated
+            archivedOn: null, // Remove archivedOn date
+            graduationDate: studentToRestoreData.status === 'graduated' ? studentToRestoreData.graduationDate : undefined
         };
         
         const updates: { [key: string]: any } = {};
@@ -165,4 +166,5 @@ export const setLogoUrl = async (url: string) => {
 export const clearLogoUrl = async () => {
     await set(ref(db, `${APP_SETTINGS_PATH}/logoUrl`), null);
 };
+
 
