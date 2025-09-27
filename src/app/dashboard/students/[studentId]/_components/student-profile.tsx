@@ -243,31 +243,6 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                 </div>
             </div>
             
-             <Separator />
-             <div>
-                <h3 className="text-xl font-semibold mb-4">Activity Log</h3>
-                {student.activityLog && student.activityLog.length > 0 ? (
-                    <Timeline>
-                        {student.activityLog.slice().reverse().map((log, index) => (
-                            <TimelineItem key={index}>
-                                <TimelineConnector />
-                                <TimelineHeader>
-                                    <TimelineIcon><History className="h-4 w-4" /></TimelineIcon>
-                                    <TimelineTitle>{log.action}</TimelineTitle>
-                                </TimelineHeader>
-                                <TimelineContent>
-                                    <TimelineDescription>
-                                        By {log.user} on {format(new Date(log.date), 'PPP p')}
-                                    </TimelineDescription>
-                                    {log.notes && <p className="text-sm mt-1">{log.notes}</p>}
-                                </TimelineContent>
-                            </TimelineItem>
-                        ))}
-                    </Timeline>
-                ) : (
-                    <p className="text-sm text-muted-foreground">No activities have been logged for this student.</p>
-                )}
-            </div>
         </div>
       </CardContent>
     </Card>
