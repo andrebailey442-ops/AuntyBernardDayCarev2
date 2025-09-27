@@ -12,6 +12,7 @@ const AFTERCARE_ATTENDANCE_PATH = 'afterCareAttendance';
 const NURSERY_ATTENDANCE_PATH = 'nurseryAttendance';
 const ARCHIVED_AFTERCARE_LOGS_PATH = 'afterCareArchivedLogs';
 const ARCHIVED_NURSERY_LOGS_PATH = 'nurseryArchivedLogs';
+const APP_SETTINGS_PATH = 'appSettings';
 
 export const getStudents = async (): Promise<Student[]> => {
     const snapshot = await get(ref(db, STUDENTS_PATH));
@@ -116,7 +117,6 @@ export const saveArchivednurseryLogs = async (logs: any) => {
 }
 
 // Global App Settings
-const APP_SETTINGS_PATH = 'appSettings';
 
 export const getSlideshowImages = async () => {
     const snapshot = await get(ref(db, `${APP_SETTINGS_PATH}/slideshowImages`));
@@ -126,10 +126,6 @@ export const setSlideshowImages = async (images: any) => {
     await set(ref(db, `${APP_SETTINGS_PATH}/slideshowImages`), images);
 };
 export const getLogoUrl = async () => {
-    const user = useAuth.getState().user;
-    if (!user) {
-        return null;
-    }
     const snapshot = await get(ref(db, `${APP_SETTINGS_PATH}/logoUrl`));
     return snapshot.exists() ? snapshot.val() : null;
 };
@@ -139,3 +135,4 @@ export const setLogoUrl = async (url: string) => {
 export const clearLogoUrl = async () => {
     await set(ref(db, `${APP_SETTINGS_PATH}/logoUrl`), null);
 };
+
