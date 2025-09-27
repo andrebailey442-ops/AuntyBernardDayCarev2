@@ -102,7 +102,7 @@ export const restoreStudent = async (studentId: string) => {
             ...studentToRestoreData, 
             status: originalStatus, 
             archivedOn: null, // Remove archivedOn date
-            graduationDate: studentToRestoreData.status === 'graduated' ? studentToRestoreData.graduationDate : undefined
+            graduationDate: studentToRestoreData.status === 'graduated' ? studentToRestoreData.graduationDate : null
         };
         
         const updates: { [key: string]: any } = {};
@@ -166,5 +166,6 @@ export const setLogoUrl = async (url: string) => {
 export const clearLogoUrl = async () => {
     await set(ref(db, `${APP_SETTINGS_PATH}/logoUrl`), null);
 };
+
 
 
