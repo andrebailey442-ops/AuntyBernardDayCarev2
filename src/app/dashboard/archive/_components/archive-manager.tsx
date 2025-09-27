@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -117,7 +118,7 @@ export default function ArchiveManager() {
                     <Badge variant={getStatusVariant(student.status)}>{student.status}</Badge>
                   </TableCell>
                   <TableCell>
-                    {student.graduationDate ? format(new Date(student.graduationDate), 'PPP') : 'N/A'}
+                    {student.archivedOn ? format(new Date(student.archivedOn), 'PPP') : (student.graduationDate ? format(new Date(student.graduationDate), 'PPP') : 'N/A')}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button onClick={() => handleRestore(student.id)} size="sm">

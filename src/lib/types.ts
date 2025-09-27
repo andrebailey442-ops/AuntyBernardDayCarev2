@@ -42,6 +42,7 @@ export type Student = {
   nursery?: boolean;
   status?: 'enrolled' | 'graduated' | 'pending';
   graduationDate?: string;
+  archivedOn?: string;
   // Extended details from form
   guardians: Guardian[];
   emergencyContactName?: string;

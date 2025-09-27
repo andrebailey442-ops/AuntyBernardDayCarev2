@@ -77,9 +77,13 @@ export const updateStudent = async (id: string, studentUpdate: Partial<Student>)
 export const deleteStudent = async (id: string) => {
     const studentData = await getStudent(id);
     if (studentData) {
+        const archivedStudent = { 
+            ...studentData, 
+            archivedOn: new Date().toISOString()
+        };
         const updates: { [key: string]: any } = {};
         updates[`${STUDENTS_PATH}/${id}`] = null;
-        updates[`${ARCHIVED_STUDENTS_PATH}/${id}`] = { ...studentData, status: 'graduated' };
+        updates[`${ARCHIVED_STUDENTS_PATH}/${id}`] = archivedStudent;
         await update(ref(db), updates);
     }
 };
@@ -89,7 +93,16 @@ export const restoreStudent = async (studentId: string) => {
     const snapshot = await get(archivedStudentRef);
 
     if (snapshot.exists()) {
-        const studentToRestore = { ...snapshot.val(), status: 'enrolled' };
+        const studentToRestoreData = snapshot.val();
+        // Preserve original status if it's valid, otherwise default to enrolled
+        const originalStatus = ['enrolled', 'pending', 'graduated'].includes(studentToRestoreData.status) ? studentToRestoreData.status : 'enrolled';
+        
+        const studentToRestore = { 
+            ...studentToRestoreData, 
+            status: originalStatus, 
+            archivedOn: undefined, // Remove archivedOn date
+            graduationDate: studentToRestoreData.status === 'graduated' ? studentToRestoreData.graduationDate : undefined // Keep graduation date if they were graduated
+        };
         
         const updates: { [key: string]: any } = {};
         updates[`${STUDENTS_PATH}/${studentId}`] = studentToRestore;
