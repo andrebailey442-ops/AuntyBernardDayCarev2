@@ -14,6 +14,7 @@ import {
   FormLabel,
   FormMessage,
   FormDescription,
+  useFormField,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
@@ -36,9 +37,12 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { staffRoles } from './staff-manager';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Upload, Trash2 } from 'lucide-react';
 
 const staffFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
+  avatarUrl: z.string().optional(),
   dob: z.date({ required_error: 'Date of birth is required' }),
   address: z.string().min(5, 'Address is required.'),
   roles: z.array(z.string()).min(1, 'At least one role must be selected.'),
@@ -54,6 +58,7 @@ type StaffFormProps = {
 export function StaffForm({ staffMember, onSuccess }: StaffFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = React.useState(false);
+  const avatarUploadRef = React.useRef<HTMLInputElement>(null);
 
   const [dobState, setDobState] = React.useState({
     day: '',
@@ -65,6 +70,7 @@ export function StaffForm({ staffMember, onSuccess }: StaffFormProps) {
     resolver: zodResolver(staffFormSchema),
     defaultValues: {
       name: '',
+      avatarUrl: '',
       address: '',
       roles: [],
     },
@@ -75,6 +81,7 @@ export function StaffForm({ staffMember, onSuccess }: StaffFormProps) {
       const dob = staffMember.dob ? parseISO(staffMember.dob) : new Date();
       form.reset({
         name: staffMember.name,
+        avatarUrl: staffMember.avatarUrl,
         dob: dob,
         address: staffMember.address,
         roles: staffMember.roles,
@@ -87,6 +94,7 @@ export function StaffForm({ staffMember, onSuccess }: StaffFormProps) {
     } else {
         form.reset({
             name: '',
+            avatarUrl: '',
             address: '',
             roles: [],
             dob: undefined,
@@ -96,6 +104,7 @@ export function StaffForm({ staffMember, onSuccess }: StaffFormProps) {
   }, [staffMember, form]);
 
   const dob = form.watch('dob');
+  const avatarUrl = form.watch('avatarUrl');
 
   React.useEffect(() => {
     const { day, month, year } = dobState;
@@ -116,22 +125,48 @@ export function StaffForm({ staffMember, onSuccess }: StaffFormProps) {
     }
     return age;
   };
+  
+  const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 1 * 1024 * 1024) { // 1MB limit
+        toast({
+            variant: "destructive",
+            title: "File too large",
+            description: "Please upload an image smaller than 1MB.",
+        });
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const dataUri = e.target?.result as string;
+        form.setValue('avatarUrl', dataUri, { shouldValidate: true });
+    };
+    reader.readAsDataURL(file);
+  };
+
 
   const onSubmit = (data: StaffFormValues) => {
     setIsLoading(true);
     try {
       const age = calculateAge(data.dob);
-      const staffData = {
-        ...data,
-        age,
+      const staffData: Partial<Staff> = {
+        name: data.name,
         dob: data.dob.toISOString(),
+        age,
+        address: data.address,
+        roles: data.roles,
+        avatarUrl: data.avatarUrl || `https://i.pravatar.cc/150?u=${data.name.replace(/\s/g, '')}`,
+        imageHint: data.avatarUrl ? 'custom' : 'person',
       };
       
       if (staffMember) {
         updateStaff(staffMember.id, staffData);
         toast({ title: 'Staff Updated', description: `${data.name}'s profile has been updated.` });
       } else {
-        addStaff(staffData);
+        addStaff(staffData as Omit<Staff, 'id'>);
         toast({ title: 'Staff Added', description: `${data.name} has been added to the team.` });
       }
       onSuccess();
@@ -165,6 +200,53 @@ export function StaffForm({ staffMember, onSuccess }: StaffFormProps) {
       </DialogHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4 max-h-[70vh] overflow-y-auto px-2">
+            <FormField
+                control={form.control}
+                name="avatarUrl"
+                render={() => (
+                    <FormItem className="flex flex-col items-center text-center">
+                        <FormLabel>Profile Picture</FormLabel>
+                        <FormControl>
+                            <div id={useFormField().id} className="flex flex-col items-center gap-2">
+                                <input
+                                    type="file"
+                                    className="hidden"
+                                    ref={avatarUploadRef}
+                                    onChange={handleAvatarUpload}
+                                    accept="image/png, image/jpeg, image/webp"
+                                />
+                                <div
+                                    className="relative group cursor-pointer"
+                                    onClick={() => avatarUploadRef.current?.click()}
+                                >
+                                    <Avatar className="h-24 w-24">
+                                        <AvatarImage src={avatarUrl} alt={form.getValues('name')} />
+                                        <AvatarFallback>
+                                            {form.getValues('name')?.split(' ').map(n => n[0]).join('')}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Upload className="h-6 w-6 text-white" />
+                                    </div>
+                                </div>
+                                {avatarUrl && (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => form.setValue('avatarUrl', '', { shouldValidate: true })}
+                                    >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Remove Photo
+                                    </Button>
+                                )}
+                            </div>
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+
           <FormField
             control={form.control}
             name="name"

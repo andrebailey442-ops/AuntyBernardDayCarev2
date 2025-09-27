@@ -37,13 +37,11 @@ export const getStaffWithActivity = async (staffId: string): Promise<Staff | nul
     };
 };
 
-export const addStaff = async (staffData: Omit<Staff, 'id' | 'avatarUrl' | 'imageHint'>) => {
+export const addStaff = async (staffData: Omit<Staff, 'id'>) => {
     const id = `staff-${Date.now()}`;
     const newStaff = { 
         ...staffData,
         id,
-        avatarUrl: `https://i.pravatar.cc/150?u=${staffData.name.replace(/\s/g, '')}`,
-        imageHint: 'person',
      };
     await set(ref(db, `${STAFF_PATH}/${id}`), newStaff);
 }
