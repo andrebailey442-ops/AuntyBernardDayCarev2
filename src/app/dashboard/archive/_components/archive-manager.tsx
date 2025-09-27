@@ -130,7 +130,7 @@ export default function ArchiveManager() {
                     {student.archivedOn ? format(new Date(student.archivedOn), 'PPP') : (student.graduationDate ? format(new Date(student.graduationDate), 'PPP') : 'N/A')}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button onClick={() => handleRestore(student.id)} size="sm" disabled={student.status === 'cancelled'}>
+                    <Button onClick={() => handleRestore(student.id)} size="sm" disabled={student.status === 'cancelled' || student.status === 'graduated'}>
                       <ArchiveRestore className="mr-2 h-4 w-4" />
                       Restore
                     </Button>
@@ -150,3 +150,4 @@ export default function ArchiveManager() {
     </Card>
   );
 }
+
