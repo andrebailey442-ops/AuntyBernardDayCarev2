@@ -12,7 +12,6 @@ import { getGrades } from '@/services/grades';
 import { getStudents, getArchivedStudents } from '@/services/students';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Attendance, Grade, Student } from '@/lib/types';
-import DateTimeDisplay from '../_components/date-time-display';
 
 
 export default function PreschoolDashboardPage() {
@@ -42,9 +41,6 @@ export default function PreschoolDashboardPage() {
 
   return (
      <div className="grid auto-rows-max items-start gap-4 md:gap-8">
-        <div className="col-span-1 lg:col-span-3">
-            <DateTimeDisplay />
-        </div>
         <div className="col-span-1 lg:col-span-3">
             <QuickLinks key="quick-links" />
         </div>
