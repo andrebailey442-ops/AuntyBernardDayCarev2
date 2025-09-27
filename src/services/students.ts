@@ -89,28 +89,29 @@ export const deleteStudent = async (id: string) => {
     }
 };
 
-export const restoreStudent = async (studentId: string) => {
+export const reregisterStudent = async (studentId: string): Promise<Student | null> => {
     const archivedStudentRef = ref(db, `${ARCHIVED_STUDENTS_PATH}/${studentId}`);
     const snapshot = await get(archivedStudentRef);
 
     if (snapshot.exists()) {
-        const studentToRestoreData = snapshot.val();
-        // Preserve original status if it's valid, otherwise default to enrolled
-        const originalStatus = ['enrolled', 'pending', 'graduated'].includes(studentToRestoreData.status) ? studentToRestoreData.status : 'enrolled';
+        const archivedData = snapshot.val();
         
-        const studentToRestore = { 
-            ...studentToRestoreData, 
-            status: originalStatus, 
-            archivedOn: null, // Remove archivedOn date
-            graduationDate: studentToRestoreData.status === 'graduated' ? studentToRestoreData.graduationDate : null
-        };
-        
-        const updates: { [key: string]: any } = {};
-        updates[`${STUDENTS_PATH}/${studentId}`] = studentToRestore;
-        updates[`${ARCHIVED_STUDENTS_PATH}/${studentId}`] = null;
+        // Create a new ID
+        const newId = `SID-${Date.now()}`;
 
-        await update(ref(db), updates);
-        return studentToRestore;
+        // Create a new student object from the archived data
+        const { id, archivedOn, graduationDate, status, ...restOfData } = archivedData;
+
+        const newStudentData: Student = {
+            ...restOfData,
+            id: newId,
+            status: 'enrolled', // Re-register as enrolled
+        };
+
+        // Add the new student to the active students list
+        await set(ref(db, `${STUDENTS_PATH}/${newId}`), newStudentData);
+
+        return newStudentData;
     }
     return null;
 };
@@ -166,6 +167,7 @@ export const setLogoUrl = async (url: string) => {
 export const clearLogoUrl = async () => {
     await set(ref(db, `${APP_SETTINGS_PATH}/logoUrl`), null);
 };
+
 
 
 

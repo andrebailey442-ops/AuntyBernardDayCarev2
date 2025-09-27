@@ -21,7 +21,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { getArchivedStudents, restoreStudent } from '@/services/students';
+import { getArchivedStudents, reregisterStudent } from '@/services/students';
 import type { Student } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArchiveRestore, Trash2 } from 'lucide-react';
@@ -45,18 +45,21 @@ export default function ArchiveManager() {
 
   const handleRestore = async (studentId: string) => {
     try {
-      await restoreStudent(studentId);
-      toast({
-        title: 'Student Restored',
-        description: 'The student has been moved back to the active list.',
-      });
-      fetchArchivedStudents();
+      const newStudent = await reregisterStudent(studentId);
+      if (newStudent) {
+        toast({
+          title: 'Student Re-registered',
+          description: `${newStudent.name} has been restored to the active list with a new ID: ${newStudent.id}`,
+        });
+      } else {
+        throw new Error('Failed to find archived student.');
+      }
     } catch (error) {
       console.error('Failed to restore student:', error);
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Could not restore the student.',
+        description: 'Could not re-register the student.',
       });
     }
   };
