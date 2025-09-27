@@ -185,21 +185,21 @@ export default function StudentManager() {
     }
   };
 
-  const handleRemoveConfirm = () => {
+  const handleRemoveConfirm = async () => {
     if (!studentToRemove) return;
     try {
-      deleteStudent(studentToRemove.id);
-      setAllStudents(prevStudents => prevStudents.filter(s => s.id !== studentToRemove!.id));
+      await deleteStudent(studentToRemove.id);
+      fetchStudents();
       toast({
-          title: 'Student Removed',
-          description: `${studentToRemove.name} has been removed from the system.`,
+          title: 'Student Archived',
+          description: `${studentToRemove.name} has been archived.`,
       });
     } catch (error) {
       console.error("Failed to remove student: ", error);
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to remove student.',
+        description: 'Failed to archive student.',
       });
     } finally {
         setIsRemoveAlertOpen(false);
@@ -662,7 +662,7 @@ export default function StudentManager() {
             <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                This action cannot be undone. This will permanently remove {studentToRemove?.name} and all their associated data.
+                This action will archive the student record for {studentToRemove?.name}. You can still access their data in the reports and graduation sections.
                 </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -676,5 +676,4 @@ export default function StudentManager() {
     </>
   );
 }
-
 

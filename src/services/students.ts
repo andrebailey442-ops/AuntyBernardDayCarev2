@@ -74,12 +74,13 @@ export const updateStudent = async (id: string, studentUpdate: Partial<Student>)
 };
 
 export const deleteStudent = async (id: string) => {
-    await set(ref(db, `${STUDENTS_PATH}/${id}`), null);
-    
-    // Also delete related data
-    await deleteFeeByStudentId(id);
-    await deleteGradesByStudentId(id);
-    await deleteAttendanceByStudentId(id);
+    const studentData = await getStudent(id);
+    if (studentData) {
+        const updates: { [key: string]: any } = {};
+        updates[`${STUDENTS_PATH}/${id}`] = null;
+        updates[`${ARCHIVED_STUDENTS_PATH}/${id}`] = { ...studentData, status: 'graduated' };
+        await update(ref(db), updates);
+    }
 };
 
 // After Care
@@ -125,6 +126,10 @@ export const setSlideshowImages = async (images: any) => {
     await set(ref(db, `${APP_SETTINGS_PATH}/slideshowImages`), images);
 };
 export const getLogoUrl = async () => {
+    const user = useAuth.getState().user;
+    if (!user) {
+        return null;
+    }
     const snapshot = await get(ref(db, `${APP_SETTINGS_PATH}/logoUrl`));
     return snapshot.exists() ? snapshot.val() : null;
 };
