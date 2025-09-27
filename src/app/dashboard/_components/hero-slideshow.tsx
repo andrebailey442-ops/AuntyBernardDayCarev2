@@ -62,17 +62,6 @@ export default function HeroSlideshow({ title, isDialogOpen, setDialogOpen }: He
   const autoplay = React.useRef(
     Autoplay({ delay: 3000, stopOnInteraction: true })
   );
-  const [currentDateTime, setCurrentDateTime] = React.useState(new Date());
-
-  React.useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentDateTime(new Date());
-    }, 1000); // Update every second
-
-    return () => {
-      clearInterval(timer);
-    };
-  }, []);
 
   React.useEffect(() => {
       const fetchImages = async () => {
@@ -177,13 +166,9 @@ export default function HeroSlideshow({ title, isDialogOpen, setDialogOpen }: He
                         priority={index === 0} // Prioritize loading the first image
                     />
                     <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-center p-4">
-                        <div className="absolute top-4 right-4 bg-black/50 p-2 rounded-md text-white">
-                            <p className="font-mono text-lg">{format(currentDateTime, 'h:mm:ss a')}</p>
-                        </div>
                         <div className="flex items-center gap-4 bg-black/50 p-6 rounded-lg">
                             <BusyBeeLogo className="h-16 w-16 text-white" />
                             <div>
-                                <h3 className="text-lg font-normal text-white/80">{format(currentDateTime, 'eeee, MMMM do, yyyy')}</h3>
                                 <h2 className="text-xl font-semibold text-white/90 tracking-wide">Aunty Bernard DayCare and Pre-school</h2>
                                 <h1 className="text-5xl font-bold text-white tracking-wider">
                                     {title}

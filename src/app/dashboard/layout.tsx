@@ -11,6 +11,7 @@ import HeroSlideshow from './_components/hero-slideshow';
 import WallArt from '@/components/wall-art';
 import { useAuth } from '@/hooks/use-auth';
 import { getPermissionsByRole } from '@/services/permissions';
+import DateTimeDisplay from './_components/date-time-display';
 
 // A simple function to format the pathname into a title
 const getTitleFromPathname = (pathname: string): string => {
@@ -111,8 +112,11 @@ export default function DashboardLayout({
         <main className="relative flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8 overflow-hidden">
           <WallArt />
           <div className="relative z-10">
-            {showSlideshow && <HeroSlideshow key={pathname} title={slideshowTitle} isDialogOpen={isSlideshowDialogOpen} setDialogOpen={setIsSlideshowDialogOpen} />}
-            {children}
+            {showSlideshow && <DateTimeDisplay />}
+            <div className={showSlideshow ? "mt-4" : ""}>
+                {showSlideshow && <HeroSlideshow key={pathname} title={slideshowTitle} isDialogOpen={isSlideshowDialogOpen} setDialogOpen={setIsSlideshowDialogOpen} />}
+                {children}
+            </div>
           </div>
         </main>
       </div>
