@@ -4,7 +4,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Trash2, GraduationCap, Download, Upload, FileUp, FileDown, Wand2, Filter, X } from 'lucide-react';
+import { Search, Trash2, GraduationCap, Download, Upload, FileUp, FileDown, Wand2, Filter, X, LogOut, FileArchive, FolderCog } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
@@ -26,7 +26,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import type { Student } from '@/lib/types';
+import type { Student, StudentStatus } from '@/lib/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +34,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { MoreHorizontal } from 'lucide-react';
@@ -50,7 +54,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
-import { getStudents, deleteStudent, updateStudent, addStudent } from '@/services/students';
+import { getStudents, updateStudent, addStudent } from '@/services/students';
 import { getGradesByStudent } from '@/services/grades';
 import { getAttendanceByStudent } from '@/services/attendance';
 import { getSubjects } from '@/services/subjects';
@@ -77,10 +81,7 @@ export default function StudentManager() {
   const [isDownloading, setIsDownloading] = React.useState(false);
   const importInputRef = React.useRef<HTMLInputElement>(null);
 
-  const [isRemoveAlertOpen, setIsRemoveAlertOpen] = React.useState(false);
-  const [studentToRemove, setStudentToRemove] = React.useState<Student | null>(null);
-
-  const [statusFilter, setStatusFilter] = React.useState<'all' | 'enrolled' | 'pending'>('all');
+  const [statusFilter, setStatusFilter] = React.useState<StudentStatus | 'all'>('all');
   const [ageRange, setAgeRange] = React.useState<[number, number]>([0, 10]);
   const [genderFilter, setGenderFilter] = React.useState<'all' | 'Male' | 'Female'>('all');
   const [programFilters, setProgramFilters] = React.useState({
@@ -101,9 +102,7 @@ export default function StudentManager() {
   }, [fetchStudents]);
 
   React.useEffect(() => {
-    let results = allStudents.filter(student =>
-      (student?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || student?.id.includes(searchTerm)) && student.status !== 'graduated'
-    );
+    let results = allStudents;
 
     if (statusFilter !== 'all') {
       results = results.filter(s => s.status === statusFilter);
@@ -122,6 +121,12 @@ export default function StudentManager() {
                 const key = filterKey as keyof typeof student;
                 return student[key];
             })
+        );
+    }
+
+    if (searchTerm) {
+        results = results.filter(student =>
+            (student?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || student?.id.includes(searchTerm))
         );
     }
 
@@ -166,50 +171,22 @@ export default function StudentManager() {
     router.push(`/dashboard/reports/${studentId}`);
   };
 
-  const handleGraduate = (studentId: string) => {
+  const handleChangeStatus = async (studentId: string, status: StudentStatus) => {
     try {
-      updateStudent(studentId, { status: 'graduated' });
-      // The list is already filtered, so we just need to re-filter
-      setAllStudents(prev => prev.map(s => s.id === studentId ? {...s, status: 'graduated'} : s));
-      toast({
-        title: 'Student Graduated',
-        description: 'The student has been moved to the graduated list.',
-      });
+        await updateStudent(studentId, { status });
+        fetchStudents();
+        toast({
+            title: 'Student Status Updated',
+            description: `The student's status has been changed to "${status.replace('-', ' ')}".`,
+        });
     } catch (error) {
-      console.error('Failed to graduate student:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not update student status.',
-      });
+        console.error('Failed to update student status:', error);
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Could not update student status.',
+        });
     }
-  };
-
-  const handleRemoveConfirm = async () => {
-    if (!studentToRemove) return;
-    try {
-      await deleteStudent(studentToRemove.id);
-      fetchStudents();
-      toast({
-          title: 'Student Archived',
-          description: `${studentToRemove.name} has been archived.`,
-      });
-    } catch (error) {
-      console.error("Failed to remove student: ", error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to archive student.',
-      });
-    } finally {
-        setIsRemoveAlertOpen(false);
-        setStudentToRemove(null);
-    }
-  };
-
-  const openRemoveDialog = (student: Student) => {
-    setStudentToRemove(student);
-    setIsRemoveAlertOpen(true);
   }
 
   const handleExport = () => {
@@ -408,13 +385,15 @@ export default function StudentManager() {
     setDialogContent(content);
   }
 
-  const getStatusVariant = (status: 'enrolled' | 'pending' | 'graduated' | undefined) => {
+  const getStatusVariant = (status: StudentStatus | undefined) => {
     switch (status) {
       case 'enrolled':
         return 'default';
       case 'pending':
+      case 'leave-of-absence':
         return 'secondary';
       case 'graduated':
+      case 'cancelled':
         return 'outline';
       default:
         return 'secondary';
@@ -466,9 +445,11 @@ export default function StudentManager() {
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">All</SelectItem>
+                                        <SelectItem value="all">All Active</SelectItem>
                                         <SelectItem value="enrolled">Enrolled</SelectItem>
                                         <SelectItem value="pending">Pending</SelectItem>
+                                        <SelectItem value="leave-of-absence">Leave of Absence</SelectItem>
+                                        <SelectItem value="cancelled">Cancelled</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -621,18 +602,27 @@ export default function StudentManager() {
                                 View Full Report Page
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => handleGraduate(student.id)}>
+                              <DropdownMenuSub>
+                                <DropdownMenuSubTrigger>
+                                  <FolderCog className="mr-2 h-4 w-4" />
+                                  Enrollment Change
+                                </DropdownMenuSubTrigger>
+                                <DropdownMenuPortal>
+                                  <DropdownMenuSubContent>
+                                    <DropdownMenuItem onClick={() => handleChangeStatus(student.id, 'leave-of-absence')}>
+                                      <LogOut className="mr-2 h-4 w-4" />
+                                      <span>Leave of Absence</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleChangeStatus(student.id, 'cancelled')}>
+                                      <FileArchive className="mr-2 h-4 w-4" />
+                                      <span>Cancel Enrollment</span>
+                                    </DropdownMenuItem>
+                                  </DropdownMenuSubContent>
+                                </DropdownMenuPortal>
+                              </DropdownMenuSub>
+                              <DropdownMenuItem onClick={() => handleChangeStatus(student.id, 'graduated')}>
                                 <GraduationCap className="mr-2 h-4 w-4" />
                                 Graduate Student
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                                onSelect={(e) => e.preventDefault()}
-                                onClick={() => openRemoveDialog(student)}
-                              >
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Remove Student
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -657,22 +647,6 @@ export default function StudentManager() {
           </Dialog>
       </CardContent>
     </Card>
-    <AlertDialog open={isRemoveAlertOpen} onOpenChange={setIsRemoveAlertOpen}>
-        <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                This action will archive the student record for {studentToRemove?.name}. You can still access their data in the reports and graduation sections.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleRemoveConfirm}>
-                    Continue
-                </AlertDialogAction>
-            </AlertDialogFooter>
-        </AlertDialogContent>
-    </AlertDialog>
     </>
   );
 }

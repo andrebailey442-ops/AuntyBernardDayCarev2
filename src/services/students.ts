@@ -1,6 +1,6 @@
 
 
-import type { Student } from '@/lib/types';
+import type { Student, StudentStatus } from '@/lib/types';
 import { deleteFeeByStudentId } from './fees';
 import { deleteGradesByStudentId } from './grades';
 import { deleteAttendanceByStudentId } from './attendance';
@@ -59,12 +59,12 @@ export const updateStudent = async (id: string, studentUpdate: Partial<Student>)
 
     const snapshot = await get(studentRef);
     if (snapshot.exists()) {
-        // If student is being graduated
-        if (studentUpdate.status === 'graduated') {
-            const studentToGraduate = { ...snapshot.val(), ...studentUpdate };
+        // If student is being graduated or cancelled
+        if (studentUpdate.status === 'graduated' || studentUpdate.status === 'cancelled') {
+            const studentToArchive = { ...snapshot.val(), ...studentUpdate, archivedOn: new Date().toISOString() };
             const updates: { [key: string]: any } = {};
             updates[`${STUDENTS_PATH}/${id}`] = null;
-            updates[`${ARCHIVED_STUDENTS_PATH}/${id}`] = studentToGraduate;
+            updates[`${ARCHIVED_STUDENTS_PATH}/${id}`] = studentToArchive;
             await update(ref(db), updates);
         } else {
             await update(studentRef, studentUpdate);
@@ -74,12 +74,13 @@ export const updateStudent = async (id: string, studentUpdate: Partial<Student>)
     }
 };
 
+
 export const deleteStudent = async (id: string) => {
     const studentData = await getStudent(id);
     if (studentData) {
         const archivedStudent = { 
             ...studentData, 
-            status: studentData.status || 'enrolled',
+            status: 'cancelled' as StudentStatus,
             archivedOn: new Date().toISOString()
         };
         const updates: { [key: string]: any } = {};
@@ -96,25 +97,24 @@ export const reregisterStudent = async (studentId: string): Promise<Student | nu
     if (snapshot.exists()) {
         const archivedData = snapshot.val();
         
-        // Create a new ID
-        const newId = `SID-${Date.now()}`;
-
-        // Create a new student object from the archived data
-        const { id, archivedOn, graduationDate, status, ...restOfData } = archivedData;
+        const { archivedOn, graduationDate, status, ...restOfData } = archivedData;
 
         const newStudentData: Student = {
             ...restOfData,
-            id: newId,
             status: 'enrolled', // Re-register as enrolled
         };
 
-        // Add the new student to the active students list
-        await set(ref(db, `${STUDENTS_PATH}/${newId}`), newStudentData);
+        const updates: { [key: string]: any } = {};
+        updates[`${STUDENTS_PATH}/${studentId}`] = newStudentData; // Restore with same ID
+        updates[`${ARCHIVED_STUDENTS_PATH}/${studentId}`] = null; // Remove from archive
+        
+        await update(ref(db), updates);
 
         return newStudentData;
     }
     return null;
 };
+
 
 // After Care
 export const getAfterCareAttendance = async (date: string) => {
@@ -167,7 +167,4 @@ export const setLogoUrl = async (url: string) => {
 export const clearLogoUrl = async () => {
     await set(ref(db, `${APP_SETTINGS_PATH}/logoUrl`), null);
 };
-
-
-
 

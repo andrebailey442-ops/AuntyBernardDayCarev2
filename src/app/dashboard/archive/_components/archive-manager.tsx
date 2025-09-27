@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { getArchivedStudents, reregisterStudent } from '@/services/students';
-import type { Student } from '@/lib/types';
+import type { Student, StudentStatus } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArchiveRestore, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -45,12 +45,13 @@ export default function ArchiveManager() {
 
   const handleRestore = async (studentId: string) => {
     try {
-      const newStudent = await reregisterStudent(studentId);
-      if (newStudent) {
+      const restoredStudent = await reregisterStudent(studentId);
+      if (restoredStudent) {
         toast({
           title: 'Student Re-registered',
-          description: `${newStudent.name} has been restored to the active list with a new ID: ${newStudent.id}`,
+          description: `${restoredStudent.name} has been restored to the active list.`,
         });
+        fetchArchivedStudents();
       } else {
         throw new Error('Failed to find archived student.');
       }
@@ -64,14 +65,17 @@ export default function ArchiveManager() {
     }
   };
   
-  const getStatusVariant = (status: 'enrolled' | 'pending' | 'graduated' | undefined) => {
+  const getStatusVariant = (status: StudentStatus | undefined) => {
     switch (status) {
       case 'enrolled':
         return 'default';
       case 'pending':
         return 'secondary';
       case 'graduated':
+      case 'cancelled':
         return 'outline';
+      case 'leave-of-absence':
+          return 'secondary';
       default:
         return 'secondary';
     }
@@ -82,7 +86,7 @@ export default function ArchiveManager() {
       <CardHeader>
         <CardTitle>Archived Students</CardTitle>
         <CardDescription>
-          Students who have been graduated or removed from the active list.
+          Students who have been graduated or have had their enrollment cancelled.
         </CardDescription>
       </CardHeader>
       <CardContent>

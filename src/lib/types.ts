@@ -29,6 +29,8 @@ export type StudentDocument = {
   type: string; // e.g., 'application/pdf'
 };
 
+export type StudentStatus = 'enrolled' | 'graduated' | 'pending' | 'leave-of-absence' | 'cancelled';
+
 export type Student = {
   id: string;
   name: string;
@@ -40,7 +42,7 @@ export type Student = {
   preschool?: boolean;
   afterCare?: boolean;
   nursery?: boolean;
-  status?: 'enrolled' | 'graduated' | 'pending';
+  status?: StudentStatus;
   graduationDate?: string;
   archivedOn?: string;
   // Extended details from form
