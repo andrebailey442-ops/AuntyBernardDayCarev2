@@ -45,23 +45,24 @@ export default function ArchiveManager() {
 
   const handleRestore = async (studentId: string) => {
     try {
-      const restoredStudent = await reregisterStudent(studentId);
-      if (restoredStudent) {
-        toast({
-          title: 'Student Re-registered',
-          description: `${restoredStudent.name} has been restored to the active list.`,
-        });
-        fetchArchivedStudents();
-      } else {
-        throw new Error('Failed to find archived student.');
-      }
+        const newId = `SID-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+        const restoredStudent = await reregisterStudent(studentId, newId);
+        if (restoredStudent) {
+            toast({
+            title: 'Student Re-registered',
+            description: `${restoredStudent.name} has been restored to the active list with a new ID: ${newId}.`,
+            });
+            fetchArchivedStudents();
+        } else {
+            throw new Error('Failed to find archived student.');
+        }
     } catch (error) {
-      console.error('Failed to restore student:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not re-register the student.',
-      });
+        console.error('Failed to restore student:', error);
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Could not re-register the student.',
+        });
     }
   };
   
@@ -72,8 +73,9 @@ export default function ArchiveManager() {
       case 'pending':
         return 'secondary';
       case 'graduated':
-      case 'cancelled':
         return 'outline';
+      case 'cancelled':
+        return 'destructive';
       case 'leave-of-absence':
           return 'secondary';
       default:
@@ -128,7 +130,7 @@ export default function ArchiveManager() {
                     {student.archivedOn ? format(new Date(student.archivedOn), 'PPP') : (student.graduationDate ? format(new Date(student.graduationDate), 'PPP') : 'N/A')}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button onClick={() => handleRestore(student.id)} size="sm">
+                    <Button onClick={() => handleRestore(student.id)} size="sm" disabled={student.status === 'cancelled'}>
                       <ArchiveRestore className="mr-2 h-4 w-4" />
                       Restore
                     </Button>
