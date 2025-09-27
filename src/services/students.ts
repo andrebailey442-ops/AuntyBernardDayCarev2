@@ -14,13 +14,20 @@ const ARCHIVED_AFTERCARE_LOGS_PATH = 'afterCareArchivedLogs';
 const ARCHIVED_NURSERY_LOGS_PATH = 'nurseryArchivedLogs';
 const APP_SETTINGS_PATH = 'appSettings';
 
-export const getStudents = async (): Promise<Student[]> => {
-    const snapshot = await get(ref(db, STUDENTS_PATH));
-    if (snapshot.exists()) {
-        const data = snapshot.val();
-        return Object.values(data);
+export const getStudents = async (includeArchived = false): Promise<Student[]> => {
+    const studentsSnapshot = await get(ref(db, STUDENTS_PATH));
+    let students: Student[] = [];
+    if (studentsSnapshot.exists()) {
+        students = Object.values(studentsSnapshot.val());
     }
-    return [];
+
+    if (includeArchived) {
+        const archivedSnapshot = await get(ref(db, ARCHIVED_STUDENTS_PATH));
+        if (archivedSnapshot.exists()) {
+            students = [...students, ...Object.values(archivedSnapshot.val())];
+        }
+    }
+    return students;
 };
 
 export const getArchivedStudents = async (): Promise<Student[]> => {

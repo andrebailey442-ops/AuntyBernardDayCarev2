@@ -11,20 +11,28 @@ import {
   CardDescription,
   CardFooter,
 } from '@/components/ui/card';
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, Download, History } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import type { Staff } from '@/lib/types';
+import type { Staff, StudentActivityLogEntry } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { getStaffMember } from '@/services/staff';
+import { getStaffWithActivity } from '@/services/staff';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { BusyBeeLogo } from '@/components/icons';
-
+import {
+    Timeline,
+    TimelineItem,
+    TimelineConnector,
+    TimelineHeader,
+    TimelineIcon,
+    TimelineTitle,
+    TimelineDescription,
+    TimelineContent,
+  } from '@/components/ui/timeline';
 
 type StaffProfileProps = {
     staffId: string;
@@ -37,9 +45,9 @@ export default function StaffProfile({ staffId }: StaffProfileProps) {
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const fetchData = () => {
+    const fetchData = async () => {
         setLoading(true);
-        const staffData = getStaffMember(staffId);
+        const staffData = await getStaffWithActivity(staffId);
         if (staffData) {
             setStaff(staffData);
         } else {
@@ -182,6 +190,31 @@ export default function StaffProfile({ staffId }: StaffProfileProps) {
                         <p className="text-sm text-muted-foreground">No roles have been assigned to this staff member.</p>
                     )}
                 </div>
+            </div>
+             <Separator />
+             <div>
+                <h3 className="text-xl font-semibold mb-4">Activity Log</h3>
+                {staff.activityLog && staff.activityLog.length > 0 ? (
+                    <Timeline>
+                        {staff.activityLog.slice().reverse().map((log, index) => (
+                            <TimelineItem key={index}>
+                                <TimelineConnector />
+                                <TimelineHeader>
+                                    <TimelineIcon><History className="h-4 w-4" /></TimelineIcon>
+                                    <TimelineTitle>{log.action}</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineContent>
+                                    <TimelineDescription>
+                                        By {log.user} on {format(new Date(log.date), 'PPP p')}
+                                    </TimelineDescription>
+                                    {log.notes && <p className="text-sm mt-1">{log.notes}</p>}
+                                </TimelineContent>
+                            </TimelineItem>
+                        ))}
+                    </Timeline>
+                ) : (
+                    <p className="text-sm text-muted-foreground">No activities have been logged for this staff member.</p>
+                )}
             </div>
         </div>
       </CardContent>

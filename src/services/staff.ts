@@ -4,6 +4,7 @@ import type { Staff, StaffSchedule, StaffAttendance, ArchivedStaffLog } from '@/
 import { db } from '@/lib/firebase-client';
 import { ref, get, set, update } from 'firebase/database';
 import { STAFF_PATH, STAFF_SCHEDULE_PATH, STAFF_ATTENDANCE_PATH, ARCHIVED_STAFF_LOGS_PATH } from '@/lib/firebase-db';
+import { getStudents } from './students';
 
 // Staff Management
 export const getStaff = async (): Promise<Staff[]> => {
@@ -20,6 +21,21 @@ export const getStaffMember = async (id: string): Promise<Staff | undefined> => 
     const snapshot = await get(staffRef);
     return snapshot.exists() ? snapshot.val() : undefined;
 }
+
+export const getStaffWithActivity = async (staffId: string): Promise<Staff | null> => {
+    const staffMember = await getStaffMember(staffId);
+    if (!staffMember) return null;
+
+    const allStudents = await getStudents(true); // Assuming getStudents can fetch archived ones too
+    const staffActivity = allStudents
+        .flatMap(student => student.activityLog || [])
+        .filter(log => log.user === staffMember.name); // Assuming staff name is used as user in log
+
+    return {
+        ...staffMember,
+        activityLog: staffActivity,
+    };
+};
 
 export const addStaff = async (staffData: Omit<Staff, 'id' | 'avatarUrl' | 'imageHint'>) => {
     const id = `staff-${Date.now()}`;

@@ -140,6 +140,7 @@ export type Staff = {
   roles: StaffRole[];
   avatarUrl: string;
   imageHint: string;
+  activityLog?: StudentActivityLogEntry[];
 };
 
 export type StaffSchedule = {
