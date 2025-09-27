@@ -4,7 +4,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, Trash2, GraduationCap, Download, Upload, FileUp, FileDown, Wand2, Filter, X, LogOut, FileArchive, FolderCog } from 'lucide-react';
+import { Search, Trash2, GraduationCap, Download, Upload, FileUp, FileDown, Wand2, Filter, X, LogOut, FileArchive, FolderCog, LogIn } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
@@ -189,7 +189,7 @@ export default function StudentManager() {
         fetchStudents();
         toast({
             title: 'Student Status Updated',
-            description: `The student's status has been changed to "${newStatus.replace('-', ' ')}".`,
+            description: `The student's status has been changed to "${newStatus.replace(/-/g, ' ')}".`,
         });
     } catch (error) {
         console.error('Failed to update student status:', error);
@@ -589,7 +589,7 @@ export default function StudentManager() {
                         <Badge variant="outline">{student.age}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getStatusVariant(student.status)}>{student.status}</Badge>
+                        <Badge variant={getStatusVariant(student.status)}>{student.status?.replace('-', ' ')}</Badge>
                       </TableCell>
                       <TableCell className="text-right">
                           <DropdownMenu>
@@ -624,10 +624,17 @@ export default function StudentManager() {
                                 </DropdownMenuSubTrigger>
                                 <DropdownMenuPortal>
                                   <DropdownMenuSubContent>
-                                    <DropdownMenuItem onSelect={() => openStatusChangeDialog(student.id, 'leave-of-absence')}>
-                                      <LogOut className="mr-2 h-4 w-4" />
-                                      <span>Leave of Absence</span>
-                                    </DropdownMenuItem>
+                                    {student.status === 'leave-of-absence' ? (
+                                      <DropdownMenuItem onSelect={() => openStatusChangeDialog(student.id, 'enrolled')}>
+                                        <LogIn className="mr-2 h-4 w-4" />
+                                        <span>Re-enroll Student</span>
+                                      </DropdownMenuItem>
+                                    ) : (
+                                      <DropdownMenuItem onSelect={() => openStatusChangeDialog(student.id, 'leave-of-absence')}>
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        <span>Leave of Absence</span>
+                                      </DropdownMenuItem>
+                                    )}
                                     <DropdownMenuItem onSelect={() => openStatusChangeDialog(student.id, 'cancelled')}>
                                       <FileArchive className="mr-2 h-4 w-4" />
                                       <span>Cancel Enrollment</span>
@@ -682,5 +689,6 @@ export default function StudentManager() {
     </>
   );
 }
+
 
 
