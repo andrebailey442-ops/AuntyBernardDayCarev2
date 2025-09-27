@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -220,7 +221,7 @@ export function StaffForm({ staffMember, onSuccess }: StaffFormProps) {
                                     onClick={() => avatarUploadRef.current?.click()}
                                 >
                                     <Avatar className="h-24 w-24">
-                                        <AvatarImage src={avatarUrl} alt={form.getValues('name')} />
+                                        <AvatarImage src={avatarUrl || undefined} alt={form.getValues('name')} />
                                         <AvatarFallback>
                                             {form.getValues('name')?.split(' ').map(n => n[0]).join('')}
                                         </AvatarFallback>
@@ -350,3 +351,5 @@ export function StaffForm({ staffMember, onSuccess }: StaffFormProps) {
     </>
   );
 }
+
+    
