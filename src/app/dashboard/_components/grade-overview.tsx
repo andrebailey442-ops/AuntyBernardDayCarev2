@@ -23,16 +23,16 @@ const chartConfig = {
   count: {
     label: 'Students',
   },
-  A: {
-    label: 'A',
+  Mastery: {
+    label: 'Mastery',
     color: 'hsl(var(--chart-1))',
   },
-  B: {
-    label: 'B',
+  Satisfactory: {
+    label: 'Satisfactory',
     color: 'hsl(var(--chart-2))',
   },
-  C: {
-    label: 'C',
+  Fair: {
+    label: 'Fair',
     color: 'hsl(var(--chart-4))',
   },
   Incomplete: {
@@ -42,12 +42,10 @@ const chartConfig = {
 };
 
 const gradeColors: { [key: string]: string } = {
-  A: 'hsl(var(--chart-1))',
-  B: 'hsl(var(--chart-2))',
-  C: 'hsl(var(--chart-4))',
+  Mastery: 'hsl(var(--chart-1))',
+  Satisfactory: 'hsl(var(--chart-2))',
+  Fair: 'hsl(var(--chart-4))',
   Incomplete: 'hsl(var(--muted))',
-  D: 'hsl(var(--chart-3))',
-  F: 'hsl(var(--destructive))',
 };
 
 type GradeOverviewProps = {
@@ -56,7 +54,7 @@ type GradeOverviewProps = {
 
 export default function GradeOverview({ grades }: GradeOverviewProps) {
   const gradeDistribution = React.useMemo(() => {
-    const counts: {[key: string]: number} = { A: 0, B: 0, C: 0, D: 0, F: 0, Incomplete: 0 };
+    const counts: {[key: string]: number} = { Mastery: 0, Satisfactory: 0, Fair: 0, Incomplete: 0 };
     grades.forEach(grade => {
       if (grade.grade && grade.grade in counts) {
         counts[grade.grade]++;

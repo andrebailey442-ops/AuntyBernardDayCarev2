@@ -188,7 +188,7 @@ export default function GradeManager() {
                           <SelectValue placeholder="-" />
                         </SelectTrigger>
                         <SelectContent>
-                          {['A', 'B', 'C', 'D', 'F', 'Incomplete'].map((g) => (
+                          {['Mastery', 'Satisfactory', 'Fair', 'Incomplete'].map((g) => (
                             <SelectItem key={g} value={g}>
                               {g}
                             </SelectItem>

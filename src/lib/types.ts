@@ -63,7 +63,7 @@ export type Grade = {
   studentId: string;
   category: GradeCategory;
   subject: string;
-  grade: 'A' | 'B' | 'C' | 'D' | 'F' | 'Incomplete' | '';
+  grade: 'Mastery' | 'Satisfactory' | 'Fair' | 'Incomplete' | '';
   date: string;
   notes?: string;
 };
