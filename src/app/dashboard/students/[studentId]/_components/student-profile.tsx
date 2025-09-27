@@ -259,6 +259,7 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                                     <TimelineDescription>
                                         By {log.user} on {format(new Date(log.date), 'PPP p')}
                                     </TimelineDescription>
+                                    {log.notes && <p className="text-sm mt-1">{log.notes}</p>}
                                 </TimelineContent>
                             </TimelineItem>
                         ))}
@@ -273,5 +274,3 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
     </>
   );
 }
-
-    

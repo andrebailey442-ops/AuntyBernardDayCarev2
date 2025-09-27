@@ -67,8 +67,21 @@ export const updateStudent = async (id: string, studentUpdate: Partial<Student>)
     if (snapshot.exists()) {
         const currentStudent = snapshot.val() as Student;
         
+        let action = 'Profile Updated';
+        let notes = '';
+
+        if (studentUpdate.status) {
+            action = `Status changed to ${studentUpdate.status}`;
+        } else {
+             const changedFields = Object.keys(studentUpdate).filter(key => key !== 'activityLog' && key !== 'statusChangedBy');
+             if (changedFields.length > 0) {
+                 notes = `Updated fields: ${changedFields.join(', ')}.`;
+             }
+        }
+        
         const newLogEntry: StudentActivityLogEntry = {
-            action: studentUpdate.status ? `Status changed to ${studentUpdate.status}` : 'Profile Updated',
+            action,
+            notes,
             user: studentUpdate.statusChangedBy || 'System',
             date: new Date().toISOString(),
         };
