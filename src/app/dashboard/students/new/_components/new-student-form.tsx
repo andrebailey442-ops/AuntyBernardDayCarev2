@@ -55,6 +55,7 @@ import { Switch } from '@/components/ui/switch';
 import { JAMAICAN_PARISHES, CITIES_BY_PARISH } from '@/lib/data';
 import { newStudentSchema } from '../schema';
 import type { NewStudentFormValues } from '../schema';
+import { useAuth } from '@/hooks/use-auth';
 
 const AFTER_CARE_FEE = 500;
 const TUITION_FULL = 2375;
@@ -72,6 +73,7 @@ const formSchema = z.object({
 export function NewStudentForm() {
   const { toast } = useToast();
   const router = useRouter();
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = React.useState(false);
   const [studentId, setStudentId] = React.useState('');
@@ -196,7 +198,7 @@ export function NewStudentForm() {
             medicalConditions: data.medicalConditions,
             authorizedPickups: data.authorizedPickups,
         };
-        addStudent(data.studentId, studentData);
+        addStudent(data.studentId, studentData, user?.username);
 
         if (totalFee > 0) {
             addFee({

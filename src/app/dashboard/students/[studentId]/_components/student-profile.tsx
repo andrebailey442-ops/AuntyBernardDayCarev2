@@ -11,9 +11,9 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { ArrowLeft, File, View } from 'lucide-react';
+import { ArrowLeft, File, View, History } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import type { Student, Fee, StudentDocument } from '@/lib/types';
+import type { Student, Fee, StudentDocument, StudentActivityLogEntry } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +22,16 @@ import { getFeeByStudentId } from '@/services/fees';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { CheckCircle, XCircle } from 'lucide-react';
+import {
+  Timeline,
+  TimelineItem,
+  TimelineConnector,
+  TimelineHeader,
+  TimelineIcon,
+  TimelineTitle,
+  TimelineDescription,
+  TimelineContent,
+} from '@/components/ui/timeline';
 
 type StudentProfileProps = {
     studentId: string;
@@ -231,6 +241,31 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                     <div><p className="text-sm text-muted-foreground">Emergency Phone</p><p>{student.emergencyContactPhone || 'N/A'}</p></div>
                     <div className="md:col-span-2"><p className="text-sm text-muted-foreground">Medical Conditions</p><p>{student.medicalConditions || 'None'}</p></div>
                 </div>
+            </div>
+            
+             <Separator />
+             <div>
+                <h3 className="text-xl font-semibold mb-4">Activity Log</h3>
+                {student.activityLog && student.activityLog.length > 0 ? (
+                    <Timeline>
+                        {student.activityLog.slice().reverse().map((log, index) => (
+                            <TimelineItem key={index}>
+                                <TimelineConnector />
+                                <TimelineHeader>
+                                    <TimelineIcon><History className="h-4 w-4" /></TimelineIcon>
+                                    <TimelineTitle>{log.action}</TimelineTitle>
+                                </TimelineHeader>
+                                <TimelineContent>
+                                    <TimelineDescription>
+                                        By {log.user} on {format(new Date(log.date), 'PPP p')}
+                                    </TimelineDescription>
+                                </TimelineContent>
+                            </TimelineItem>
+                        ))}
+                    </Timeline>
+                ) : (
+                    <p className="text-sm text-muted-foreground">No activities have been logged for this student.</p>
+                )}
             </div>
         </div>
       </CardContent>

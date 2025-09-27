@@ -29,6 +29,13 @@ export type StudentDocument = {
   type: string; // e.g., 'application/pdf'
 };
 
+export type StudentActivityLogEntry = {
+    action: string;
+    user: string;
+    date: string;
+    notes?: string;
+};
+
 export type StudentStatus = 'enrolled' | 'graduated' | 'pending' | 'leave-of-absence' | 'cancelled';
 
 export type Student = {
@@ -54,6 +61,7 @@ export type Student = {
   medicalConditions?: string;
   authorizedPickups?: AuthorizedPickup[];
   documents?: StudentDocument[];
+  activityLog?: StudentActivityLogEntry[];
 };
 
 export type GradeCategory = 'daily' | 'projects' | 'tests' | 'quizzes';
