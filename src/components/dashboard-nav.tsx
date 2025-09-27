@@ -16,6 +16,7 @@ import {
   Award,
   UserCog,
   Baby,
+  Archive,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
@@ -39,6 +40,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard/after-care', label: 'After Care', icon: Sunset, id: '/dashboard/after-care' },
   { href: '/dashboard/nursery', label: 'Nursery', icon: Baby, id: '/dashboard/nursery' },
   { href: '/dashboard/staff', label: 'Staff', icon: UserCog, id: '/dashboard/staff' },
+  { href: '/dashboard/archive', label: 'Archive', icon: Archive, id: '/dashboard/archive' },
 ];
 
 export function DashboardNav() {

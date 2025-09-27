@@ -84,6 +84,23 @@ export const deleteStudent = async (id: string) => {
     }
 };
 
+export const restoreStudent = async (studentId: string) => {
+    const archivedStudentRef = ref(db, `${ARCHIVED_STUDENTS_PATH}/${studentId}`);
+    const snapshot = await get(archivedStudentRef);
+
+    if (snapshot.exists()) {
+        const studentToRestore = { ...snapshot.val(), status: 'enrolled' };
+        
+        const updates: { [key: string]: any } = {};
+        updates[`${STUDENTS_PATH}/${studentId}`] = studentToRestore;
+        updates[`${ARCHIVED_STUDENTS_PATH}/${studentId}`] = null;
+
+        await update(ref(db), updates);
+        return studentToRestore;
+    }
+    return null;
+};
+
 // After Care
 export const getAfterCareAttendance = async (date: string) => {
     const snapshot = await get(ref(db, `${AFTERCARE_ATTENDANCE_PATH}/${date}`));

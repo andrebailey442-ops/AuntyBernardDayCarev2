@@ -73,6 +73,7 @@ export const PERMISSIONS: {id: string, label: string}[] = [
     { id: '/dashboard/nursery', label: 'Nursery' },
     { id: '/dashboard/manage-users', label: 'Manage Users'},
     { id: '/dashboard/staff', label: 'Staff Management' },
+    { id: '/dashboard/archive', label: 'Archive' },
 ];
 
 export const DEFAULT_TEACHER_PERMISSIONS: string[] = ['/dashboard/preschool', '/dashboard/attendance', '/dashboard/grades', '/dashboard/reports', '/dashboard/forms'];
