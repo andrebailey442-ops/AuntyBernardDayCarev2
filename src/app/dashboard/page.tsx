@@ -108,7 +108,7 @@ export default function DashboardSelectionPage() {
     <div className="flex min-h-[calc(100vh-10rem)] flex-col items-center justify-center">
       <div className="relative z-10 flex flex-col items-center justify-center gap-8 p-4">
         <div className="text-center">
-            <h1 className="text-3xl font-bold">Welcome to Aunty Bernard DayCare and Pre-school</h1>
+            <h1 className="text-3xl font-bold">Welcome back, {user?.username}!</h1>
             <p className="text-muted-foreground">Please select a section to manage.</p>
         </div>
         <div className="grid w-full max-w-6xl grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-2">
