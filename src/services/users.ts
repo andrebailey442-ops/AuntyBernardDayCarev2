@@ -24,7 +24,6 @@ export const getUsers = async (): Promise<User[]> => {
     const snapshot = await get(ref(db, USERS_PATH));
     if (snapshot.exists()) {
         const data = snapshot.val();
-        // Firebase returns an object, convert it to an array
         return Object.values(data);
     }
     return [];
