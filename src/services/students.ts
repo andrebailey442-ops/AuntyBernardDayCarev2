@@ -77,13 +77,35 @@ export const updateStudent = async (id: string, studentUpdate: Partial<Student>)
         let action = 'Profile Updated';
         let notes = '';
 
-        if (studentUpdate.status) {
+        if (studentUpdate.status && studentUpdate.status !== currentStudent.status) {
             action = `Status changed to ${studentUpdate.status}`;
         } else {
-             const changedFields = Object.keys(studentUpdate).filter(key => key !== 'activityLog' && key !== 'statusChangedBy');
-             if (changedFields.length > 0) {
-                 notes = `Updated fields: ${changedFields.join(', ')}.`;
-             }
+            const changes: string[] = [];
+            for (const key in studentUpdate) {
+                if (key === 'activityLog' || key === 'statusChangedBy' || key === 'statusChangedOn') continue;
+
+                const typedKey = key as keyof Student;
+                const oldValue = currentStudent[typedKey];
+                const newValue = studentUpdate[typedKey];
+
+                if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
+                    // For simple fields
+                    if (typeof newValue !== 'object' && typeof oldValue !== 'object') {
+                         changes.push(`Changed ${key} from '${oldValue}' to '${newValue}'.`);
+                    } else if (key === 'guardians' && Array.isArray(newValue) && Array.isArray(oldValue)) {
+                        // More complex logic for guardians if needed
+                        changes.push('Updated guardian information.');
+                    } else if (key === 'authorizedPickups' && Array.isArray(newValue) && Array.isArray(oldValue)) {
+                        changes.push('Updated authorized pickup list.');
+                    } else {
+                        // Generic message for complex objects or arrays
+                        changes.push(`Updated ${key}.`);
+                    }
+                }
+            }
+            if(changes.length > 0) {
+                notes = changes.join(' ');
+            }
         }
         
         const newLogEntry: StudentActivityLogEntry = {
@@ -210,4 +232,5 @@ export const setLogoUrl = async (url: string) => {
 export const clearLogoUrl = async () => {
     await set(ref(db, `${APP_SETTINGS_PATH}/logoUrl`), null);
 };
+
 
