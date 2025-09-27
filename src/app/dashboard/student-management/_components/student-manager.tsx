@@ -81,6 +81,9 @@ export default function StudentManager() {
   const [isDownloading, setIsDownloading] = React.useState(false);
   const importInputRef = React.useRef<HTMLInputElement>(null);
 
+  const [isConfirmStatusChangeOpen, setIsConfirmStatusChangeOpen] = React.useState(false);
+  const [statusChangeInfo, setStatusChangeInfo] = React.useState<{ studentId: string; newStatus: StudentStatus } | null>(null);
+
   const [statusFilter, setStatusFilter] = React.useState<StudentStatus | 'all'>('all');
   const [ageRange, setAgeRange] = React.useState<[number, number]>([0, 10]);
   const [genderFilter, setGenderFilter] = React.useState<'all' | 'Male' | 'Female'>('all');
@@ -171,13 +174,22 @@ export default function StudentManager() {
     router.push(`/dashboard/reports/${studentId}`);
   };
 
-  const handleChangeStatus = async (studentId: string, status: StudentStatus) => {
+  const openStatusChangeDialog = (studentId: string, newStatus: StudentStatus) => {
+    setStatusChangeInfo({ studentId, newStatus });
+    setIsConfirmStatusChangeOpen(true);
+  };
+
+  const handleConfirmStatusChange = async () => {
+    if (!statusChangeInfo) return;
+    
+    const { studentId, newStatus } = statusChangeInfo;
+
     try {
-        await updateStudent(studentId, { status });
+        await updateStudent(studentId, { status: newStatus });
         fetchStudents();
         toast({
             title: 'Student Status Updated',
-            description: `The student's status has been changed to "${status.replace('-', ' ')}".`,
+            description: `The student's status has been changed to "${newStatus.replace('-', ' ')}".`,
         });
     } catch (error) {
         console.error('Failed to update student status:', error);
@@ -186,6 +198,9 @@ export default function StudentManager() {
             title: 'Error',
             description: 'Could not update student status.',
         });
+    } finally {
+        setIsConfirmStatusChangeOpen(false);
+        setStatusChangeInfo(null);
     }
   }
 
@@ -609,18 +624,18 @@ export default function StudentManager() {
                                 </DropdownMenuSubTrigger>
                                 <DropdownMenuPortal>
                                   <DropdownMenuSubContent>
-                                    <DropdownMenuItem onClick={() => handleChangeStatus(student.id, 'leave-of-absence')}>
+                                    <DropdownMenuItem onSelect={() => openStatusChangeDialog(student.id, 'leave-of-absence')}>
                                       <LogOut className="mr-2 h-4 w-4" />
                                       <span>Leave of Absence</span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleChangeStatus(student.id, 'cancelled')}>
+                                    <DropdownMenuItem onSelect={() => openStatusChangeDialog(student.id, 'cancelled')}>
                                       <FileArchive className="mr-2 h-4 w-4" />
                                       <span>Cancel Enrollment</span>
                                     </DropdownMenuItem>
                                   </DropdownMenuSubContent>
                                 </DropdownMenuPortal>
                               </DropdownMenuSub>
-                              <DropdownMenuItem onClick={() => handleChangeStatus(student.id, 'graduated')}>
+                              <DropdownMenuItem onClick={() => openStatusChangeDialog(student.id, 'graduated')}>
                                 <GraduationCap className="mr-2 h-4 w-4" />
                                 Graduate Student
                               </DropdownMenuItem>
@@ -647,7 +662,25 @@ export default function StudentManager() {
           </Dialog>
       </CardContent>
     </Card>
+    <AlertDialog open={isConfirmStatusChangeOpen} onOpenChange={setIsConfirmStatusChangeOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    You are about to change the student's status to "{statusChangeInfo?.newStatus.replace('-', ' ')}". 
+                    {statusChangeInfo?.newStatus === 'cancelled' && ' This will move the student to the archive.'}
+                    {statusChangeInfo?.newStatus === 'graduated' && ' This will move the student to the graduated list.'}
+                     Do you want to continue?
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setStatusChangeInfo(null)}>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmStatusChange}>Confirm</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 }
+
 
