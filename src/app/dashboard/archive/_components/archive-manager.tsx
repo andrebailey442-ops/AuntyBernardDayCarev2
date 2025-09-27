@@ -45,12 +45,11 @@ export default function ArchiveManager() {
 
   const handleRestore = async (studentId: string) => {
     try {
-        const newId = `SID-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-        const restoredStudent = await reregisterStudent(studentId, newId);
+        const restoredStudent = await reregisterStudent(studentId);
         if (restoredStudent) {
             toast({
             title: 'Student Re-registered',
-            description: `${restoredStudent.name} has been restored to the active list with a new ID: ${newId}.`,
+            description: `${restoredStudent.name} has been restored to the active list with a new ID: ${restoredStudent.id}.`,
             });
             fetchArchivedStudents();
         } else {
@@ -98,6 +97,7 @@ export default function ArchiveManager() {
               <TableHead>Student</TableHead>
               <TableHead>Status at Archival</TableHead>
               <TableHead>Archived On</TableHead>
+              <TableHead>Updated By</TableHead>
               <TableHead className="text-right">Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -113,6 +113,7 @@ export default function ArchiveManager() {
                   </TableCell>
                   <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                  <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
                   <TableCell className="text-right"><Skeleton className="h-10 w-24" /></TableCell>
                 </TableRow>
               ))
@@ -127,7 +128,13 @@ export default function ArchiveManager() {
                     <Badge variant={getStatusVariant(student.status)}>{student.status}</Badge>
                   </TableCell>
                   <TableCell>
-                    {student.archivedOn ? format(new Date(student.archivedOn), 'PPP') : (student.graduationDate ? format(new Date(student.graduationDate), 'PPP') : 'N/A')}
+                    {student.archivedOn ? format(new Date(student.archivedOn), 'PPP') : 'N/A'}
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                        <div className="font-medium">{student.statusChangedBy || 'N/A'}</div>
+                        {student.statusChangedOn && <div className="text-sm text-muted-foreground">{format(new Date(student.statusChangedOn), 'PPP')}</div>}
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <Button onClick={() => handleRestore(student.id)} size="sm" disabled={student.status === 'cancelled' || student.status === 'graduated'}>
@@ -139,7 +146,7 @@ export default function ArchiveManager() {
               ))
             ) : (
                 <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center">
+                    <TableCell colSpan={5} className="h-24 text-center">
                     No students have been archived.
                     </TableCell>
                 </TableRow>
@@ -150,4 +157,3 @@ export default function ArchiveManager() {
     </Card>
   );
 }
-

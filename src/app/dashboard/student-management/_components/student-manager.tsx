@@ -65,11 +65,13 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import UploadDocumentsDialog from './upload-documents-dialog';
+import { useAuth } from '@/hooks/use-auth';
 
 
 export default function StudentManager() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = React.useState('');
   const [allStudents, setAllStudents] = React.useState<Student[]>([]);
   const [filteredStudents, setFilteredStudents] = React.useState<Student[]>([]);
@@ -180,12 +182,22 @@ export default function StudentManager() {
   };
 
   const handleConfirmStatusChange = async () => {
-    if (!statusChangeInfo) return;
+    if (!statusChangeInfo || !user) return;
     
     const { studentId, newStatus } = statusChangeInfo;
 
     try {
-        await updateStudent(studentId, { status: newStatus });
+        const updatePayload: Partial<Student> = {
+            status: newStatus,
+            statusChangedBy: user.username,
+            statusChangedOn: new Date().toISOString()
+        };
+
+        if (newStatus === 'cancelled' || newStatus === 'graduated') {
+            updatePayload.archivedOn = new Date().toISOString();
+        }
+
+        await updateStudent(studentId, updatePayload);
         fetchStudents();
         toast({
             title: 'Student Status Updated',
@@ -689,6 +701,4 @@ export default function StudentManager() {
     </>
   );
 }
-
-
 

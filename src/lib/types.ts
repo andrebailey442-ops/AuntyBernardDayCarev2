@@ -45,6 +45,8 @@ export type Student = {
   status?: StudentStatus;
   graduationDate?: string;
   archivedOn?: string;
+  statusChangedBy?: string;
+  statusChangedOn?: string;
   // Extended details from form
   guardians: Guardian[];
   emergencyContactName?: string;
