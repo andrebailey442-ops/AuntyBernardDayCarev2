@@ -25,7 +25,7 @@ import HeroSlideshow from '@/app/dashboard/_components/hero-slideshow';
 import { useIsMobile } from '@/hooks/use-mobile';
 import React from 'react';
 import { useLogo } from '@/hooks/use-logo';
-import { handbookContent, adminManualContent, readmeContent } from '@/lib/documentation-content';
+import { handbookContent, adminManualContent } from '@/lib/documentation-content';
 
 
 function LogoUpdateDialog({ onOpenChange }: { onOpenChange: (open: boolean) => void }) {
@@ -131,7 +131,7 @@ export function DashboardHeader({ setSlideshowDialogOpen }: DashboardHeaderProps
       const addHeaderFooter = () => {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
-        doc.text('Aunty Bernard DayCare and Pre-school - Project Documentation', margin, 15);
+        doc.text('Aunty Bernard DayCare and Pre-school - User Documentation', margin, 15);
         doc.text(`Page ${pageNumber}`, pageWidth - margin, 15, { align: 'right' });
         doc.line(margin, 20, pageWidth - margin, 20);
       };
@@ -147,7 +147,7 @@ export function DashboardHeader({ setSlideshowDialogOpen }: DashboardHeaderProps
         const lines = markdown.split('\n');
 
         lines.forEach(line => {
-          if (cursorY > pageHeight - margin) {
+          if (cursorY > pageHeight - margin - 20) { // Add some bottom margin
             addPage();
           }
 
@@ -155,55 +155,54 @@ export function DashboardHeader({ setSlideshowDialogOpen }: DashboardHeaderProps
             const level = line.indexOf(' ');
             const text = line.substring(level + 1);
             doc.setFont('helvetica', 'bold');
-            if (level === 1) {
+            if (level === 1) { // #
               doc.setFontSize(22);
-              cursorY += 10;
-            } else if (level === 2) {
+              cursorY += 15;
+            } else if (level === 2) { // ##
               doc.setFontSize(18);
-              cursorY += 8;
-            } else {
+              cursorY += 12;
+            } else { // ###
               doc.setFontSize(14);
-              cursorY += 6;
+              cursorY += 10;
             }
             const splitText = doc.splitTextToSize(text, textWidth);
             doc.text(splitText, margin, cursorY);
-            cursorY += (splitText.length * 7) + 5;
+            cursorY += (splitText.length * 8) + 8; // Increased spacing
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(12);
           } else if (line.startsWith('*') || line.startsWith('-')) {
-            const splitText = doc.splitTextToSize(line.substring(2), textWidth - 5);
+            const text = line.substring(line.indexOf(' ') + 1);
+            const splitText = doc.splitTextToSize(text, textWidth - 5);
             doc.text(`• ${splitText[0]}`, margin + 5, cursorY);
-            cursorY += 6;
+            cursorY += 8; // Increased line spacing
             if (splitText.length > 1) {
-              doc.text(splitText.slice(1), margin + 5, cursorY);
-              cursorY += ((splitText.length - 1) * 6);
+              doc.text(splitText.slice(1), margin + 10, cursorY);
+              cursorY += ((splitText.length - 1) * 8); // Increased line spacing
             }
           } else if (line.startsWith('---')) {
-            cursorY += 5;
+            cursorY += 8;
             doc.line(margin, cursorY, pageWidth - margin, cursorY);
-            cursorY += 10;
+            cursorY += 12;
           } else if (line.trim() === '') {
-            cursorY += 5;
+            cursorY += 8; // Add space for paragraphs
           } else {
             const splitText = doc.splitTextToSize(line, textWidth);
             doc.text(splitText, margin, cursorY);
-            cursorY += (splitText.length * 6);
+            cursorY += (splitText.length * 8); // Increased paragraph line spacing
           }
         });
       };
       
       addHeaderFooter();
       
-      processMarkdown(readmeContent);
-      addPage();
       processMarkdown(handbookContent);
       addPage();
       processMarkdown(adminManualContent);
       
-      doc.save('AuntyBernard_Project_Documentation.pdf');
+      doc.save('AuntyBernard_User_Documentation.pdf');
       toast({
         title: 'Download Started',
-        description: 'The full project documentation is being downloaded.',
+        description: 'The user documentation is being downloaded.',
       });
     } catch (error) {
         console.error("Failed to generate documentation PDF: ", error);
