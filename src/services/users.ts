@@ -1,4 +1,5 @@
 
+
 import type { User, UserRole } from '@/lib/types';
 import { db } from '@/lib/firebase-client';
 import { ref, get, set, update } from 'firebase/database';
@@ -9,9 +10,13 @@ export const isFirstRun = async (): Promise<boolean> => {
     try {
         const snapshot = await get(appStateRef);
         return !snapshot.exists() || !snapshot.val();
-    } catch (e) {
-        // If we get a permission denied, it's likely the first run and rules aren't set.
-        // We'll assume it's the first run to allow admin creation.
+    } catch (e: any) {
+        if (e.message.includes('Permission denied')) {
+            // If we get a permission denied, it's because the rules are in place.
+            // This means it's not the first run.
+            return false;
+        }
+        // If some other error, we can assume it's the first run to be safe.
         return true;
     }
 }
@@ -106,3 +111,4 @@ export const authenticateUser = async (emailOrUsername: string, password?: strin
 
     return null;
 };
+
