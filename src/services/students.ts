@@ -52,6 +52,13 @@ export const getStudent = async (id: string): Promise<Student | null> => {
 }
 
 export const addStudent = async (id: string, student: Omit<Student, 'id' | 'status'>, performedBy?: string) => {
+    if (student.trn) {
+        const students = await getStudents(true);
+        if (students.some(s => s.trn === student.trn)) {
+            throw new Error('A student with this TRN already exists.');
+        }
+    }
+
     const creationLog: StudentActivityLogEntry = {
         action: 'Profile Created',
         user: performedBy || 'System',
@@ -73,6 +80,13 @@ export const updateStudent = async (id: string, studentUpdate: Partial<Student>)
     const snapshot = await get(studentRef);
     if (snapshot.exists()) {
         const currentStudent = snapshot.val() as Student;
+
+        if (studentUpdate.trn && studentUpdate.trn !== currentStudent.trn) {
+            const allStudents = await getStudents(true);
+            if (allStudents.some(s => s.id !== id && s.trn === studentUpdate.trn)) {
+                throw new Error('This TRN is already in use by another student.');
+            }
+        }
         
         let action = 'Profile Updated';
         let notes = '';
@@ -103,7 +117,8 @@ export const updateStudent = async (id: string, studentUpdate: Partial<Student>)
             if(changes.length > 0) {
                 notes = changes.join(' ');
             } else {
-                notes = 'No changes were made to the student data.';
+                // If there are no other changes, don't log a generic "Profile Updated"
+                return;
             }
         }
         
@@ -238,6 +253,3 @@ export const setLogoUrl = async (url: string) => {
 export const clearLogoUrl = async () => {
     await set(ref(db, `${APP_SETTINGS_PATH}/logoUrl`), null);
 };
-
-
-

@@ -131,7 +131,7 @@ export default function StudentManager() {
 
     if (searchTerm) {
         results = results.filter(student =>
-            (student?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || student?.id.includes(searchTerm))
+            (student?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || student?.id.includes(searchTerm) || student?.trn?.includes(searchTerm))
         );
     }
 
@@ -227,6 +227,7 @@ export default function StudentManager() {
         return {
             ID: s.id,
             Name: s.name,
+            TRN: s.trn,
             Age: s.age,
             Gender: s.gender,
             Birthday: s.dob,
@@ -433,7 +434,7 @@ export default function StudentManager() {
       <CardHeader>
         <CardTitle>Student Management</CardTitle>
         <CardDescription>
-          Search for enrolled students by name or ID to view their profile and reports.
+          Search for enrolled students by name, ID, or TRN to view their profile and reports.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -443,7 +444,7 @@ export default function StudentManager() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                 type="search"
-                placeholder="Search by name or ID..."
+                placeholder="Search by name, ID, or TRN..."
                 className="pl-8 sm:w-[300px]"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -593,7 +594,7 @@ export default function StudentManager() {
                         <div className="flex items-center gap-3">
                           <div>
                             <div className="font-medium">{student.name}</div>
-                            <div className="text-sm text-muted-foreground font-mono">{student.id}</div>
+                            <div className="text-sm text-muted-foreground font-mono">{student.trn ? `TRN: ${student.trn}` : `ID: ${student.id}`}</div>
                           </div>
                         </div>
                       </TableCell>
@@ -701,4 +702,3 @@ export default function StudentManager() {
     </>
   );
 }
-

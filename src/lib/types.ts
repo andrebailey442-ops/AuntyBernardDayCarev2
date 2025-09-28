@@ -42,6 +42,7 @@ export type Student = {
   id: string;
   name: string;
   age: number;
+  trn?: string;
   dob: string;
   gender: 'Male' | 'Female';
   avatarUrl: string;
