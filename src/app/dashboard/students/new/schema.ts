@@ -52,7 +52,6 @@ const authorizedPickupSchema = z.object({
 export const newStudentSchema = z.object({
     firstName: z.string().min(2, 'First name must be at least 2 characters.').max(50, 'First name cannot exceed 50 characters.'),
     lastName: z.string().min(2, 'Last name must be at least 2 characters.').max(50, 'Last name cannot exceed 50 characters.'),
-    trn: z.string().optional(),
     dob: z.date({ required_error: 'Date of birth is required' }),
     age: z.number({ required_error: 'Age is required.' }).refine(age => age <= 6, {
         message: "Student's age cannot exceed 6 years for online registration.",

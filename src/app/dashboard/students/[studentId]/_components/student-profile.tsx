@@ -122,7 +122,7 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
             <CardTitle className="text-3xl">{student.name}</CardTitle>
         </div>
         <CardDescription>
-          {student.trn ? `TRN: ${student.trn}` : `Student ID: ${student.id}`}
+          Student ID: {student.id}
         </CardDescription>
       </CardHeader>
       <CardContent className="p-6">
@@ -134,7 +134,6 @@ export default function StudentProfile({ studentId }: StudentProfileProps) {
                     <div><p className="text-sm text-muted-foreground">Gender</p><p>{student.gender}</p></div>
                     <div><p className="text-sm text-muted-foreground">Age</p><p>{student.age}</p></div>
                     <div><p className="text-sm text-muted-foreground">Date of Birth</p><p>{format(new Date(student.dob), 'PPP')}</p></div>
-                    <div><p className="text-sm text-muted-foreground">TRN</p><p>{student.trn || 'N/A'}</p></div>
                 </div>
             </div>
 
