@@ -30,9 +30,6 @@ export const updateFee = async (id: string, feeUpdate: Partial<Fee>) => {
 };
 
 export const deleteFeeByStudentId = async (studentId: string) => {
-    const allFees = await getFees();
-    const feeToDelete = allFees.find(f => f.studentId === studentId);
-    if (feeToDelete) {
-        await set(ref(db, `${FEES_PATH}/${feeToDelete.id}`), null);
-    }
+    const feeToDeleteRef = ref(db, `${FEES_PATH}/fee-${studentId}`);
+    await set(feeToDeleteRef, null);
 }

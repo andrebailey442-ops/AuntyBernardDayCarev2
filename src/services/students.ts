@@ -1,9 +1,6 @@
 
 
 import type { Student, StudentActivityLogEntry, StudentStatus } from '@/lib/types';
-import { deleteFeeByStudentId } from './fees';
-import { deleteGradesByStudentId } from './grades';
-import { deleteAttendanceByStudentId } from './attendance';
 import { db } from '@/lib/firebase-client';
 import { ref, get, set, update } from 'firebase/database';
 import { STUDENTS_PATH, ARCHIVED_STUDENTS_PATH } from '@/lib/firebase-db';
@@ -78,7 +75,7 @@ export const updateStudent = async (id: string, studentUpdate: Partial<Student>)
         let notes = '';
 
         if (studentUpdate.status && studentUpdate.status !== currentStudent.status) {
-            action = `Status changed to ${studentUpdate.status}`;
+            action = `Status changed to ${studentUpdate.status.replace(/-/g, ' ')}`;
         } else {
             const changes: string[] = [];
             for (const key in studentUpdate) {
@@ -151,6 +148,12 @@ export const deleteStudent = async (id: string) => {
         await update(ref(db), updates);
     }
 };
+
+export const permanentlyDeleteStudent = async (id: string): Promise<void> => {
+    const archivedStudentRef = ref(db, `${ARCHIVED_STUDENTS_PATH}/${id}`);
+    await set(archivedStudentRef, null);
+};
+
 
 export const reregisterStudent = async (studentId: string): Promise<Student | null> => {
     const archivedStudentRef = ref(db, `${ARCHIVED_STUDENTS_PATH}/${studentId}`);

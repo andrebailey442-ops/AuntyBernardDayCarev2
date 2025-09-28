@@ -37,7 +37,7 @@ export const GRADES: Grade[] = [];
 export const ATTENDANCE: Attendance[] = [];
 
 export const FEES: Fee[] = [
-  { id: 'fee-1001', studentId: 'AB12345678', amount: 3000, amountPaid: 3000, status: 'Paid', plan: 'Full Payment' },
+  { id: 'fee-AB12345678', studentId: 'AB12345678', amount: 3000, amountPaid: 3000, status: 'Paid', plan: 'Full Payment' },
 ];
 
 export const USERS: User[] = [
@@ -73,7 +73,6 @@ export const PERMISSIONS: {id: string, label: string}[] = [
     { id: '/dashboard/nursery', label: 'Nursery' },
     { id: '/dashboard/manage-users', label: 'Manage Users'},
     { id: '/dashboard/staff', label: 'Staff Management' },
-    { id: '/dashboard/archive', label: 'Archive' },
 ];
 
 export const DEFAULT_TEACHER_PERMISSIONS: string[] = ['/dashboard/preschool', '/dashboard/attendance', '/dashboard/grades', '/dashboard/reports', '/dashboard/forms'];
