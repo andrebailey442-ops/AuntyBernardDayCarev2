@@ -89,22 +89,21 @@ export const updateStudent = async (id: string, studentUpdate: Partial<Student>)
                 const newValue = studentUpdate[typedKey];
 
                 if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
-                    // For simple fields
                     if (typeof newValue !== 'object' && typeof oldValue !== 'object') {
-                         changes.push(`Changed ${key} from '${oldValue}' to '${newValue}'.`);
+                        changes.push(`Changed ${key} from '${oldValue || 'empty'}' to '${newValue || 'empty'}'.`);
                     } else if (key === 'guardians' && Array.isArray(newValue) && Array.isArray(oldValue)) {
-                        // More complex logic for guardians if needed
                         changes.push('Updated guardian information.');
                     } else if (key === 'authorizedPickups' && Array.isArray(newValue) && Array.isArray(oldValue)) {
                         changes.push('Updated authorized pickup list.');
                     } else {
-                        // Generic message for complex objects or arrays
                         changes.push(`Updated ${key}.`);
                     }
                 }
             }
             if(changes.length > 0) {
                 notes = changes.join(' ');
+            } else {
+                notes = 'No changes were made to the student data.';
             }
         }
         
@@ -119,7 +118,6 @@ export const updateStudent = async (id: string, studentUpdate: Partial<Student>)
 
         const fullUpdate = { ...studentUpdate, activityLog: updatedActivityLog };
         
-        // If student is being graduated or cancelled
         if (studentUpdate.status === 'graduated' || studentUpdate.status === 'cancelled') {
             const studentToArchive = { ...currentStudent, ...fullUpdate, archivedOn: new Date().toISOString() };
             const updates: { [key: string]: any } = {};
@@ -223,8 +221,16 @@ export const setSlideshowImages = async (images: any) => {
     await set(ref(db, `${APP_SETTINGS_PATH}/slideshowImages`), images);
 };
 export const getLogoUrl = async () => {
-    const snapshot = await get(ref(db, `${APP_SETTINGS_PATH}/logoUrl`));
-    return snapshot.exists() ? snapshot.val() : null;
+    try {
+        const snapshot = await get(ref(db, `${APP_SETTINGS_PATH}/logoUrl`));
+        return snapshot.exists() ? snapshot.val() : null;
+    } catch (error: any) {
+        if (error.message.includes('Permission denied')) {
+            console.warn('Permission denied reading logo URL. This is expected before login.');
+            return null;
+        }
+        throw error;
+    }
 };
 export const setLogoUrl = async (url: string) => {
     await set(ref(db, `${APP_SETTINGS_PATH}/logoUrl`), url);
@@ -232,5 +238,6 @@ export const setLogoUrl = async (url: string) => {
 export const clearLogoUrl = async () => {
     await set(ref(db, `${APP_SETTINGS_PATH}/logoUrl`), null);
 };
+
 
 
