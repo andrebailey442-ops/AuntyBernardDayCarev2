@@ -6,12 +6,9 @@ import * as React from 'react';
 import QuickLinks from '../_components/quick-links';
 import DashboardStats, { ArchivedStudentsSection } from '../_components/dashboard-stats';
 import StudentList from '../_components/student-list';
-import AttendanceChart from '../_components/attendance-chart';
-import GradeOverview from '../_components/grade-overview';
 import { getAttendance } from '@/services/attendance';
 import { getGrades } from '@/services/grades';
 import { getStudents, getArchivedStudents } from '@/services/students';
-import { Skeleton } from '@/components/ui/skeleton';
 import type { Attendance, Grade, Student } from '@/lib/types';
 
 
@@ -31,10 +28,10 @@ export default function PreschoolDashboardPage() {
           getAttendance(),
           getGrades()
         ]);
-        setStudents(studentData);
-        setArchivedStudents(archivedData);
-        setAttendance(attendanceData);
-        setGrades(gradeData);
+        setStudents(studentData || []);
+        setArchivedStudents(archivedData || []);
+        setAttendance(attendanceData || []);
+        setGrades(gradeData || []);
         setLoading(false);
     }
     fetchData();
@@ -47,12 +44,8 @@ export default function PreschoolDashboardPage() {
         </div>
         <DashboardStats students={students} attendance={attendance} archivedStudents={archivedStudents} loading={loading} />
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3 col-span-1 lg:col-span-3">
-            <div className="lg:col-span-2 xl:col-span-2">
+            <div className="lg:col-span-3 xl:col-span-3">
                 <StudentList students={students} loading={loading} />
-            </div>
-            <div className="grid gap-4 auto-rows-max">
-                {loading ? <Skeleton className="h-[300px]" /> : <AttendanceChart attendance={attendance} />}
-                {loading ? <Skeleton className="h-[300px]" /> : <GradeOverview grades={grades} />}
             </div>
         </div>
         <div className="col-span-1 lg:col-span-3">
