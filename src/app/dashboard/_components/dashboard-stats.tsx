@@ -4,7 +4,7 @@
 
 import * as React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, Users, CheckCircle, FileText, Archive } from 'lucide-react';
+import { Users, CheckCircle, FileText, Archive } from 'lucide-react';
 import type { Student, Attendance } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FORMS } from '@/lib/data';
@@ -99,7 +99,7 @@ export default function DashboardStats({ students, archivedStudents, attendance,
     );
 }
 
-export function ArchivedStudentsSection() {
+export function ArchivedStudentsSection({ onDataChanged }: { onDataChanged: () => void }) {
     return (
         <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="item-1">
@@ -117,7 +117,7 @@ export function ArchivedStudentsSection() {
                     </AccordionTrigger>
                     <AccordionContent>
                         <div className="px-6 pb-6">
-                            <ArchiveManager />
+                            <ArchiveManager onDataChanged={onDataChanged} />
                         </div>
                     </AccordionContent>
                  </Card>

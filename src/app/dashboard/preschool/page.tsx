@@ -19,23 +19,24 @@ export default function PreschoolDashboardPage() {
   const [grades, setGrades] = React.useState<Grade[]>([]);
   const [loading, setLoading] = React.useState(true);
 
-  React.useEffect(() => {
-    const fetchData = async () => {
-        setLoading(true);
-        const [studentData, archivedData, attendanceData, gradeData] = await Promise.all([
-          getStudents(),
-          getArchivedStudents(),
-          getAttendance(),
-          getGrades()
-        ]);
-        setStudents(studentData || []);
-        setArchivedStudents(archivedData || []);
-        setAttendance(attendanceData || []);
-        setGrades(gradeData || []);
-        setLoading(false);
-    }
-    fetchData();
+  const fetchData = React.useCallback(async () => {
+    setLoading(true);
+    const [studentData, archivedData, attendanceData, gradeData] = await Promise.all([
+      getStudents(),
+      getArchivedStudents(),
+      getAttendance(),
+      getGrades()
+    ]);
+    setStudents(studentData || []);
+    setArchivedStudents(archivedData || []);
+    setAttendance(attendanceData || []);
+    setGrades(gradeData || []);
+    setLoading(false);
   }, []);
+
+  React.useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   return (
      <div className="grid auto-rows-max items-start gap-4 md:gap-8">
@@ -49,7 +50,7 @@ export default function PreschoolDashboardPage() {
             </div>
         </div>
         <div className="col-span-1 lg:col-span-3">
-            <ArchivedStudentsSection />
+            <ArchivedStudentsSection onDataChanged={fetchData} />
         </div>
       </div>
   );

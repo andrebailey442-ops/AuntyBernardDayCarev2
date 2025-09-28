@@ -22,7 +22,11 @@ import { format } from 'date-fns';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 
-export default function ArchiveManager() {
+type ArchiveManagerProps = {
+    onDataChanged: () => void;
+};
+
+export default function ArchiveManager({ onDataChanged }: ArchiveManagerProps) {
   const { toast } = useToast();
   const [archivedStudents, setArchivedStudents] = React.useState<Student[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -47,7 +51,7 @@ export default function ArchiveManager() {
             title: 'Student Re-registered',
             description: `${restoredStudent.name} has been restored to the active list with a new ID: ${restoredStudent.id}.`,
             });
-            fetchArchivedStudents();
+            onDataChanged();
         } else {
             throw new Error('Failed to find archived student.');
         }
@@ -70,7 +74,7 @@ export default function ArchiveManager() {
               description: `${studentToRemove.name} has been deleted from the database.`,
           });
           setStudentToRemove(null);
-          fetchArchivedStudents();
+          onDataChanged(); // Trigger data refresh in parent
       } catch (error) {
           console.error('Failed to remove student:', error);
           toast({
