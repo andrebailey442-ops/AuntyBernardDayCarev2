@@ -283,7 +283,8 @@ export default function StudentManager() {
             }
 
             mappedStudents.forEach(studentData => {
-                const newId = `SID-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+                const randomDigits = Math.floor(10000000 + Math.random() * 90000000);
+                const newId = `AB${randomDigits}`;
                 
                 const finalStudentData = {
                     name: studentData.name,

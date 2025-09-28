@@ -120,7 +120,8 @@ export function NewStudentForm() {
   });
 
   React.useEffect(() => {
-    const newId = `SID-${Date.now()}`;
+    const randomDigits = Math.floor(10000000 + Math.random() * 90000000);
+    const newId = `AB${randomDigits}`;
     setStudentId(newId);
     form.setValue('studentId', newId);
   }, [form]);

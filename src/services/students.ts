@@ -159,7 +159,8 @@ export const reregisterStudent = async (studentId: string): Promise<Student | nu
     if (snapshot.exists()) {
         const archivedData = snapshot.val();
         
-        const newId = `SID-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+        const randomDigits = Math.floor(10000000 + Math.random() * 90000000);
+        const newId = `AB${randomDigits}`;
         
         const { id, archivedOn, graduationDate, status, ...restOfData } = archivedData;
 
