@@ -4,7 +4,7 @@ import type { Student, Subject, Fee, User, FormDocument, Staff, StaffRole } from
 
 export const STUDENTS: Student[] = [
   {
-    id: 'SID-1001',
+    id: 'AB12345678',
     name: 'Liam Johnson',
     age: 4,
     dob: '2020-05-23',
@@ -37,7 +37,7 @@ export const GRADES: Grade[] = [];
 export const ATTENDANCE: Attendance[] = [];
 
 export const FEES: Fee[] = [
-  { id: 'fee-1001', studentId: 'SID-1001', amount: 3000, amountPaid: 3000, status: 'Paid', plan: 'Full Payment' },
+  { id: 'fee-1001', studentId: 'AB12345678', amount: 3000, amountPaid: 3000, status: 'Paid', plan: 'Full Payment' },
 ];
 
 export const USERS: User[] = [

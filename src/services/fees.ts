@@ -20,7 +20,7 @@ export const getFeeByStudentId = async (studentId: string): Promise<Fee | undefi
 }
 
 export const addFee = async (fee: Omit<Fee, 'id'>) => {
-    const newId = `fee-${Date.now()}`;
+    const newId = `fee-${fee.studentId}`;
     const newFee = { ...fee, id: newId };
     await set(ref(db, `${FEES_PATH}/${newId}`), newFee);
 }
